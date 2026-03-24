@@ -6,6 +6,38 @@ This site is configured to be **non-crawlable** by search engines:
 - ✅ `robots.txt` blocks all search engines
 - ✅ Meta tags include `noindex, nofollow`
 
+## 🗺️ Mapbox Maps Setup (REQUIRED)
+
+The interactive map uses **Mapbox GL JS** with routing, waypoints, and POI overlays.
+
+### Required: Add Mapbox Token
+
+1. **Create free Mapbox account:**
+   - Go to https://account.mapbox.com/auth/signup/
+   - Sign up (free tier: 50,000 map loads/month)
+
+2. **Get your access token:**
+   - After signup, go to https://account.mapbox.com/access-tokens/
+   - Copy your **Default public token** (starts with `pk.`)
+
+3. **Add to Cloudflare Pages:**
+   - Go to [Cloudflare Pages Dashboard](https://dash.cloudflare.com/pages)
+   - Select your project: `fukuoka-itinerary-git`
+   - Go to **Settings** → **Environment variables**
+   - Add a new variable:
+     - **Variable name:** `MAPBOX_TOKEN`
+     - **Value:** Your Mapbox token (pk.ey...)
+     - **Environment:** Production and Preview
+   - Click **Save**
+   - Redeploy the site
+
+### Map Features
+- ✅ Day-by-day routing with driving directions
+- ✅ 18+ waypoints with custom markers
+- ✅ POI (restaurant, attraction, landmark) overlays
+- ✅ 3D tilt, navigation controls, geolocation
+- ✅ Route visualization between stops
+
 ## 🤖 AI Chat Assistant Setup
 
 The AI Trip Assistant uses OpenAI GPT-4o Mini for interactive itinerary customization.
