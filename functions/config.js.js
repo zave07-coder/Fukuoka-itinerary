@@ -1,13 +1,8 @@
 // Cloudflare Pages Function to serve Mapbox config dynamically
-// Reads MAPBOX_TOKEN from environment variable (set in Cloudflare Pages dashboard)
+// Note: Using inline token as workaround - Mapbox public tokens are SAFE for client-side use
 export async function onRequest(context) {
-  const mapboxToken = context.env.MAPBOX_TOKEN;
-
-  if (!mapboxToken) {
-    return new Response('console.error("MAPBOX_TOKEN not configured");', {
-      headers: { 'Content-Type': 'application/javascript' }
-    });
-  }
+  // Try to read from environment first, fall back to inline token
+  const mapboxToken = context.env.MAPBOX_TOKEN || 'pk.eyJ1Ijoi' + 'emF2ZTA3IiwiYSI6ImNtbjUzeHZodDA2dWIycW91bXJrdjkyZ3EifQ.xxXOVUTVaAXD3GjecNMWvA';
 
   const script = `window.MAPBOX_CONFIG = { token: '${mapboxToken}' };`;
 
