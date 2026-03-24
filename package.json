@@ -1,0 +1,19 @@
+{
+  "name": "fukuoka-family-itinerary",
+  "version": "1.0.0",
+  "description": "Interactive itinerary website for a 10-day family trip to Fukuoka, Japan",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server . -p 8080 -o",
+    "deploy": "wrangler pages deploy . --project-name=fukuoka-family-itinerary"
+  },
+  "keywords": [
+    "fukuoka",
+    "japan",
+    "travel",
+    "itinerary",
+    "family-trip"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fukuoka Family Adventure | June 14-23, 2025</title>
+    <meta name="description" content="Interactive itinerary for a 10-day family trip to Fukuoka, Japan">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">🇯🇵 Fukuoka Family Adventure</h1>
+            <p class="hero-subtitle">June 14-23, 2025 | 10 Days of Memories</p>
+            <div class="hero-tags">
+                <span class="tag">👨‍👩‍👧 Family of 3</span>
+                <span class="tag">🚗 Road Trip Ready</span>
+                <span class="tag">🎌 Kyushu Explorer</span>
+            </div>
+        </div>
+        <div class="scroll-indicator">↓ Explore Your Journey ↓</div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">Fukuoka Trip</div>
+            <div class="nav-links">
+                <a href="#itinerary" class="nav-link">Itinerary</a>
+                <a href="#map" class="nav-link">Map</a>
+                <a href="#restaurants" class="nav-link">Food</a>
+                <a href="#tips" class="nav-link">Tips</a>
+            </div>
+            <button class="nav-toggle" id="navToggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Trip Overview -->
+    <section class="trip-overview">
+        <div class="container">
+            <h2 class="section-title">Trip at a Glance</h2>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <div class="overview-icon">📅</div>
+                    <h3>10 Days</h3>
+                    <p>June 14-23, 2025</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🏖️</div>
+                    <h3>Beach Days</h3>
+                    <p>3 coastal adventures</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🏯</div>
+                    <h3>Cultural Sites</h3>
+                    <p>Shrines, castles & museums</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🎡</div>
+                    <h3>Kid Activities</h3>
+                    <p>Aquariums, parks & animals</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Buttons -->
+    <section class="filters">
+        <div class="container">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Days</button>
+                <button class="filter-btn" data-filter="beach">🏖️ Beach</button>
+                <button class="filter-btn" data-filter="cultural">🏯 Cultural</button>
+                <button class="filter-btn" data-filter="kids">👧 Kid-Friendly</button>
+                <button class="filter-btn" data-filter="roadtrip">🚗 Road Trip</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Itinerary Section -->
+    <section id="itinerary" class="itinerary">
+        <div class="container">
+            <h2 class="section-title">Daily Itinerary</h2>
+
+            <!-- Day 1 -->
+            <div class="day-card" data-day="1" data-tags="kids">
+                <div class="day-header">
+                    <div class="day-number">Day 1</div>
+                    <div class="day-date">June 14 (Sat)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Arrival & Settling In</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Easy Day</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>✈️ Arrive at Fukuoka Airport</h4>
+                                <p>Pick up rental car and check into hotel</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Evening</div>
+                            <div class="activity-details">
+                                <h4>🏢 Canal City Hakata</h4>
+                                <p>Light exploration, fountains show, dinner at the shopping complex</p>
+                                <a href="https://canalcity.co.jp/en" target="_blank" class="activity-link">Visit Website →</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Easy first night to combat jet lag. The fountain shows at Canal City are at 10:00, 12:00, 14:00, 16:00, 18:00, 20:00.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="day-card" data-day="2" data-tags="kids cultural">
+                <div class="day-header">
+                    <div class="day-number">Day 2</div>
+                    <div class="day-date">June 15 (Sun)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Fukuoka City Highlights</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Parks</span>
+                        <span class="tag-small">Castle</span>
+                        <span class="tag-small">Ramen</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🦢 Ohori Park</h4>
+                                <p>Beautiful Japanese garden, swan boat rentals, playground area</p>
+                                <div class="location">📍 1-2 Ohorikoen, Chuo Ward</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🏯 Fukuoka Castle Ruins</h4>
+                                <p>Maizuru Park - short walk with great city views</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Evening</div>
+                            <div class="activity-details">
+                                <h4>🍜 Hakata Ramen Experience</h4>
+                                <p>Try Ichiran or Ippudo for authentic tonkotsu ramen</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Rent swan boats at Ohori Park (¥600 for 30 min) - kids love them! Bring bread to feed the fish.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 3 -->
+            <div class="day-card" data-day="3" data-tags="kids beach">
+                <div class="day-header">
+                    <div class="day-number">Day 3</div>
+                    <div class="day-date">June 16 (Mon)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Marine World & Seaside Park</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Aquarium</span>
+                        <span class="tag-small">Beach</span>
+                        <span class="tag-small">Kid Paradise</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🐬 Marine World Uminonakamichi</h4>
+                                <p>Dolphin & sea lion shows, interactive exhibits</p>
+                                <div class="location">📍 30 min drive from central Fukuoka</div>
+                                <a href="https://marine-world.jp/en/" target="_blank" class="activity-link">Visit Website →</a>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🌸 Uminonakamichi Seaside Park</h4>
+                                <p>Huge park with playgrounds, flower fields, animal petting zoo, bike rentals</p>
+                                <div class="location">📍 Right next to the aquarium</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Buy combo ticket for aquarium + park. Shows: Dolphin (11:00, 13:00, 15:00), Sea Lion (12:00, 14:00, 16:00). Arrive early for front row seats!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 4 -->
+            <div class="day-card" data-day="4" data-tags="roadtrip cultural">
+                <div class="day-header">
+                    <div class="day-number">Day 4</div>
+                    <div class="day-date">June 17 (Tue)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Yufuin & Beppu Hot Springs</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Road Trip</span>
+                        <span class="tag-small">Hot Springs</span>
+                        <span class="tag-small">Mountain Views</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🏔️ Yufuin Town</h4>
+                                <p>Drive 1.5-2 hrs to charming hot spring village</p>
+                                <ul>
+                                    <li>Lake Kinrinko walk</li>
+                                    <li>Yunotsubo Kaido shopping street</li>
+                                    <li>Mountain views of Mt. Yufu</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🌋 Beppu "Hells" Tour</h4>
+                                <p>Jigoku Meguri - colorful hot spring viewing spots</p>
+                                <ul>
+                                    <li>Umi Jigoku (Sea Hell) - cobalt blue</li>
+                                    <li>Chi no Ike Jigoku (Blood Pond Hell) - red</li>
+                                    <li>Kids find these fascinating!</li>
+                                </ul>
+                                <div class="location">📍 30 min from Yufuin</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-options">
+                        <h4>Overnight Options:</h4>
+                        <label class="option-label">
+                            <input type="radio" name="day4-stay" value="beppu">
+                            Stay in Beppu family ryokan
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="day4-stay" value="fukuoka" checked>
+                            Return to Fukuoka (1.5 hr drive)
+                        </label>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Beppu Hell Pass ¥2,000 (covers 7 hells). Highway tolls ~¥3,000-4,000 each way.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 5 -->
+            <div class="day-card" data-day="5" data-tags="kids beach">
+                <div class="day-header">
+                    <div class="day-number">Day 5</div>
+                    <div class="day-date">June 18 (Wed)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Relaxed Day in Fukuoka</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Rest Day</span>
+                        <span class="tag-small">Beach</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🍞 Anpanman Museum</h4>
+                                <p>Perfect for 6-year-old! Interactive exhibits, shows, character meet & greet</p>
+                                <div class="location">📍 Hakata Riverain Mall</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🏖️ Momochi Seaside Park</h4>
+                                <p>Beach area with playground</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Optional</div>
+                            <div class="activity-details">
+                                <h4>🗼 Fukuoka Tower</h4>
+                                <p>234m observation deck with panoramic city views</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Use this day to catch up on rest, do laundry, or revisit favorite spots from earlier in the trip.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 6 -->
+            <div class="day-card" data-day="6" data-tags="cultural roadtrip">
+                <div class="day-header">
+                    <div class="day-number">Day 6</div>
+                    <div class="day-date">June 19 (Thu)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Dazaifu Cultural Day</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Shrine</span>
+                        <span class="tag-small">Museum</span>
+                        <span class="tag-small">History</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>⛩️ Dazaifu Tenmangu Shrine</h4>
+                                <p>Beautiful historic shrine with traditional shopping street</p>
+                                <ul>
+                                    <li>Walk through atmospheric approach</li>
+                                    <li>Try umegae mochi (grilled rice cakes) - delicious!</li>
+                                    <li>Feed the koi fish</li>
+                                </ul>
+                                <div class="location">📍 30-40 min drive from Fukuoka</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🏛️ Kyushu National Museum</h4>
+                                <p>Interactive exhibits, family-friendly cultural learning</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Optional</div>
+                            <div class="activity-details">
+                                <h4>🌿 Komyozenji Temple</h4>
+                                <p>Small zen temple with beautiful rock gardens</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Get to Dazaifu early (9am) to avoid crowds. Parking available near shrine (¥500).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 7 -->
+            <div class="day-card" data-day="7" data-tags="roadtrip beach cultural">
+                <div class="day-header">
+                    <div class="day-number">Day 7</div>
+                    <div class="day-date">June 20 (Fri)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Karatsu Castle & Beaches</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Road Trip</span>
+                        <span class="tag-small">Castle</span>
+                        <span class="tag-small">Beach</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🏯 Karatsu Castle</h4>
+                                <p>Seaside castle with stunning ocean views</p>
+                                <div class="location">📍 1 hour drive from Fukuoka</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Midday</div>
+                            <div class="activity-details">
+                                <h4>🌲 Nijinomatsubara Pine Grove</h4>
+                                <p>Scenic coastal pine forest, easy walking paths</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>🏖️ Beach Time!</h4>
+                                <p>Niji no Matsubara Beach - your daughter can play in the sand and waves</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Pack beach toys, towels, and snacks. The coastal drive is beautiful - take your time!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 8 -->
+            <div class="day-card" data-day="8" data-tags="kids beach">
+                <div class="day-header">
+                    <div class="day-number">Day 8</div>
+                    <div class="day-date">June 21 (Sat)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Nokonoshima Island Adventure</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Ferry</span>
+                        <span class="tag-small">Island</span>
+                        <span class="tag-small">Flowers</span>
+                        <span class="tag-small">Animals</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>⛴️ Ferry to Nokonoshima</h4>
+                                <p>Drive to Meinohama Ferry Terminal, take 10-min ferry (kids love ferries!)</p>
+                                <div class="location">📍 Ferry every hour ¥230/adult, ¥120/child</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">All Day</div>
+                            <div class="activity-details">
+                                <h4>🌺 Nokonoshima Island Park</h4>
+                                <ul>
+                                    <li>Flower fields (beautiful in June!)</li>
+                                    <li>Petting zoo with rabbits and goats</li>
+                                    <li>Multiple playgrounds</li>
+                                    <li>Athletic field</li>
+                                    <li>Amazing views of Hakata Bay</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Lunch</div>
+                            <div class="activity-details">
+                                <h4>🍱 Island Dining</h4>
+                                <p>Local seafood restaurant or BBQ area on the island</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Bring yen coins for animal food dispensers. Island park admission ¥1,200/adult, ¥800/child. Last ferry back is around 5:30pm.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 9 -->
+            <div class="day-card" data-day="9" data-tags="roadtrip">
+                <div class="day-header">
+                    <div class="day-number">Day 9</div>
+                    <div class="day-date">June 22 (Sun)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Flexible Day - Choose Your Adventure</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Your Choice</span>
+                    </div>
+                    <div class="day-options">
+                        <h4>Select One:</h4>
+                        <div class="option-card">
+                            <h5>Option 1: Yanagawa River Cruise</h5>
+                            <p>1 hour drive south - river boat rides through old canal town, eel restaurants</p>
+                        </div>
+                        <div class="option-card">
+                            <h5>Option 2: Revisit Favorites</h5>
+                            <p>Return to your daughter's favorite beach or park from the week</p>
+                        </div>
+                        <div class="option-card">
+                            <h5>Option 3: Shopping & Relaxation</h5>
+                            <p>Canal City, Tenjin Underground, or Hakata Station area</p>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Use this day based on weather and family energy levels. Start packing for tomorrow's departure.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 10 -->
+            <div class="day-card" data-day="10" data-tags="">
+                <div class="day-header">
+                    <div class="day-number">Day 10</div>
+                    <div class="day-date">June 23 (Mon)</div>
+                </div>
+                <div class="day-content">
+                    <h3 class="day-title">Departure Day</h3>
+                    <div class="day-tags">
+                        <span class="tag-small">Goodbye Fukuoka</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">Morning</div>
+                            <div class="activity-details">
+                                <h4>🛍️ Last-Minute Shopping</h4>
+                                <p>Hakata Station for souvenirs, local snacks, omiyage (gifts)</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-details">
+                                <h4>✈️ Airport & Departure</h4>
+                                <p>Return rental car at airport, head home with amazing memories!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="day-tip">
+                        <strong>💡 Tip:</strong> Arrive at airport 3 hours before international flight. Say "arigatou gozaimasu" (thank you)!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section id="map" class="map-section">
+        <div class="container">
+            <h2 class="section-title">Interactive Map</h2>
+            <div class="map-container">
+                <iframe
+                    src="https://www.google.com/maps/d/embed?mid=1cVNr7K8aRpfqVeQSC9LUwP_LG8CfZAI&ehbc=2E312F"
+                    width="100%"
+                    height="600"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy">
+                </iframe>
+                <p class="map-note">📍 Key locations marked: Fukuoka City, Beppu, Yufuin, Karatsu, Dazaifu, Nokonoshima</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Restaurants Section -->
+    <section id="restaurants" class="restaurants">
+        <div class="container">
+            <h2 class="section-title">Must-Try Restaurants & Food</h2>
+            <div class="restaurant-grid">
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🍜</div>
+                    <h3>Ichiran Ramen</h3>
+                    <p>Famous tonkotsu ramen chain. Solo booth dining experience (unique!)</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥890-1,200</span>
+                        <span>🕐 24/7 in Tenjin</span>
+                    </div>
+                </div>
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🍜</div>
+                    <h3>Ippudo Ramen</h3>
+                    <p>Another ramen heavyweight. Try the Shiromaru Classic.</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥850-1,500</span>
+                        <span>👧 Kid-friendly</span>
+                    </div>
+                </div>
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🍣</div>
+                    <h3>Genki Sushi</h3>
+                    <p>Conveyor belt sushi - fun for kids! Order via tablet.</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥150-400/plate</span>
+                        <span>👧 Very kid-friendly</span>
+                    </div>
+                </div>
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🥘</div>
+                    <h3>Motsunabe (Hot Pot)</h3>
+                    <p>Fukuoka specialty - beef intestine hot pot (sounds weird, tastes amazing!)</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥3,000-5,000</span>
+                        <span>🌙 Dinner</span>
+                    </div>
+                </div>
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🍢</div>
+                    <h3>Yatai Food Stalls</h3>
+                    <p>Street food carts along the river. Try yakitori, oden, or ramen.</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥500-1,500</span>
+                        <span>🌙 Evening only</span>
+                    </div>
+                </div>
+                <div class="restaurant-card">
+                    <div class="restaurant-icon">🍰</div>
+                    <h3>Umegae Mochi</h3>
+                    <p>Grilled rice cakes in Dazaifu. Get them fresh and hot!</p>
+                    <div class="restaurant-meta">
+                        <span>💰 ¥120-150 each</span>
+                        <span>🍃 Must-try</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tips Section -->
+    <section id="tips" class="tips-section">
+        <div class="container">
+            <h2 class="section-title">Essential Travel Tips</h2>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h3>🚗 Driving in Japan</h3>
+                    <ul>
+                        <li>Drive on the LEFT side</li>
+                        <li>Get International Driving Permit before trip</li>
+                        <li>GPS: Request English GPS with rental car</li>
+                        <li>Tolls: Highway tolls expensive (¥3,000-5,000 for longer trips)</li>
+                        <li>Gas: Say "man-tan" for full tank</li>
+                        <li>Parking: Most attractions have parking ¥300-800</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h3>👧 Traveling with Kids</h3>
+                    <ul>
+                        <li>Request child car seat from rental company</li>
+                        <li>Convenience stores have clean bathrooms everywhere</li>
+                        <li>Parks have excellent playgrounds - take breaks!</li>
+                        <li>Many restaurants have kids menus</li>
+                        <li>Coin laundry widely available</li>
+                        <li>Bring snacks - kids get hungry!</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h3>☔ June Weather</h3>
+                    <ul>
+                        <li>Rainy season (tsuyu) - expect rain!</li>
+                        <li>Pack rain jackets & umbrellas</li>
+                        <li>Temperature: 20-28°C (68-82°F)</li>
+                        <li>Humid - light, breathable clothing</li>
+                        <li>Sunscreen still needed</li>
+                        <li>Indoor backup activities planned</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h3>💴 Money & Payment</h3>
+                    <ul>
+                        <li>Cash is king - many places don't take cards</li>
+                        <li>7-Eleven ATMs accept foreign cards</li>
+                        <li>Budget: ¥15,000-20,000/day for family</li>
+                        <li>IC card (Suica/Pasmo) useful for trains</li>
+                        <li>Tax-free shopping at major stores (passport needed)</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h3>📱 Connectivity</h3>
+                    <ul>
+                        <li>Rent pocket WiFi at airport</li>
+                        <li>Or get tourist SIM card</li>
+                        <li>Download Google Maps offline</li>
+                        <li>Google Translate app is essential</li>
+                        <li>Most hotels have free WiFi</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h3>🎒 Packing Essentials</h3>
+                    <ul>
+                        <li>✅ Sunscreen and hats</li>
+                        <li>✅ Rain gear (jackets, umbrella)</li>
+                        <li>✅ Comfortable walking shoes</li>
+                        <li>✅ Swimwear (beach & onsen)</li>
+                        <li>✅ Small backpack for day trips</li>
+                        <li>✅ Portable phone charger</li>
+                        <li>✅ Basic first aid kit</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Budget Estimator -->
+    <section class="budget-section">
+        <div class="container">
+            <h2 class="section-title">Budget Estimator</h2>
+            <div class="budget-grid">
+                <div class="budget-item">
+                    <h4>🏨 Accommodation</h4>
+                    <p>9 nights × ¥20,000</p>
+                    <div class="budget-amount">¥180,000</div>
+                </div>
+                <div class="budget-item">
+                    <h4>🚗 Car Rental</h4>
+                    <p>10 days compact car</p>
+                    <div class="budget-amount">¥70,000</div>
+                </div>
+                <div class="budget-item">
+                    <h4>⛽ Gas & Tolls</h4>
+                    <p>Estimated for trips</p>
+                    <div class="budget-amount">¥30,000</div>
+                </div>
+                <div class="budget-item">
+                    <h4>🍜 Food</h4>
+                    <p>10 days × ¥10,000</p>
+                    <div class="budget-amount">¥100,000</div>
+                </div>
+                <div class="budget-item">
+                    <h4>🎫 Activities</h4>
+                    <p>Museums, parks, ferries</p>
+                    <div class="budget-amount">¥40,000</div>
+                </div>
+                <div class="budget-item total">
+                    <h4>💰 Total Estimate</h4>
+                    <p>For family of 3</p>
+                    <div class="budget-amount">¥420,000</div>
+                    <div class="budget-usd">≈ $2,800 USD</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🇯🇵 Fukuoka Family Trip</h3>
+                    <p>June 14-23, 2025</p>
+                    <p>10 days of unforgettable memories</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="#itinerary">Itinerary</a>
+                    <a href="#map">Map</a>
+                    <a href="#restaurants">Restaurants</a>
+                    <a href="#tips">Tips</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Useful Resources</h4>
+                    <a href="https://www.japan-guide.com/e/e4800.html" target="_blank">Fukuoka Guide</a>
+                    <a href="https://www.welcome-fukuoka.or.jp/en/" target="_blank">Fukuoka Tourism</a>
+                    <a href="https://www.jrkyushu.co.jp/english/" target="_blank">JR Kyushu</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Made with ❤️ for an amazing family adventure | Have a wonderful trip!</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
