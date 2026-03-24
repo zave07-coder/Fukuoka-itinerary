@@ -15,5 +15,8 @@
     "family-trip"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.76.0"
+  }
 }
