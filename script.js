@@ -384,27 +384,8 @@ window.shareItinerary = shareItinerary;
 window.saveItineraryOffline = saveItineraryOffline;
 
 // ===== INTERACTIVE MAP WITH MAPBOX =====
-let MAPBOX_TOKEN = null;
-
-// Fetch Mapbox token from API
-async function loadMapboxToken() {
-    try {
-        const response = await fetch('/api/mapbox-token');
-        const data = await response.json();
-
-        if (data.error) {
-            alert('Mapbox not configured. Please add MAPBOX_TOKEN environment variable to Cloudflare Pages.');
-            return null;
-        }
-
-        MAPBOX_TOKEN = data.token;
-        return MAPBOX_TOKEN;
-    } catch (error) {
-        console.error('Error loading Mapbox token:', error);
-        alert('Failed to load map. Please refresh the page.');
-        return null;
-    }
-}
+// Token loaded from config.js (window.MAPBOX_CONFIG)
+const MAPBOX_TOKEN = window.MAPBOX_CONFIG?.token || null;
 
 const locations = [
     { name: "Fukuoka Airport", lat: 33.5859, lng: 130.4509, type: "airport", day: 1, order: 1 },
@@ -673,8 +654,7 @@ async function drawRoute(locations) {
 
 // Initialize map when page loads
 if (document.getElementById('interactiveMap')) {
-    window.addEventListener('load', async () => {
-        await loadMapboxToken();
+    window.addEventListener('load', () => {
         initMap();
     });
 }

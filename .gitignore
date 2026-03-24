@@ -1,8 +1,2 @@
-node_modules/
-.env
-.env.local
-dist/
-.DS_Store
-*.log
-.wrangler/
-.cache/
+# Mapbox token config (public token, but GitHub flags it)
+config.js
