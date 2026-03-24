@@ -11,8 +11,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
 </head>
 <body>
     <!-- Hero Section -->
@@ -548,9 +550,25 @@
     <!-- Map Section -->
     <section id="map" class="map-section">
         <div class="container">
-            <h2 class="section-title">Interactive Map</h2>
-            <div id="interactiveMap" style="height: 600px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
-            <p class="map-note">📍 Click on markers to see details | Zoom and pan to explore</p>
+            <h2 class="section-title">🗺️ Interactive Map with Routes</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
+                Select a day to see the driving route and waypoints. Click markers for details.
+            </p>
+            <div id="interactiveMap" style="height: 650px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;"></div>
+            <div class="map-legend" style="margin-top: 1rem; padding: 1rem; background: #f5f7fa; border-radius: 8px;">
+                <strong>Map Features:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem; columns: 2;">
+                    <li>✈️ Airports | 🚂 Transport</li>
+                    <li>🏯 Cultural Sites | ⛩️ Shrines</li>
+                    <li>🏖️ Beaches | 🌳 Parks</li>
+                    <li>🛍️ Shopping | 🐠 Aquarium</li>
+                    <li>♨️ Hot Springs | 🏰 Castles</li>
+                    <li>🗼 Attractions | 🏘️ Towns</li>
+                </ul>
+                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+                    💡 Use the day selector (top left) to view daily routes | POI labels visible at zoom level 12+
+                </p>
+            </div>
         </div>
     </section>
 

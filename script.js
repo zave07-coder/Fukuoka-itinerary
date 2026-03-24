@@ -383,62 +383,135 @@ window.exportToCalendar = exportToCalendar;
 window.shareItinerary = shareItinerary;
 window.saveItineraryOffline = saveItineraryOffline;
 
-// ===== INTERACTIVE MAP WITH LEAFLET =====
+// ===== INTERACTIVE MAP WITH MAPBOX =====
+let MAPBOX_TOKEN = null;
+
+// Fetch Mapbox token from API
+async function loadMapboxToken() {
+    try {
+        const response = await fetch('/api/mapbox-token');
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Mapbox not configured. Please add MAPBOX_TOKEN environment variable to Cloudflare Pages.');
+            return null;
+        }
+
+        MAPBOX_TOKEN = data.token;
+        return MAPBOX_TOKEN;
+    } catch (error) {
+        console.error('Error loading Mapbox token:', error);
+        alert('Failed to load map. Please refresh the page.');
+        return null;
+    }
+}
+
 const locations = [
-    { name: "Fukuoka Airport", lat: 33.5859, lng: 130.4509, type: "airport", day: "1,10" },
-    { name: "Hakata Station", lat: 33.5904, lng: 130.4206, type: "transport", day: "1" },
-    { name: "Canal City Hakata", lat: 33.5897, lng: 130.4086, type: "shopping", day: "1" },
-    { name: "Ohori Park", lat: 33.5844, lng: 130.3789, type: "park", day: "2" },
-    { name: "Fukuoka Castle Ruins", lat: 33.5850, lng: 130.3805, type: "cultural", day: "2" },
-    { name: "Momochi Seaside Park", lat: 33.5936, lng: 130.3583, type: "beach", day: "2" },
-    { name: "Fukuoka Tower", lat: 33.5936, lng: 130.3580, type: "attraction", day: "2" },
-    { name: "Marine World Uminonakamichi", lat: 33.6533, lng: 130.4044, type: "aquarium", day: "3" },
-    { name: "Uminonakamichi Seaside Park", lat: 33.6569, lng: 130.4133, type: "park", day: "3" },
-    { name: "Dazaifu Tenmangu Shrine", lat: 33.5227, lng: 130.5334, type: "shrine", day: "4" },
-    { name: "Kyushu National Museum", lat: 33.5239, lng: 130.5361, type: "museum", day: "4" },
-    { name: "Beppu Onsens", lat: 33.2845, lng: 131.4910, type: "onsen", day: "5" },
-    { name: "Yufuin", lat: 33.2648, lng: 131.3633, type: "town", day: "6" },
-    { name: "Karatsu Castle", lat: 33.4516, lng: 129.9686, type: "castle", day: "7" },
-    { name: "Nijinomatsubara Pine Forest", lat: 33.4347, lng: 129.9742, type: "nature", day: "7" },
-    { name: "Nokonoshima Island", lat: 33.6144, lng: 130.2806, type: "island", day: "8" },
-    { name: "Tenjin Shopping District", lat: 33.5908, lng: 130.3993, type: "shopping", day: "9" },
-    { name: "Kushida Shrine", lat: 33.5952, lng: 130.4120, type: "shrine", day: "9" }
+    { name: "Fukuoka Airport", lat: 33.5859, lng: 130.4509, type: "airport", day: 1, order: 1 },
+    { name: "Hakata Station", lat: 33.5904, lng: 130.4206, type: "transport", day: 1, order: 2 },
+    { name: "Canal City Hakata", lat: 33.5897, lng: 130.4086, type: "shopping", day: 1, order: 3 },
+    { name: "Ohori Park", lat: 33.5844, lng: 130.3789, type: "park", day: 2, order: 1 },
+    { name: "Fukuoka Castle Ruins", lat: 33.5850, lng: 130.3805, type: "cultural", day: 2, order: 2 },
+    { name: "Momochi Seaside Park", lat: 33.5936, lng: 130.3583, type: "beach", day: 2, order: 3 },
+    { name: "Fukuoka Tower", lat: 33.5936, lng: 130.3580, type: "attraction", day: 2, order: 4 },
+    { name: "Marine World Uminonakamichi", lat: 33.6533, lng: 130.4044, type: "aquarium", day: 3, order: 1 },
+    { name: "Uminonakamichi Seaside Park", lat: 33.6569, lng: 130.4133, type: "park", day: 3, order: 2 },
+    { name: "Dazaifu Tenmangu Shrine", lat: 33.5227, lng: 130.5334, type: "shrine", day: 4, order: 1 },
+    { name: "Kyushu National Museum", lat: 33.5239, lng: 130.5361, type: "museum", day: 4, order: 2 },
+    { name: "Beppu Onsens", lat: 33.2845, lng: 131.4910, type: "onsen", day: 5, order: 1 },
+    { name: "Yufuin", lat: 33.2648, lng: 131.3633, type: "town", day: 6, order: 1 },
+    { name: "Karatsu Castle", lat: 33.4516, lng: 129.9686, type: "castle", day: 7, order: 1 },
+    { name: "Nijinomatsubara Pine Forest", lat: 33.4347, lng: 129.9742, type: "nature", day: 7, order: 2 },
+    { name: "Nokonoshima Island", lat: 33.6144, lng: 130.2806, type: "island", day: 8, order: 1 },
+    { name: "Tenjin Shopping District", lat: 33.5908, lng: 130.3993, type: "shopping", day: 9, order: 1 },
+    { name: "Kushida Shrine", lat: 33.5952, lng: 130.4120, type: "shrine", day: 9, order: 2 },
+    { name: "Fukuoka Airport", lat: 33.5859, lng: 130.4509, type: "airport", day: 10, order: 1 }
 ];
 
 let map;
 let markers = [];
+let currentRoute = null;
+let selectedDay = 'all';
 
 function initMap() {
-    // Initialize the map centered on Fukuoka
-    map = L.map('interactiveMap').setView([33.5904, 130.4017], 11);
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18
-    }).addTo(map);
-
-    // Add markers for all locations
-    locations.forEach(location => {
-        const icon = getMarkerIcon(location.type);
-        const marker = L.marker([location.lat, location.lng], { icon })
-            .addTo(map)
-            .bindPopup(`
-                <div style="text-align: center; padding: 0.5rem;">
-                    <strong>${location.name}</strong><br>
-                    <small>Day ${location.day}</small><br>
-                    <small>${location.type.toUpperCase()}</small>
-                </div>
-            `);
-        markers.push({ marker, location });
+    // Initialize Mapbox map with satellite streets for better POI visibility
+    map = new mapboxgl.Map({
+        container: 'interactiveMap',
+        style: 'mapbox://styles/mapbox/streets-v12', // Streets with POIs
+        center: [130.4017, 33.5904], // Fukuoka center [lng, lat]
+        zoom: 10,
+        pitch: 45, // 3D tilt
+        bearing: 0
     });
 
-    // Add custom controls
-    addMapControls();
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Add fullscreen control
+    map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+    // Add geolocation control
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+    }), 'top-right');
+
+    // Wait for map to load
+    map.on('load', () => {
+        // Enable POI labels
+        map.setLayoutProperty('poi-label', 'visibility', 'visible');
+
+        // Add markers for all locations
+        addMarkersToMap();
+
+        // Add route selector control
+        addDaySelector();
+
+        // Show all routes by default
+        showRouteForDay('all');
+    });
 }
 
-function getMarkerIcon(type) {
-    const iconUrls = {
+function addMarkersToMap() {
+    locations.forEach((location, index) => {
+        // Create custom marker element
+        const el = document.createElement('div');
+        el.className = 'custom-mapbox-marker';
+        el.innerHTML = getMarkerEmoji(location.type);
+        el.style.fontSize = '28px';
+        el.style.cursor = 'pointer';
+        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+
+        // Create popup
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+                <div style="text-align: center; padding: 0.8rem; min-width: 150px;">
+                    <div style="font-size: 24px; margin-bottom: 0.5rem;">${getMarkerEmoji(location.type)}</div>
+                    <strong style="font-size: 1.1rem;">${location.name}</strong><br>
+                    <span style="color: #666; font-size: 0.9rem;">Day ${location.day} - Stop ${location.order}</span><br>
+                    <span style="background: #e3f2fd; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.85rem; margin-top: 0.5rem; display: inline-block;">
+                        ${location.type.toUpperCase()}
+                    </span>
+                </div>
+            `);
+
+        // Add marker to map
+        const marker = new mapboxgl.Marker(el)
+            .setLngLat([location.lng, location.lat])
+            .setPopup(popup)
+            .addTo(map);
+
+        markers.push({ marker, location, element: el });
+    });
+}
+
+function getMarkerEmoji(type) {
+    const emojiMap = {
         airport: '✈️',
         transport: '🚂',
         shopping: '🛍️',
@@ -455,37 +528,155 @@ function getMarkerIcon(type) {
         nature: '🌲',
         island: '🏝️'
     };
-
-    return L.divIcon({
-        html: `<div style="font-size: 24px;">${iconUrls[type] || '📍'}</div>`,
-        className: 'custom-marker',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30]
-    });
+    return emojiMap[type] || '📍';
 }
 
-function addMapControls() {
-    // Add a custom control for filtering
-    const FilterControl = L.Control.extend({
-        onAdd: function(map) {
-            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '10px';
-            div.style.cursor = 'pointer';
-            div.innerHTML = '<strong>🗺️ Filter</strong>';
-            div.onclick = function() {
-                alert('Click on markers to see location details!');
-            };
-            return div;
-        }
+function addDaySelector() {
+    // Create custom control for day selection
+    const container = document.createElement('div');
+    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group day-selector';
+    container.style.cssText = `
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        max-width: 200px;
+    `;
+
+    const title = document.createElement('div');
+    title.innerHTML = '<strong>📍 Show Route</strong>';
+    title.style.marginBottom = '8px';
+    container.appendChild(title);
+
+    const select = document.createElement('select');
+    select.style.cssText = 'width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ddd;';
+    select.innerHTML = `
+        <option value="all">All Days</option>
+        <option value="1">Day 1: Arrival</option>
+        <option value="2">Day 2: Fukuoka City</option>
+        <option value="3">Day 3: Aquarium</option>
+        <option value="4">Day 4: Dazaifu</option>
+        <option value="5">Day 5: Beppu</option>
+        <option value="6">Day 6: Yufuin</option>
+        <option value="7">Day 7: Karatsu</option>
+        <option value="8">Day 8: Island</option>
+        <option value="9">Day 9: Shopping</option>
+        <option value="10">Day 10: Departure</option>
+    `;
+
+    select.addEventListener('change', (e) => {
+        showRouteForDay(e.target.value);
     });
 
-    map.addControl(new FilterControl({ position: 'topright' }));
+    container.appendChild(select);
+
+    // Add to map
+    map.getContainer().appendChild(container);
+    container.style.position = 'absolute';
+    container.style.top = '10px';
+    container.style.left = '10px';
+    container.style.zIndex = '1';
+}
+
+function showRouteForDay(day) {
+    selectedDay = day;
+
+    // Remove existing route
+    if (currentRoute && map.getLayer('route')) {
+        map.removeLayer('route');
+        map.removeSource('route');
+        currentRoute = null;
+    }
+
+    // Filter locations by day
+    let dayLocations;
+    if (day === 'all') {
+        // Show all locations
+        dayLocations = locations;
+        markers.forEach(m => m.element.style.opacity = '1');
+    } else {
+        const dayNum = parseInt(day);
+        dayLocations = locations.filter(l => l.day === dayNum);
+
+        // Update marker opacity
+        markers.forEach(m => {
+            m.element.style.opacity = m.location.day === dayNum ? '1' : '0.3';
+        });
+    }
+
+    // Draw route if we have multiple locations
+    if (dayLocations.length > 1 && day !== 'all') {
+        drawRoute(dayLocations);
+    }
+
+    // Fit map to show all selected locations
+    if (dayLocations.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        dayLocations.forEach(loc => {
+            bounds.extend([loc.lng, loc.lat]);
+        });
+        map.fitBounds(bounds, { padding: 80, maxZoom: 13 });
+    }
+}
+
+async function drawRoute(locations) {
+    if (locations.length < 2) return;
+
+    // Sort locations by order
+    const sorted = [...locations].sort((a, b) => a.order - b.order);
+
+    // Create coordinates string for Mapbox Directions API
+    const coordinates = sorted.map(l => `${l.lng},${l.lat}`).join(';');
+
+    try {
+        // Call Mapbox Directions API for driving route
+        const response = await fetch(
+            `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&overview=full&access_token=${mapboxgl.accessToken}`
+        );
+
+        const data = await response.json();
+
+        if (data.routes && data.routes[0]) {
+            const route = data.routes[0].geometry;
+
+            // Add route to map
+            map.addSource('route', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: route
+                }
+            });
+
+            map.addLayer({
+                id: 'route',
+                type: 'line',
+                source: 'route',
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                paint: {
+                    'line-color': '#3887be',
+                    'line-width': 5,
+                    'line-opacity': 0.75
+                }
+            });
+
+            currentRoute = route;
+        }
+    } catch (error) {
+        console.error('Error drawing route:', error);
+    }
 }
 
 // Initialize map when page loads
 if (document.getElementById('interactiveMap')) {
-    window.addEventListener('load', initMap);
+    window.addEventListener('load', async () => {
+        await loadMapboxToken();
+        initMap();
+    });
 }
 
 // ===== AI CHAT ASSISTANT =====
