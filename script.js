@@ -847,22 +847,39 @@ function updateMapLocations(mapUpdates) {
     // Update map with new locations
     console.log('Updating map:', mapUpdates);
 
-    if (mapUpdates.addLocations) {
+    if (mapUpdates.addLocations && map) {
         mapUpdates.addLocations.forEach(loc => {
-            const icon = getMarkerIcon(loc.type || 'attraction');
-            const marker = L.marker([loc.lat, loc.lng], { icon })
-                .addTo(map)
-                .bindPopup(`
-                    <div style="text-align: center; padding: 0.5rem;">
+            // Create custom marker element
+            const el = document.createElement('div');
+            el.className = 'custom-mapbox-marker';
+            el.innerHTML = getMarkerEmoji(loc.type || 'attraction');
+            el.style.fontSize = '28px';
+            el.style.cursor = 'pointer';
+            el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+
+            // Create popup
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setHTML(`
+                    <div style="text-align: center; padding: 0.8rem;">
+                        <div style="font-size: 24px;">${getMarkerEmoji(loc.type || 'attraction')}</div>
                         <strong>${loc.name}</strong><br>
-                        <small>New Location</small>
+                        <small style="color: #666;">New Location</small>
                     </div>
                 `);
-            markers.push({ marker, location: loc });
+
+            // Add marker to map
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([loc.lng, loc.lat])
+                .setPopup(popup)
+                .addTo(map);
+
+            markers.push({ marker, location: loc, element: el });
+            locations.push(loc);
         });
 
         // Adjust map bounds to show all markers
-        const bounds = L.latLngBounds(markers.map(m => m.marker.getLatLng()));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        const bounds = new mapboxgl.LngLatBounds();
+        markers.forEach(m => bounds.extend(m.marker.getLngLat()));
+        map.fitBounds(bounds, { padding: 50 });
     }
 }

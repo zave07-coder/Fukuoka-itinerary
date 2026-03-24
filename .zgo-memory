@@ -1,53 +1,4 @@
- built:
-
-## 🎉 Complete Interactive Website Created!
-
-### **What's Included:**
-
-#### 📄 **Core Files**
-1. **index.html** - Beautiful, interactive single-page website with:
-   - Hero section with stunning background
-   - Day-by-day itinerary (all 10 days)
-   - Interactive map with locations
-   - Restaurant recommendations
-   - Travel tips section
-   - Budget estimator
-
-2. **styles.css** - Moder
-
-[2026-03-24] The OAuth login requires a browser, which isn't available in this environment. Let me provide you with the deployment instructions:
-
-## ✅ Code Committed Successfully!
-
-Your interactive Fukuoka itinerary website has been committed to the local Git repository.
-
-## 🚀 Deploy to Cloudflare Pages - Choose Your Method:
-
-### **Method 1: Direct Upload (Easiest - No Login Needed)**
-
-1. Go to [Cloudflare Pages Dashboard](https://dash.cloudflare.com)
-2. Click **"Create a project"** → **"Direct Upload"**
-3.
-
-[2026-03-24] Unfortunately, I don't have access to Cloudflare API credentials in the environment. However, I can help you set up deployment in a couple of ways:
-
-## 🔐 No Cloudflare API Credentials Found
-
-I checked for:
-- ❌ `CLOUDFLARE_API_TOKEN` environment variable
-- ❌ `CF_API_TOKEN` environment variable  
-- ❌ Wrangler config files in `~/.wrangler/`
-- ❌ Cloudflare credential files
-
-## 🚀 **Best Deployment Options:**
-
-### **Option 1: Manual Direct Upload (Fastest - 2 minutes)**
-
-This doesn't require any API
-
-[2026-03-24] ## 🎉 Successfully Deployed to Cloudflare Pages!
-
-Your interactive Fukuoka family itinerary is now live at:
+ at:
 
 ### 🔗 **Production URL:** https://fukuoka-itinerary-arq.pages.dev/
 ### 🔗 **Deployment URL:** https://bdc457e5.fukuoka-itinerary-arq.pages.dev
@@ -122,3 +73,45 @@ I just tested the AI chat and it's responding successfully! The OpenAI API key h
 ### 🤖 How to Use the AI Assistant:
 
 1. Visit your site: h
+
+[2026-03-24] Perfect! Now let me get you a Mapbox token. I'll check if there's one available or guide you through creating one:
+
+## 🎉 Map Upgrade Complete! Now Using **Mapbox**
+
+### ✅ What Changed:
+
+We upgraded from basic OpenStreetMap to **Mapbox GL JS** with professional features:
+
+#### 🗺️ **New Map Features:**
+
+1. **Routing & Waypoints:**
+   - Select any day (1-10) to see the driving route
+   - Blue lines show the exact path between locations
+   - Routes calculated using Mapbox Directions API
+
+2. **POI
+
+[2026-03-24] ## 🎉 Maps are Working! Now let me add more details to the itinerary
+
+The Mapbox maps with routing and POI overlays are now fully functional at **https://fukuoka-itinerary-git.pages.dev**!
+
+Now I'll enhance the itinerary with more details. What kind of details would you like me to add? For example:
+
+1. **More specific timing** (e.g., "9:00 AM" instead of "Morning")
+2. **Prices & costs** for attractions
+3. **Duration estimates** (how long to spend at each place)
+4. **Practical tips** (parking, be
+
+[2026-03-24] Perfect! The map is fixed and Day 1-2 now have comprehensive details! Check out the updated site at **https://fukuoka-itinerary-git.pages.dev**
+
+## ✅ What's Been Updated:
+
+### 🗺️ **Map Bug Fixed!**
+- Removed all Leaflet references that were causing the error
+- Map now loads properly with Mapbox, routes, and POI overlays
+- Day selector working, click markers to see details
+
+### 📋 **Day 1 & Day 2 - Comprehensive Details Added:**
+
+**Now includes for each activity:**
+- ⏰ Specific times (not just "
