@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fukuoka Family Adventure | June 14-23, 2025</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Fukuoka Family Adventure | June 14-23, 2026</title>
     <meta name="description" content="Interactive itinerary for a 10-day family trip to Fukuoka, Japan">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <!-- Hero Section -->
@@ -16,7 +20,7 @@
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1 class="hero-title">🇯🇵 Fukuoka Family Adventure</h1>
-            <p class="hero-subtitle">June 14-23, 2025 | 10 Days of Memories</p>
+            <p class="hero-subtitle">June 14-23, 2026 | 10 Days of Memories</p>
             <div class="hero-tags">
                 <span class="tag">👨‍👩‍👧 Family of 3</span>
                 <span class="tag">🚗 Road Trip Ready</span>
@@ -48,7 +52,7 @@
                 <div class="overview-card">
                     <div class="overview-icon">📅</div>
                     <h3>10 Days</h3>
-                    <p>June 14-23, 2025</p>
+                    <p>June 14-23, 2026</p>
                 </div>
                 <div class="overview-card">
                     <div class="overview-icon">🏖️</div>
@@ -100,23 +104,39 @@
                     </div>
                     <div class="activities">
                         <div class="activity">
-                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-time">01:20 AM</div>
                             <div class="activity-details">
-                                <h4>✈️ Arrive at Fukuoka Airport</h4>
-                                <p>Pick up rental car and check into hotel</p>
+                                <h4>✈️ Depart Singapore (SIN)</h4>
+                                <p><strong>Singapore Airlines SQ 656</strong> | Boeing 787-10</p>
+                                <p>📍 Changi Terminal 2 → Fukuoka Intl Terminal I</p>
+                                <p>⏱️ Flight Duration: 6h 0m</p>
                             </div>
                         </div>
                         <div class="activity">
-                            <div class="activity-time">Evening</div>
+                            <div class="activity-time">08:20 AM</div>
+                            <div class="activity-details">
+                                <h4>🛬 Arrive Fukuoka Airport (FUK)</h4>
+                                <p>Immigration, baggage claim, pick up rental car</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Late Morning</div>
+                            <div class="activity-details">
+                                <h4>🏨 Check-in to Hotel</h4>
+                                <p>Rest and freshen up after the red-eye flight</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">Afternoon</div>
                             <div class="activity-details">
                                 <h4>🏢 Canal City Hakata</h4>
-                                <p>Light exploration, fountains show, dinner at the shopping complex</p>
+                                <p>Light exploration, fountain shows, dinner at the shopping complex</p>
                                 <a href="https://canalcity.co.jp/en" target="_blank" class="activity-link">Visit Website →</a>
                             </div>
                         </div>
                     </div>
                     <div class="day-tip">
-                        <strong>💡 Tip:</strong> Easy first night to combat jet lag. The fountain shows at Canal City are at 10:00, 12:00, 14:00, 16:00, 18:00, 20:00.
+                        <strong>💡 Tip:</strong> Red-eye flight arrives early morning - perfect for maximizing Day 1! Take it easy to combat jet lag. Canal City fountain shows: 10:00, 12:00, 14:00, 16:00, 18:00, 20:00.
                     </div>
                 </div>
             </div>
@@ -487,22 +507,38 @@
                     </div>
                     <div class="activities">
                         <div class="activity">
-                            <div class="activity-time">Morning</div>
+                            <div class="activity-time">Early Morning</div>
                             <div class="activity-details">
                                 <h4>🛍️ Last-Minute Shopping</h4>
-                                <p>Hakata Station for souvenirs, local snacks, omiyage (gifts)</p>
+                                <p>Quick visit to Hakata Station for souvenirs, local snacks, omiyage (gifts)</p>
                             </div>
                         </div>
                         <div class="activity">
-                            <div class="activity-time">Afternoon</div>
+                            <div class="activity-time">07:00 AM</div>
                             <div class="activity-details">
-                                <h4>✈️ Airport & Departure</h4>
-                                <p>Return rental car at airport, head home with amazing memories!</p>
+                                <h4>🚗 Return Rental Car</h4>
+                                <p>Return car at Fukuoka Airport, check in for flight</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">10:00 AM</div>
+                            <div class="activity-details">
+                                <h4>✈️ Depart Fukuoka (FUK)</h4>
+                                <p><strong>Singapore Airlines SQ 655</strong> | Boeing 787-10</p>
+                                <p>📍 Fukuoka Intl Terminal I → Changi Airport</p>
+                                <p>⏱️ Flight Duration: 6h 0m</p>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">03:00 PM</div>
+                            <div class="activity-details">
+                                <h4>🛬 Arrive Singapore (SIN)</h4>
+                                <p>Home sweet home with amazing memories! さようなら (Sayonara)!</p>
                             </div>
                         </div>
                     </div>
                     <div class="day-tip">
-                        <strong>💡 Tip:</strong> Arrive at airport 3 hours before international flight. Say "arigatou gozaimasu" (thank you)!
+                        <strong>💡 Tip:</strong> Flight departs at 10:00 AM - arrive at airport by 7:00 AM. Say "arigatou gozaimasu" (thank you very much) to everyone!
                     </div>
                 </div>
             </div>
@@ -513,17 +549,8 @@
     <section id="map" class="map-section">
         <div class="container">
             <h2 class="section-title">Interactive Map</h2>
-            <div class="map-container">
-                <iframe
-                    src="https://www.google.com/maps/d/embed?mid=1cVNr7K8aRpfqVeQSC9LUwP_LG8CfZAI&ehbc=2E312F"
-                    width="100%"
-                    height="600"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy">
-                </iframe>
-                <p class="map-note">📍 Key locations marked: Fukuoka City, Beppu, Yufuin, Karatsu, Dazaifu, Nokonoshima</p>
-            </div>
+            <div id="interactiveMap" style="height: 600px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+            <p class="map-note">📍 Click on markers to see details | Zoom and pan to explore</p>
         </div>
     </section>
 
@@ -732,6 +759,40 @@
             </div>
         </div>
     </footer>
+
+    <!-- AI Chat Assistant -->
+    <div id="aiChatWidget" class="chat-widget">
+        <button id="chatToggle" class="chat-toggle">
+            <span class="chat-icon">🤖</span>
+            <span class="chat-label">AI Trip Assistant</span>
+        </button>
+        <div id="chatWindow" class="chat-window">
+            <div class="chat-header">
+                <h3>🤖 AI Trip Planner</h3>
+                <p>Customize your Fukuoka itinerary</p>
+                <button id="chatClose" class="chat-close">×</button>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <div class="chat-message bot-message">
+                    <p>👋 Hi! I'm your AI trip assistant. I can help you:</p>
+                    <ul>
+                        <li>Adjust your daily schedule</li>
+                        <li>Add or remove activities</li>
+                        <li>Find alternative restaurants</li>
+                        <li>Update the map with new locations</li>
+                    </ul>
+                    <p>What would you like to change?</p>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="E.g., 'Add more kid activities on Day 3'" />
+                <button id="chatSend">Send</button>
+            </div>
+            <div class="chat-footer">
+                <small>⚡ Powered by OpenAI GPT-4o Mini</small>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

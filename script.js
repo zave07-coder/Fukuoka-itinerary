@@ -382,3 +382,296 @@ window.printItinerary = printItinerary;
 window.exportToCalendar = exportToCalendar;
 window.shareItinerary = shareItinerary;
 window.saveItineraryOffline = saveItineraryOffline;
+
+// ===== INTERACTIVE MAP WITH LEAFLET =====
+const locations = [
+    { name: "Fukuoka Airport", lat: 33.5859, lng: 130.4509, type: "airport", day: "1,10" },
+    { name: "Hakata Station", lat: 33.5904, lng: 130.4206, type: "transport", day: "1" },
+    { name: "Canal City Hakata", lat: 33.5897, lng: 130.4086, type: "shopping", day: "1" },
+    { name: "Ohori Park", lat: 33.5844, lng: 130.3789, type: "park", day: "2" },
+    { name: "Fukuoka Castle Ruins", lat: 33.5850, lng: 130.3805, type: "cultural", day: "2" },
+    { name: "Momochi Seaside Park", lat: 33.5936, lng: 130.3583, type: "beach", day: "2" },
+    { name: "Fukuoka Tower", lat: 33.5936, lng: 130.3580, type: "attraction", day: "2" },
+    { name: "Marine World Uminonakamichi", lat: 33.6533, lng: 130.4044, type: "aquarium", day: "3" },
+    { name: "Uminonakamichi Seaside Park", lat: 33.6569, lng: 130.4133, type: "park", day: "3" },
+    { name: "Dazaifu Tenmangu Shrine", lat: 33.5227, lng: 130.5334, type: "shrine", day: "4" },
+    { name: "Kyushu National Museum", lat: 33.5239, lng: 130.5361, type: "museum", day: "4" },
+    { name: "Beppu Onsens", lat: 33.2845, lng: 131.4910, type: "onsen", day: "5" },
+    { name: "Yufuin", lat: 33.2648, lng: 131.3633, type: "town", day: "6" },
+    { name: "Karatsu Castle", lat: 33.4516, lng: 129.9686, type: "castle", day: "7" },
+    { name: "Nijinomatsubara Pine Forest", lat: 33.4347, lng: 129.9742, type: "nature", day: "7" },
+    { name: "Nokonoshima Island", lat: 33.6144, lng: 130.2806, type: "island", day: "8" },
+    { name: "Tenjin Shopping District", lat: 33.5908, lng: 130.3993, type: "shopping", day: "9" },
+    { name: "Kushida Shrine", lat: 33.5952, lng: 130.4120, type: "shrine", day: "9" }
+];
+
+let map;
+let markers = [];
+
+function initMap() {
+    // Initialize the map centered on Fukuoka
+    map = L.map('interactiveMap').setView([33.5904, 130.4017], 11);
+
+    // Add tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+
+    // Add markers for all locations
+    locations.forEach(location => {
+        const icon = getMarkerIcon(location.type);
+        const marker = L.marker([location.lat, location.lng], { icon })
+            .addTo(map)
+            .bindPopup(`
+                <div style="text-align: center; padding: 0.5rem;">
+                    <strong>${location.name}</strong><br>
+                    <small>Day ${location.day}</small><br>
+                    <small>${location.type.toUpperCase()}</small>
+                </div>
+            `);
+        markers.push({ marker, location });
+    });
+
+    // Add custom controls
+    addMapControls();
+}
+
+function getMarkerIcon(type) {
+    const iconUrls = {
+        airport: '✈️',
+        transport: '🚂',
+        shopping: '🛍️',
+        park: '🌳',
+        cultural: '🏯',
+        beach: '🏖️',
+        attraction: '🗼',
+        aquarium: '🐠',
+        shrine: '⛩️',
+        museum: '🏛️',
+        onsen: '♨️',
+        town: '🏘️',
+        castle: '🏰',
+        nature: '🌲',
+        island: '🏝️'
+    };
+
+    return L.divIcon({
+        html: `<div style="font-size: 24px;">${iconUrls[type] || '📍'}</div>`,
+        className: 'custom-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
+}
+
+function addMapControls() {
+    // Add a custom control for filtering
+    const FilterControl = L.Control.extend({
+        onAdd: function(map) {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            div.style.backgroundColor = 'white';
+            div.style.padding = '10px';
+            div.style.cursor = 'pointer';
+            div.innerHTML = '<strong>🗺️ Filter</strong>';
+            div.onclick = function() {
+                alert('Click on markers to see location details!');
+            };
+            return div;
+        }
+    });
+
+    map.addControl(new FilterControl({ position: 'topright' }));
+}
+
+// Initialize map when page loads
+if (document.getElementById('interactiveMap')) {
+    window.addEventListener('load', initMap);
+}
+
+// ===== AI CHAT ASSISTANT =====
+const chatToggle = document.getElementById('chatToggle');
+const chatWindow = document.getElementById('chatWindow');
+const chatClose = document.getElementById('chatClose');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+const chatMessages = document.getElementById('chatMessages');
+
+let conversationHistory = [];
+
+// Toggle chat window
+chatToggle.addEventListener('click', () => {
+    chatWindow.classList.toggle('active');
+});
+
+chatClose.addEventListener('click', () => {
+    chatWindow.classList.remove('active');
+});
+
+// Send message on Enter key
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+// Send message on button click
+chatSend.addEventListener('click', sendMessage);
+
+async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Add user message to chat
+    addMessageToChat(message, 'user');
+    chatInput.value = '';
+
+    // Disable input while processing
+    chatInput.disabled = true;
+    chatSend.disabled = true;
+
+    // Show typing indicator
+    const typingDiv = addTypingIndicator();
+
+    try {
+        // Call OpenAI API
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message,
+                conversationHistory,
+                currentItinerary: getCurrentItinerary()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to get response from AI');
+        }
+
+        const data = await response.json();
+
+        // Remove typing indicator
+        typingDiv.remove();
+
+        // Add bot response
+        addMessageToChat(data.message, 'bot');
+
+        // Update itinerary if changes were made
+        if (data.updates) {
+            applyItineraryUpdates(data.updates);
+        }
+
+        // Update map if locations changed
+        if (data.mapUpdates) {
+            updateMapLocations(data.mapUpdates);
+        }
+
+        // Store conversation history
+        conversationHistory.push(
+            { role: 'user', content: message },
+            { role: 'assistant', content: data.message }
+        );
+
+    } catch (error) {
+        console.error('Chat error:', error);
+        typingDiv.remove();
+        addMessageToChat('Sorry, I encountered an error. Please try again later.', 'bot');
+    } finally {
+        chatInput.disabled = false;
+        chatSend.disabled = false;
+        chatInput.focus();
+    }
+}
+
+function addMessageToChat(message, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}-message`;
+
+    // Parse markdown-style formatting
+    const formattedMessage = message
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+    messageDiv.innerHTML = `<p>${formattedMessage}</p>`;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-message bot-message typing-indicator';
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return typingDiv;
+}
+
+function getCurrentItinerary() {
+    // Extract current itinerary data from the page
+    const days = [];
+    document.querySelectorAll('.day-card').forEach(card => {
+        const dayNumber = card.querySelector('.day-number')?.textContent;
+        const dayTitle = card.querySelector('.day-title')?.textContent;
+        const activities = Array.from(card.querySelectorAll('.activity')).map(activity => {
+            return {
+                time: activity.querySelector('.time')?.textContent,
+                title: activity.querySelector('h4')?.textContent,
+                description: activity.querySelector('p')?.textContent
+            };
+        });
+        days.push({ dayNumber, dayTitle, activities });
+    });
+    return days;
+}
+
+function applyItineraryUpdates(updates) {
+    // Apply updates to the itinerary
+    // This would modify the DOM based on AI suggestions
+    console.log('Applying itinerary updates:', updates);
+
+    // Show a notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 9999;
+        animation: fadeInUp 0.3s ease;
+    `;
+    notification.textContent = '✓ Itinerary updated!';
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function updateMapLocations(mapUpdates) {
+    // Update map with new locations
+    console.log('Updating map:', mapUpdates);
+
+    if (mapUpdates.addLocations) {
+        mapUpdates.addLocations.forEach(loc => {
+            const icon = getMarkerIcon(loc.type || 'attraction');
+            const marker = L.marker([loc.lat, loc.lng], { icon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center; padding: 0.5rem;">
+                        <strong>${loc.name}</strong><br>
+                        <small>New Location</small>
+                    </div>
+                `);
+            markers.push({ marker, location: loc });
+        });
+
+        // Adjust map bounds to show all markers
+        const bounds = L.latLngBounds(markers.map(m => m.marker.getLatLng()));
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+}
