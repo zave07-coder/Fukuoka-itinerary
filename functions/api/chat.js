@@ -1,3 +1,5 @@
+import { Client } from 'pg';
+
 // Cloudflare Pages Function for AI Chat
 export async function onRequestPost(context) {
     try {
@@ -67,6 +69,22 @@ MAP_UPDATE: {name: "Location Name", lat: latitude, lng: longitude, type: "catego
             try {
                 const newLocation = JSON.parse(mapUpdateMatch[1]);
                 mapUpdates = { addLocations: [newLocation] };
+
+                // Save to database
+                try {
+                    const client = new Client({
+                        connectionString: context.env.NEON_DATABASE_URL,
+                        ssl: { rejectUnauthorized: false }
+                    });
+                    await client.connect();
+                    await client.query(
+                        'INSERT INTO itinerary_changes (change_type, day, location_data) VALUES ($1, $2, $3)',
+                        ['add_location', newLocation.day, JSON.stringify(newLocation)]
+                    );
+                    await client.end();
+                } catch (dbError) {
+                    console.error('Database save error:', dbError);
+                }
             } catch (e) {
                 console.error('Failed to parse map update:', e);
             }
