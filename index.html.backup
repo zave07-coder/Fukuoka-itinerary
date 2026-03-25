@@ -126,9 +126,6 @@
             <div class="itinerary-header">
                 <h2>📅 Your Journey</h2>
                 <p class="trip-dates">June 14-23, 2026 • 10 Days</p>
-                <button class="ai-edit-trip-btn" onclick="openTripAIEdit()">
-                    🤖 Edit Entire Trip with AI
-                </button>
             </div>
 
             <!-- Quick Overview -->
@@ -166,7 +163,52 @@
             <!-- Day-by-day Accordion -->
             <div class="itinerary-accordion">
 
+    <!-- Trip Overview (Hidden - now using trip-highlights) -->
+    <section class="trip-overview" style="display: none;">
+        <div class="container">
+            <h2 class="section-title">Trip at a Glance</h2>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <div class="overview-icon">📅</div>
+                    <h3>10 Days</h3>
+                    <p>June 14-23, 2026</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🏖️</div>
+                    <h3>Beach Days</h3>
+                    <p>3 coastal adventures</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🏯</div>
+                    <h3>Cultural Sites</h3>
+                    <p>Shrines, castles & museums</p>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-icon">🎡</div>
+                    <h3>Kid Activities</h3>
+                    <p>Aquariums, parks & animals</p>
+                </div>
+            </div>
+                    </div></div>
+    </section>
 
+    <!-- Filter Buttons (Hidden - using day selector instead) -->
+    <section class="filters" style="display: none;">
+        <div class="container">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Days</button>
+                <button class="filter-btn" data-filter="beach">🏖️ Beach</button>
+                <button class="filter-btn" data-filter="cultural">🏯 Cultural</button>
+                <button class="filter-btn" data-filter="kids">👧 Kid-Friendly</button>
+                <button class="filter-btn" data-filter="roadtrip">🚗 Road Trip</button>
+            </div>
+                    </div></div>
+    </section>
+
+    <!-- Itinerary Section -->
+    <section id="itinerary" class="itinerary" style="display: none;">
+        <div class="container">
+            <h2 class="section-title" style="display: none;">Daily Itinerary</h2>
 
                 <!-- Day 1 -->
                 <div class="accordion-item" data-day="1">
@@ -176,7 +218,6 @@
                             <span class="day-title-short">Arrival & Settling In</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 14 (Sat)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -310,7 +351,6 @@
                             <span class="day-title-short">Fukuoka City Highlights</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 15 (Sun)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -447,7 +487,6 @@
                             <span class="day-title-short">Marine World & Seaside Park</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 16 (Mon)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -600,7 +639,6 @@
                             <span class="day-title-short">Yufuin & Beppu Hot Springs Road Trip</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 17 (Tue)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -802,7 +840,6 @@
                             <span class="day-title-short">Relaxed Day - Anpanman & Beach</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 18 (Wed)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -964,7 +1001,6 @@
                             <span class="day-title-short">Dazaifu Cultural & Historical Day</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 19 (Thu)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1164,7 +1200,6 @@
                             <span class="day-title-short">Karatsu Castle & Coastal Drive</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 20 (Fri)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1348,7 +1383,6 @@
                             <span class="day-title-short">Nokonoshima Island Adventure</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 21 (Sat)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1568,7 +1602,6 @@
                             <span class="day-title-short">Flexible Day - Choose Your Adventure</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 22 (Sun)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1799,7 +1832,6 @@
                             <span class="day-title-short">Departure Day - Sayonara Fukuoka! 👋</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openDayAIEdit(this)" title="Edit this day with AI">🤖</button>
                             <span class="day-date">June 23 (Mon)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -2291,32 +2323,6 @@
     </footer>
 
     <!-- AI Chat Assistant -->
-    <!-- AI Edit Modal -->
-    <div id="aiEditModal" class="ai-edit-modal">
-        <div class="ai-edit-dialog">
-            <div class="ai-edit-header">
-                <h3 id="aiEditTitle">Edit with AI</h3>
-                <button class="ai-edit-close" onclick="closeAIEditModal()">×</button>
-            </div>
-            <div class="ai-edit-body">
-                <label for="aiEditPrompt" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
-                    What would you like to change?
-                </label>
-                <textarea
-                    id="aiEditPrompt"
-                    class="ai-edit-textarea"
-                    placeholder="Example: Make Day 3 more kid-friendly with less walking, or Add a hot spring visit to Day 6..."
-                ></textarea>
-                <div id="aiEditContext" style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;"></div>
-            </div>
-            <div class="ai-edit-actions">
-                <button class="ai-edit-cancel" onclick="closeAIEditModal()">Cancel</button>
-                <button class="ai-edit-submit" onclick="submitAIEdit()">✨ Generate Changes</button>
-            </div>
-            <div id="aiEditResult" style="margin-top: 1rem; display: none;"></div>
-        </div>
-    </div>
-
     <div id="aiChatWidget" class="chat-widget">
         <button id="chatToggle" class="chat-toggle">
             <span class="chat-icon">🤖</span>
