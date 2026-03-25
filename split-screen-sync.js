@@ -108,6 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentEditContext = null;
 
 window.openDayAIEdit = function(button) {
+    const modal = document.getElementById('aiEditModal');
+    if (!modal) {
+        console.error('AI Edit modal not found');
+        return;
+    }
+
     const accordionItem = button.closest('.accordion-item');
     const dayNumber = accordionItem.getAttribute('data-day');
     const dayTitle = accordionItem.querySelector('.day-title-short').textContent;
@@ -118,38 +124,46 @@ window.openDayAIEdit = function(button) {
         element: accordionItem
     };
 
-    const modal = document.getElementById('aiEditModal');
     const title = document.getElementById('aiEditTitle');
     const context = document.getElementById('aiEditContext');
     const prompt = document.getElementById('aiEditPrompt');
 
-    title.textContent = `Edit Day ${dayNumber} with AI`;
-    context.textContent = `Editing: ${dayTitle}`;
-    prompt.value = '';
-    prompt.placeholder = `Example: Add more beach time, reduce driving, make it more kid-friendly...`;
+    if (title) title.textContent = `Edit Day ${dayNumber} with AI`;
+    if (context) context.textContent = `Editing: ${dayTitle}`;
+    if (prompt) {
+        prompt.value = '';
+        prompt.placeholder = `Example: Add more beach time, reduce driving, make it more kid-friendly...`;
+    }
 
     modal.classList.add('active');
-    setTimeout(() => prompt.focus(), 100);
+    if (prompt) setTimeout(() => prompt.focus(), 100);
 };
 
 window.openTripAIEdit = function() {
+    const modal = document.getElementById('aiEditModal');
+    if (!modal) {
+        console.error('AI Edit modal not found');
+        return;
+    }
+
     currentEditContext = {
         type: 'trip',
         element: document.querySelector('.itinerary-accordion')
     };
 
-    const modal = document.getElementById('aiEditModal');
     const title = document.getElementById('aiEditTitle');
     const context = document.getElementById('aiEditContext');
     const prompt = document.getElementById('aiEditPrompt');
 
-    title.textContent = 'Edit Entire Trip with AI';
-    context.textContent = 'Editing: Full 10-day itinerary';
-    prompt.value = '';
-    prompt.placeholder = `Example: Add more cultural sites, include more hot springs, reduce daily driving time...`;
+    if (title) title.textContent = 'Edit Entire Trip with AI';
+    if (context) context.textContent = 'Editing: Full 10-day itinerary';
+    if (prompt) {
+        prompt.value = '';
+        prompt.placeholder = `Example: Add more cultural sites, include more hot springs, reduce daily driving time...`;
+    }
 
     modal.classList.add('active');
-    setTimeout(() => prompt.focus(), 100);
+    if (prompt) setTimeout(() => prompt.focus(), 100);
 };
 
 window.closeAIEditModal = function() {
