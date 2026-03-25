@@ -18,20 +18,44 @@ export async function onRequestPost(context) {
             });
         }
 
-        // Build the system prompt
+        // Build the enhanced system prompt with all operation types
         const systemPrompt = `You are a helpful travel planning assistant for a Fukuoka family trip (June 14-23, 2026).
-You can help users modify their itinerary, suggest alternatives, add activities, and update locations.
+You can help users modify their itinerary through natural language commands.
 
 Current itinerary: ${JSON.stringify(currentItinerary)}
 
-When suggesting changes:
-1. Be specific about which day and what to change
-2. Consider family-friendly activities (6-year-old daughter)
-3. Consider travel distances and timing
-4. Provide brief explanations for your suggestions
+IMPORTANT: You can execute 6 types of operations. Always output operations in JSON format using these markers:
 
-If you suggest adding new locations, provide them in this format:
-MAP_UPDATE: {name: "Location Name", lat: latitude, lng: longitude, type: "category", day: "X"}`;
+1. ADD - Add new location
+   Format: OPERATION: {"type": "add", "day": "Day X", "location": {"name": "...", "lat": X.XX, "lng": X.XX, "type": "category", "time": "HH:MM"}, "position": "after Location Y" (optional)}
+   Example: "add TeamLab after Canal City on Day 3"
+
+2. REMOVE - Remove existing location
+   Format: OPERATION: {"type": "remove", "day": "Day X", "location_name": "Location Name"}
+   Example: "remove Ohori Park from Day 2"
+
+3. MOVE - Move location between days
+   Format: OPERATION: {"type": "move", "location_name": "...", "from_day": "Day X", "to_day": "Day Y", "position": "start|end|after Location Z"}
+   Example: "move Ohori Park from Day 2 to Day 3"
+
+4. UPDATE - Modify location details (name, time, notes)
+   Format: OPERATION: {"type": "update", "day": "Day X", "location_name": "...", "changes": {"time": "18:00", "notes": "..."}}
+   Example: "change Ramen Stadium time to 6pm"
+
+5. REORDER - Swap or reorder locations within a day
+   Format: OPERATION: {"type": "reorder", "day": "Day X", "location_name": "...", "new_position": "after Location Y"}
+   Example: "swap locations A and B on Day 4"
+
+6. REPLACE - Replace entire day or location
+   Format: OPERATION: {"type": "replace", "target": "Day X" or "location_name", "replacement": {...}}
+   Example: "replace Day 5 with a beach day"
+
+Guidelines:
+- Consider family-friendly activities (6-year-old daughter)
+- Account for travel distances and timing
+- Provide brief explanations for suggestions
+- Always output exactly ONE operation per response
+- Use proper JSON format in OPERATION markers`;
 
         // Prepare messages for OpenAI
         const messages = [
@@ -62,40 +86,107 @@ MAP_UPDATE: {name: "Location Name", lat: latitude, lng: longitude, type: "catego
         const openaiData = await openaiResponse.json();
         const aiMessage = openaiData.choices[0].message.content;
 
-        // Parse for map updates
-        let mapUpdates = null;
-        const mapUpdateMatch = aiMessage.match(/MAP_UPDATE:\s*({.*?})/);
-        if (mapUpdateMatch) {
-            try {
-                const newLocation = JSON.parse(mapUpdateMatch[1]);
-                mapUpdates = { addLocations: [newLocation] };
+        // Parse for operations
+        let operations = [];
+        const operationMatch = aiMessage.match(/OPERATION:\s*({[\s\S]*?})/);
 
-                // Save to database
+        if (operationMatch) {
+            try {
+                const operation = JSON.parse(operationMatch[1]);
+                operations.push(operation);
+
+                // Save to database using enhanced change_log system
                 try {
-                    const client = new Client({
+                    const dbClient = new Client({
                         connectionString: context.env.NEON_DATABASE_URL,
                         ssl: { rejectUnauthorized: false }
                     });
-                    await client.connect();
-                    await client.query(
-                        'INSERT INTO itinerary_changes (change_type, day, location_data) VALUES ($1, $2, $3)',
-                        ['add_location', newLocation.day, JSON.stringify(newLocation)]
+                    await dbClient.connect();
+
+                    // Build before/after states based on operation type
+                    let beforeState = null;
+                    let afterState = null;
+                    let description = '';
+                    let locationId = null;
+
+                    switch(operation.type) {
+                        case 'add':
+                            afterState = operation.location;
+                            locationId = operation.location?.name;
+                            description = `Add ${operation.location?.name} to ${operation.day}`;
+                            break;
+
+                        case 'remove':
+                            beforeState = { name: operation.location_name };
+                            locationId = operation.location_name;
+                            description = `Remove ${operation.location_name} from ${operation.day}`;
+                            break;
+
+                        case 'move':
+                            beforeState = { day: operation.from_day, name: operation.location_name };
+                            afterState = { day: operation.to_day, name: operation.location_name, position: operation.position };
+                            locationId = operation.location_name;
+                            description = `Move ${operation.location_name} from ${operation.from_day} to ${operation.to_day}`;
+                            break;
+
+                        case 'update':
+                            beforeState = { name: operation.location_name };
+                            afterState = { name: operation.location_name, ...operation.changes };
+                            locationId = operation.location_name;
+                            description = `Update ${operation.location_name} on ${operation.day}`;
+                            break;
+
+                        case 'reorder':
+                            beforeState = { name: operation.location_name };
+                            afterState = { name: operation.location_name, position: operation.new_position };
+                            locationId = operation.location_name;
+                            description = `Reorder ${operation.location_name} on ${operation.day}`;
+                            break;
+
+                        case 'replace':
+                            beforeState = { target: operation.target };
+                            afterState = operation.replacement;
+                            locationId = operation.target;
+                            description = `Replace ${operation.target}`;
+                            break;
+                    }
+
+                    // Insert into change_log
+                    await dbClient.query(
+                        `INSERT INTO change_log
+                         (operation_type, day, location_id, before_state, after_state, description)
+                         VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [
+                            operation.type,
+                            operation.day || operation.from_day || null,
+                            locationId,
+                            JSON.stringify(beforeState),
+                            JSON.stringify(afterState),
+                            description
+                        ]
                     );
-                    await client.end();
+
+                    // Also insert into legacy table
+                    await dbClient.query(
+                        'INSERT INTO itinerary_changes (change_type, day, location_data) VALUES ($1, $2, $3)',
+                        [operation.type, operation.day || operation.from_day, JSON.stringify(afterState)]
+                    );
+
+                    await dbClient.end();
                 } catch (dbError) {
                     console.error('Database save error:', dbError);
                 }
             } catch (e) {
-                console.error('Failed to parse map update:', e);
+                console.error('Failed to parse operation:', e);
             }
         }
 
-        // Clean up the message (remove MAP_UPDATE markers)
-        const cleanMessage = aiMessage.replace(/MAP_UPDATE:\s*{.*?}/g, '').trim();
+        // Clean up the message (remove OPERATION markers)
+        const cleanMessage = aiMessage.replace(/OPERATION:\s*{[\s\S]*?}/g, '').trim();
 
         return new Response(JSON.stringify({
             message: cleanMessage,
-            mapUpdates: mapUpdates
+            operations: operations
         }), {
             status: 200,
             headers: {
