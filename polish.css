@@ -1,0 +1,305 @@
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    text-align: center;
+    background: white;
+    padding: 40px 60px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin: 0;
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* Confirm Modal */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+}
+
+.confirm-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.confirm-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.confirm-icon {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.confirm-title {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    color: #333;
+}
+
+.confirm-message {
+    margin: 0 0 24px 0;
+    font-size: 15px;
+    color: #666;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.confirm-cancel {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.confirm-cancel:hover {
+    background: #dee2e6;
+}
+
+.confirm-ok {
+    background: #dc3545;
+    color: white;
+}
+
+.confirm-ok:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+/* Connection Status Indicator */
+.connection-status {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.connection-status.offline {
+    opacity: 1;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #28a745;
+}
+
+.connection-status.offline .status-dot {
+    background: #dc3545;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Optimistic UI Updates - Pending State */
+.activity.pending {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.activity.pending::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Smooth Transitions */
+* {
+    transition-property: opacity, transform, background-color, border-color, color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+button, a, input, textarea, select {
+    transition-duration: 0.15s;
+}
+
+/* Focus Styles for Accessibility */
+*:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+button:focus,
+a:focus {
+    outline-offset: 4px;
+}
+
+/* Skeleton Loading for Content */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Error State */
+.error-message {
+    padding: 12px 16px;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+/* Success State */
+.success-message {
+    padding: 12px 16px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .loading-spinner {
+        padding: 30px 40px;
+    }
+
+    .confirm-dialog {
+        padding: 24px;
+    }
+
+    .confirm-title {
+        font-size: 18px;
+    }
+
+    .connection-status {
+        bottom: 10px;
+        left: 10px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .loading-overlay,
+    .confirm-modal,
+    .connection-status,
+    .version-toolbar,
+    .history-sidebar,
+    .toast-container,
+    .edit-controls {
+        display: none !important;
+    }
+}
