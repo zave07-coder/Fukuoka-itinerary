@@ -593,7 +593,7 @@ function showRouteForDay(day) {
     }
 
     // Draw route if we have multiple locations
-    if (dayLocations.length > 1 && day !== 'all') {
+    if (dayLocations.length > 1) {
         drawRoute(dayLocations);
     }
 
