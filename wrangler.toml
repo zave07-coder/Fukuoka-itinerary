@@ -1,6 +1,8 @@
 name = "fukuoka-family-itinerary"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
+node_compat = true
 
 [vars]
 NEON_DATABASE_URL = "postgresql://neondb_owner:npg_YLCX4AxTf6aG@ep-flat-night-a1awtolr.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
