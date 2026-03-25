@@ -1,5 +1,3 @@
-import { neon } from '@neondatabase/serverless';
-
 // Cloudflare Pages Function for AI Chat
 export async function onRequestPost(context) {
     try {
@@ -97,6 +95,7 @@ Guidelines:
 
                 // Save to database using enhanced change_log system
                 try {
+                    const { neon } = await import('@neondatabase/serverless');
                     const sql = neon(context.env.NEON_DATABASE_URL);
 
                     // Build before/after states based on operation type

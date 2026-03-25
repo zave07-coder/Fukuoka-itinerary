@@ -1,20 +1,4 @@
-:
-
-**Location:** Fixed button at bottom-right of the page (above the AI chat button)
-
-**Toggle Button:**
-- 🗺️ **"Split View Mode"** - Activates split screen
-- 📄 **"Normal View"** - Returns to traditional scrolling
-
-**Split View Layout:**
-- **Left Panel (40-80% adjustable):** Interactive map with all markers
-- **Resizable Divider:** Drag to adjust panel widths
-- **Right Panel:** 
-  - Top: Cu
-
-[2026-03-25] ## ✅ Deployment Fix Complete!
-
-**Problem:** Cloudflare Pages can't use the Node.js `pg` package in its Workers runtime.
+rkers runtime.
 
 **Solution:** Replaced all `pg` Client usage with `@neondatabase/serverless` which is designed for edge/serverless environments.
 
@@ -79,3 +63,9 @@ https://dash.cloudflare.com/[y
 After researching, Cloudflare Pages Functions need dependencies to be bundled differently. The best approach is to **manually tell Cloudflare to set the build command in the dashboard**:
 
 1. Go to: https://dash.cloudflare.com/ → Workers & Pages → fuku
+
+[2026-03-25] Actually, dynamic imports won't help either. The real issue is that **Cloudflare Pages simply cannot find the `node_modules` during the bundling phase**.
+
+Let me check the Cloudflare documentation one more time and try the CORRECT solution - we need to tell Cloudflare that this is an external module. Actually, I just realized - maybe we need to use a `_worker.js` file instead of individual Functions! Let me check if there's a better way...
+
+Actually, the REAL solution according to Cloudflare doc

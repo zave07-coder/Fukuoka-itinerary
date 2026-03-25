@@ -1,7 +1,6 @@
-import { neon } from '@neondatabase/serverless';
-
 export async function onRequest(context) {
   try {
+    const { neon } = await import('@neondatabase/serverless');
     const sql = neon(context.env.NEON_DATABASE_URL);
 
     const result = await sql(

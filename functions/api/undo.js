@@ -1,11 +1,10 @@
-import { neon } from '@neondatabase/serverless';
-
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
   try {
+    const { neon } = await import('@neondatabase/serverless');
     const sql = neon(context.env.NEON_DATABASE_URL);
 
     // Get the last non-undone change

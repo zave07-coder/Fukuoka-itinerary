@@ -1,5 +1,4 @@
 // Cloudflare Pages Function to save itinerary changes to NEON database
-import { neon } from '@neondatabase/serverless';
 
 export async function onRequestPost(context) {
     try {
@@ -20,6 +19,7 @@ export async function onRequestPost(context) {
             });
         }
 
+        const { neon } = await import('@neondatabase/serverless');
         const sql = neon(databaseUrl);
 
         // Create table if it doesn't exist
@@ -82,6 +82,7 @@ export async function onRequestGet(context) {
             });
         }
 
+        const { neon } = await import('@neondatabase/serverless');
         const sql = neon(databaseUrl);
 
         // Get latest changes for user
