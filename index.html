@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="version-control.css">
     <link rel="stylesheet" href="inline-edit.css">
     <link rel="stylesheet" href="polish.css">
+    <link rel="stylesheet" href="split-screen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -31,7 +32,7 @@
                 <span class="tag">🚗 Road Trip Ready</span>
                 <span class="tag">🎌 Kyushu Explorer</span>
             </div>
-        </div>
+                    </div></div>
         <div class="scroll-indicator">↓ Explore Your Journey ↓</div>
     </header>
 
@@ -70,7 +71,7 @@
             <div class="toolbar-right">
                 <span id="changeCounter" class="change-counter">0 changes</span>
             </div>
-        </div>
+                    </div></div>
     </div>
 
     <!-- Change History Sidebar -->
@@ -86,6 +87,81 @@
 
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Split View Container -->
+    <div class="split-view-container">
+        <!-- Map Panel -->
+        <div class="map-panel">
+            <div class="map-header">
+                <h2>🗺️ Interactive Map</h2>
+                <div class="map-controls">
+                    <button id="showAllMarkersBtn" class="map-control-btn">Show All Places</button>
+                    <select id="daySelector" class="day-selector">
+                        <option value="overview">Overview</option>
+                        <option value="1">Day 1 - Arrival</option>
+                        <option value="2">Day 2 - Fukuoka City</option>
+                        <option value="3">Day 3 - Dazaifu</option>
+                        <option value="4">Day 4 - Itoshima Beach</option>
+                        <option value="5">Day 5 - Karatsu & Yobuko</option>
+                        <option value="6">Day 6 - Beppu Road Trip</option>
+                        <option value="7">Day 7 - Yanagawa</option>
+                        <option value="8">Day 8 - Fukuoka (Flexible)</option>
+                        <option value="9">Day 9 - Last Day Shopping</option>
+                        <option value="10">Day 10 - Departure</option>
+                    </select>
+                </div>
+            </div>
+            <div id="interactiveMap" class="map-container"></div>
+            <div class="map-legend">
+                <span class="legend-item">✈️ Airports</span>
+                <span class="legend-item">🏯 Cultural</span>
+                <span class="legend-item">🏖️ Beaches</span>
+                <span class="legend-item">♨️ Hot Springs</span>
+                <span class="legend-item">🎡 Activities</span>
+            </div>
+                    </div></div>
+
+        <!-- Itinerary Panel -->
+        <div class="itinerary-panel">
+            <div class="itinerary-header">
+                <h2>📅 Your Journey</h2>
+                <p class="trip-dates">June 14-23, 2026 • 10 Days</p>
+            </div>
+
+            <!-- Quick Overview -->
+            <div class="trip-highlights">
+                <div class="highlight-card">
+                    <span class="highlight-icon">🏖️</span>
+                    <div>
+                        <strong>Beaches</strong>
+                        <p>Itoshima, Karatsu</p>
+                    </div>
+                </div>
+                <div class="highlight-card">
+                    <span class="highlight-icon">♨️</span>
+                    <div>
+                        <strong>Hot Springs</strong>
+                        <p>Beppu</p>
+                    </div>
+                </div>
+                <div class="highlight-card">
+                    <span class="highlight-icon">🏯</span>
+                    <div>
+                        <strong>Culture</strong>
+                        <p>Dazaifu, Yanagawa</p>
+                    </div>
+                </div>
+                <div class="highlight-card">
+                    <span class="highlight-icon">🚗</span>
+                    <div>
+                        <strong>Road Trips</strong>
+                        <p>4 day trips</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day-by-day Accordion -->
+            <div class="itinerary-accordion">
 
     <!-- Trip Overview -->
     <section class="trip-overview">
@@ -113,7 +189,7 @@
                     <p>Aquariums, parks & animals</p>
                 </div>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Filter Buttons -->
@@ -126,7 +202,7 @@
                 <button class="filter-btn" data-filter="kids">👧 Kid-Friendly</button>
                 <button class="filter-btn" data-filter="roadtrip">🚗 Road Trip</button>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Itinerary Section -->
@@ -134,13 +210,19 @@
         <div class="container">
             <h2 class="section-title">Daily Itinerary</h2>
 
-            <!-- Day 1 -->
-            <div class="day-card" data-day="1" data-tags="kids">
-                <div class="day-header">
-                    <div class="day-number">Day 1</div>
-                    <div class="day-date">June 14 (Sat)</div>
-                </div>
-                <div class="day-content">
+                <!-- Day 1 -->
+                <div class="accordion-item" data-day="1">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 1</span>
+                            <span class="day-title-short">Arrival & Settling In</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 14 (Sat)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content">
                     <h3 class="day-title">Arrival & Settling In</h3>
                     <div class="day-tags">
                         <span class="tag-small">Easy Day</span>
@@ -262,13 +344,19 @@
             </div>
 
             <!-- Day 2 -->
-            <div class="day-card" data-day="2" data-tags="kids cultural">
-                <div class="day-header">
-                    <div class="day-number">Day 2</div>
-                    <div class="day-date">June 15 (Sun)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Fukuoka City Highlights</h3>
+            <div class="accordion-item" data-day="2">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 2</span>
+                            <span class="day-title-short">Fukuoka City Highlights</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 15 (Sun)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Fukuoka City Highlights</h3>
                     <div class="day-tags">
                         <span class="tag-small">Parks</span>
                         <span class="tag-small">Castle</span>
@@ -392,13 +480,19 @@
             </div>
 
             <!-- Day 3 -->
-            <div class="day-card" data-day="3" data-tags="kids beach">
-                <div class="day-header">
-                    <div class="day-number">Day 3</div>
-                    <div class="day-date">June 16 (Mon)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Marine World & Seaside Park</h3>
+            <div class="accordion-item" data-day="3">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 3</span>
+                            <span class="day-title-short">Marine World & Seaside Park</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 16 (Mon)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Marine World & Seaside Park</h3>
                     <div class="day-tags">
                         <span class="tag-small">Aquarium</span>
                         <span class="tag-small">Beach</span>
@@ -538,13 +632,19 @@
             </div>
 
             <!-- Day 4 -->
-            <div class="day-card" data-day="4" data-tags="roadtrip cultural">
-                <div class="day-header">
-                    <div class="day-number">Day 4</div>
-                    <div class="day-date">June 17 (Tue)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Yufuin & Beppu Hot Springs Road Trip</h3>
+            <div class="accordion-item" data-day="4">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 4</span>
+                            <span class="day-title-short">Yufuin & Beppu Hot Springs Road Trip</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 17 (Tue)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Yufuin & Beppu Hot Springs Road Trip</h3>
                     <div class="day-tags">
                         <span class="tag-small">Road Trip</span>
                         <span class="tag-small">Hot Springs</span>
@@ -733,13 +833,19 @@
             </div>
 
             <!-- Day 5 -->
-            <div class="day-card" data-day="5" data-tags="kids beach">
-                <div class="day-header">
-                    <div class="day-number">Day 5</div>
-                    <div class="day-date">June 18 (Wed)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Relaxed Day - Anpanman & Beach</h3>
+            <div class="accordion-item" data-day="5">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 5</span>
+                            <span class="day-title-short">Relaxed Day - Anpanman & Beach</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 18 (Wed)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Relaxed Day - Anpanman & Beach</h3>
                     <div class="day-tags">
                         <span class="tag-small">Rest Day</span>
                         <span class="tag-small">Beach</span>
@@ -888,13 +994,19 @@
             </div>
 
             <!-- Day 6 -->
-            <div class="day-card" data-day="6" data-tags="cultural roadtrip">
-                <div class="day-header">
-                    <div class="day-number">Day 6</div>
-                    <div class="day-date">June 19 (Thu)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Dazaifu Cultural & Historical Day</h3>
+            <div class="accordion-item" data-day="6">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 6</span>
+                            <span class="day-title-short">Dazaifu Cultural & Historical Day</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 19 (Thu)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Dazaifu Cultural & Historical Day</h3>
                     <div class="day-tags">
                         <span class="tag-small">Shrine</span>
                         <span class="tag-small">Museum</span>
@@ -1081,13 +1193,19 @@
             </div>
 
             <!-- Day 7 -->
-            <div class="day-card" data-day="7" data-tags="roadtrip beach cultural">
-                <div class="day-header">
-                    <div class="day-number">Day 7</div>
-                    <div class="day-date">June 20 (Fri)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Karatsu Castle & Coastal Drive</h3>
+            <div class="accordion-item" data-day="7">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 7</span>
+                            <span class="day-title-short">Karatsu Castle & Coastal Drive</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 20 (Fri)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Karatsu Castle & Coastal Drive</h3>
                     <div class="day-tags">
                         <span class="tag-small">Road Trip</span>
                         <span class="tag-small">Castle</span>
@@ -1258,13 +1376,19 @@
             </div>
 
             <!-- Day 8 -->
-            <div class="day-card" data-day="8" data-tags="kids beach">
-                <div class="day-header">
-                    <div class="day-number">Day 8</div>
-                    <div class="day-date">June 21 (Sat)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Nokonoshima Island Adventure</h3>
+            <div class="accordion-item" data-day="8">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 8</span>
+                            <span class="day-title-short">Nokonoshima Island Adventure</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 21 (Sat)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Nokonoshima Island Adventure</h3>
                     <div class="day-tags">
                         <span class="tag-small">Ferry</span>
                         <span class="tag-small">Island</span>
@@ -1471,13 +1595,19 @@
             </div>
 
             <!-- Day 9 -->
-            <div class="day-card" data-day="9" data-tags="roadtrip">
-                <div class="day-header">
-                    <div class="day-number">Day 9</div>
-                    <div class="day-date">June 22 (Sun)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Flexible Day - Choose Your Adventure</h3>
+            <div class="accordion-item" data-day="9">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 9</span>
+                            <span class="day-title-short">Flexible Day - Choose Your Adventure</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 22 (Sun)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Flexible Day - Choose Your Adventure</h3>
                     <div class="day-tags">
                         <span class="tag-small">Your Choice</span>
                         <span class="tag-small">Rest or Explore</span>
@@ -1695,13 +1825,19 @@
             </div>
 
             <!-- Day 10 -->
-            <div class="day-card" data-day="10" data-tags="">
-                <div class="day-header">
-                    <div class="day-number">Day 10</div>
-                    <div class="day-date">June 23 (Mon)</div>
-                </div>
-                <div class="day-content">
-                    <h3 class="day-title">Departure Day - Sayonara Fukuoka! 👋</h3>
+            <div class="accordion-item" data-day="10">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <span class="day-number">Day 10</span>
+                            <span class="day-title-short">Departure Day - Sayonara Fukuoka! 👋</span>
+                        </div>
+                        <div class="accordion-meta">
+                            <span class="day-date">June 23 (Mon)</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content"><div>
+                    <h3 class="day-title" style="margin-top:0">Departure Day - Sayonara Fukuoka! 👋</h3>
                     <div class="day-tags">
                         <span class="tag-small">Final Morning</span>
                         <span class="tag-small">Airport Day</span>
@@ -1949,11 +2085,14 @@
                     </div>
                 </div>
             </div>
-        </div>
+                    </div></div>
+            </div><!-- Close itinerary-accordion -->
+        </div><!-- Close itinerary-panel -->
+    </div><!-- Close split-view-container -->
     </section>
 
-    <!-- Map Section -->
-    <section id="map" class="map-section">
+    <!-- Old Map Section (Hidden - keeping for reference) -->
+    <section id="map-old" class="map-section" style="display: none;">
         <div class="container">
             <h2 class="section-title">🗺️ Interactive Map with Routes</h2>
             <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
@@ -1974,7 +2113,7 @@
                     💡 Use the day selector (top left) to view daily routes | POI labels visible at zoom level 12+
                 </p>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Restaurants Section -->
@@ -2037,7 +2176,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Tips Section -->
@@ -2111,7 +2250,7 @@
                     </ul>
                 </div>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Budget Estimator -->
@@ -2151,7 +2290,7 @@
                     <div class="budget-usd">≈ $2,800 USD</div>
                 </div>
             </div>
-        </div>
+                    </div></div>
     </section>
 
     <!-- Footer -->
@@ -2180,7 +2319,7 @@
             <div class="footer-bottom">
                 <p>Made with ❤️ for an amazing family adventure | Have a wonderful trip!</p>
             </div>
-        </div>
+                    </div></div>
     </footer>
 
     <!-- AI Chat Assistant -->
@@ -2214,12 +2353,13 @@
             <div class="chat-footer">
                 <small>⚡ Powered by OpenAI GPT-4o Mini</small>
             </div>
-        </div>
+                    </div></div>
     </div>
 
     <script src="/config.js?v=2"></script>
     <script src="script.js?v=6"></script>
     <script src="split-view.js?v=1"></script>
+    <script src="split-screen-sync.js?v=1"></script>
     <script src="version-control.js?v=1"></script>
     <script src="inline-edit.js?v=1"></script>
     <script src="polish.js?v=1"></script>
