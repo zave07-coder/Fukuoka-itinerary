@@ -1,6 +1,14 @@
-import { neon } from '@neondatabase/serverless';
+// Use dynamic import to avoid bundling issues
+let neonModule;
 
-// Import all API handlers
+async function getNeon() {
+  if (!neonModule) {
+    neonModule = await import('@neondatabase/serverless');
+  }
+  return neonModule.neon;
+}
+
+// API handlers
 const chatHandler = async (request, env) => {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -52,6 +60,7 @@ const saveChangeHandler = async (request, env) => {
 
   try {
     const { day, time, change } = await request.json();
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     await sql`
@@ -73,6 +82,7 @@ const saveChangeHandler = async (request, env) => {
 
 const getChangesHandler = async (request, env) => {
   try {
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     const changes = await sql`
@@ -100,6 +110,7 @@ const createSnapshotHandler = async (request, env) => {
 
   try {
     const { itinerary } = await request.json();
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     const result = await sql`
@@ -126,6 +137,7 @@ const undoHandler = async (request, env) => {
   }
 
   try {
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     const lastChange = await sql`
@@ -153,6 +165,7 @@ const redoHandler = async (request, env) => {
 
   try {
     const { change } = await request.json();
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     await sql`
@@ -174,6 +187,7 @@ const redoHandler = async (request, env) => {
 
 const getHistoryHandler = async (request, env) => {
   try {
+    const neon = await getNeon();
     const sql = neon(env.NEON_DATABASE_URL);
 
     const history = await sql`
