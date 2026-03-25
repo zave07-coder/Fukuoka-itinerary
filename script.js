@@ -415,6 +415,13 @@ let currentRoute = null;
 let selectedDay = 'all';
 
 function initMap() {
+    // Ensure config is loaded before accessing token
+    if (!window.MAPBOX_CONFIG || !window.MAPBOX_CONFIG.token) {
+        console.error('Mapbox config not loaded. Retrying in 500ms...');
+        setTimeout(initMap, 500);
+        return;
+    }
+
     mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
 
     // Initialize Mapbox map with satellite streets for better POI visibility
