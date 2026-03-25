@@ -1,2 +1,9 @@
 # Mapbox token config (public token, but GitHub flags it)
 config.js
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env
