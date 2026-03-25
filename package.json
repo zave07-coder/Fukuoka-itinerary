@@ -5,7 +5,8 @@
   "main": "index.html",
   "scripts": {
     "dev": "npx http-server . -p 8080 -o",
-    "deploy": "wrangler pages deploy . --project-name=fukuoka-family-itinerary"
+    "deploy": "wrangler pages deploy . --project-name=fukuoka-family-itinerary",
+    "postinstall": "mkdir -p functions/node_modules && cp -r node_modules/@neondatabase functions/node_modules/ || true"
   },
   "keywords": [
     "fukuoka",
