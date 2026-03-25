@@ -7,3 +7,6 @@ package-lock.json
 
 # Environment
 .env
+
+# Wrangler
+.wrangler/
