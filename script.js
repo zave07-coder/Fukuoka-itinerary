@@ -415,7 +415,7 @@ let currentRoute = null;
 let selectedDay = 'all';
 
 function initMap() {
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
 
     // Initialize Mapbox map with satellite streets for better POI visibility
     map = new mapboxgl.Map({
