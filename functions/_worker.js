@@ -1,11 +1,35 @@
-// Use dynamic import to avoid bundling issues
-let neonModule;
+// Helper to execute SQL queries via Neon's HTTP API
+async function executeSQL(env, query, params = []) {
+  // Parse the connection string to get the endpoint
+  const dbUrl = new URL(env.NEON_DATABASE_URL);
+  const [username, password] = dbUrl.username && dbUrl.password
+    ? [dbUrl.username, decodeURIComponent(dbUrl.password)]
+    : ['', ''];
 
-async function getNeon() {
-  if (!neonModule) {
-    neonModule = await import('@neondatabase/serverless');
+  // Extract endpoint from hostname (format: ep-xxx.region.aws.neon.tech)
+  const endpoint = dbUrl.hostname.split('.')[0];
+  const region = dbUrl.hostname.split('.')[1];
+
+  // Neon serverless SQL over HTTP
+  const response = await fetch(`https://${endpoint}.${region}.aws.neon.tech/sql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${password}`
+    },
+    body: JSON.stringify({
+      query,
+      params
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Database query failed: ${response.status} ${errorText}`);
   }
-  return neonModule.neon;
+
+  const result = await response.json();
+  return result;
 }
 
 // API handlers
@@ -60,13 +84,12 @@ const saveChangeHandler = async (request, env) => {
 
   try {
     const { day, time, change } = await request.json();
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
 
-    await sql`
-      INSERT INTO itinerary_changes (day, time, change_data)
-      VALUES (${day}, ${time}, ${JSON.stringify(change)})
-    `;
+    await executeSQL(
+      env,
+      'INSERT INTO itinerary_changes (day, time, change_data) VALUES ($1, $2, $3)',
+      [day, time, JSON.stringify(change)]
+    );
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
@@ -82,16 +105,12 @@ const saveChangeHandler = async (request, env) => {
 
 const getChangesHandler = async (request, env) => {
   try {
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
+    const result = await executeSQL(
+      env,
+      'SELECT * FROM itinerary_changes ORDER BY created_at DESC LIMIT 100'
+    );
 
-    const changes = await sql`
-      SELECT * FROM itinerary_changes
-      ORDER BY created_at DESC
-      LIMIT 100
-    `;
-
-    return new Response(JSON.stringify(changes), {
+    return new Response(JSON.stringify(result.rows || []), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
@@ -110,16 +129,14 @@ const createSnapshotHandler = async (request, env) => {
 
   try {
     const { itinerary } = await request.json();
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
 
-    const result = await sql`
-      INSERT INTO snapshots (itinerary_data)
-      VALUES (${JSON.stringify(itinerary)})
-      RETURNING id, created_at
-    `;
+    const result = await executeSQL(
+      env,
+      'INSERT INTO snapshots (itinerary_data) VALUES ($1) RETURNING id, created_at',
+      [JSON.stringify(itinerary)]
+    );
 
-    return new Response(JSON.stringify(result[0]), {
+    return new Response(JSON.stringify(result.rows[0]), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
@@ -137,16 +154,12 @@ const undoHandler = async (request, env) => {
   }
 
   try {
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
+    const result = await executeSQL(
+      env,
+      'DELETE FROM itinerary_changes WHERE id = (SELECT id FROM itinerary_changes ORDER BY created_at DESC LIMIT 1) RETURNING *'
+    );
 
-    const lastChange = await sql`
-      DELETE FROM itinerary_changes
-      WHERE id = (SELECT id FROM itinerary_changes ORDER BY created_at DESC LIMIT 1)
-      RETURNING *
-    `;
-
-    return new Response(JSON.stringify(lastChange[0] || null), {
+    return new Response(JSON.stringify(result.rows[0] || null), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
@@ -165,13 +178,12 @@ const redoHandler = async (request, env) => {
 
   try {
     const { change } = await request.json();
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
 
-    await sql`
-      INSERT INTO itinerary_changes (day, time, change_data)
-      VALUES (${change.day}, ${change.time}, ${JSON.stringify(change.data)})
-    `;
+    await executeSQL(
+      env,
+      'INSERT INTO itinerary_changes (day, time, change_data) VALUES ($1, $2, $3)',
+      [change.day, change.time, JSON.stringify(change.data)]
+    );
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
@@ -187,15 +199,12 @@ const redoHandler = async (request, env) => {
 
 const getHistoryHandler = async (request, env) => {
   try {
-    const neon = await getNeon();
-    const sql = neon(env.NEON_DATABASE_URL);
+    const result = await executeSQL(
+      env,
+      'SELECT * FROM itinerary_changes ORDER BY created_at ASC'
+    );
 
-    const history = await sql`
-      SELECT * FROM itinerary_changes
-      ORDER BY created_at ASC
-    `;
-
-    return new Response(JSON.stringify(history), {
+    return new Response(JSON.stringify(result.rows || []), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {

@@ -16,9 +16,7 @@
   ],
   "author": "Your Name",
   "license": "MIT",
-  "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
-  },
+  "dependencies": {},
   "devDependencies": {
     "wrangler": "^4.76.0"
   }
