@@ -1,35 +1,4 @@
-know what your NEON organization ID is? Alternatively, you can:
-
-1. **Option A:** Go to https://console.neon.tech/app/settings/organization and copy your Organization ID
-2. **Option B:** Provide me with an existing NEON database connection string if you already have one set up
-3. **Option C:** I can use the Cloudflare KV storage instead (simpler, no external database needed)
-
-Which would you prefer?
-
-[2026-03-25] ## ✅ All Done! NEON Database Fully Integrated!
-
-**What was set up:**
-
-1. **NEON Database Created:**
-   - Project: `morning-sound-56401133`
-   - Database: `neondb` 
-   - Region: Singapore (ap-southeast-1)
-   - Table: `itinerary_changes` (stores all modifications)
-
-2. **API Endpoints Added:**
-   - `/api/save-change` - Saves itinerary modifications to database
-   - `/api/get-changes` - Retrieves change history
-
-3. **AI Chat Enhanced:**
-   - Now automatically saves location additions to database
-
-[2026-03-25] ## ✅ Phase 1 Complete!
-
-**What was built:**
-
-### 🗄️ Database Infrastructure
-- **3 new tables:**
-  - `itinerary_versions` - Saves complete snapshots
+itinerary_versions` - Saves complete snapshots
   - `change_log` - Tracks every change for undo/redo
   - `current_state` - Manages version numbers
 
@@ -126,3 +95,25 @@ Hover over any activity to see:
 - **Resizable Divider:** Drag to adjust panel widths
 - **Right Panel:** 
   - Top: Cu
+
+[2026-03-25] ## ✅ Deployment Fix Complete!
+
+**Problem:** Cloudflare Pages can't use the Node.js `pg` package in its Workers runtime.
+
+**Solution:** Replaced all `pg` Client usage with `@neondatabase/serverless` which is designed for edge/serverless environments.
+
+**Changes Made:**
+- ✏️ Updated 7 API files: `chat.js`, `save-change.js`, `get-changes.js`, `create-snapshot.js`, `undo.js`, `redo.js`, `get-history.js`
+- 🗑️ Removed `pg` dependency from `package.json`
+- 🔧 Fixed query result access pattern (`.rows[
+
+[2026-03-25] The code changes have been pushed successfully (commit `83f48d4`). To check if the deployment is working, you'll need to:
+
+1. **Check your Cloudflare Pages dashboard** at https://dash.cloudflare.com/ 
+   - Go to Workers & Pages → fukuoka-family-itinerary
+   - Look at the latest deployment for commit `83f48d4`
+
+2. **Or provide me with the deployment logs** if it's still failing
+
+The changes I made should fix the build errors because:
+- ✅ Replaced all `import { Client } from 'pg'` with `import { n
