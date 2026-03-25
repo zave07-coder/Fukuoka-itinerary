@@ -194,6 +194,20 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Serve Mapbox config from environment variable
+    if (url.pathname === '/config.js') {
+      const token = env.MAPBOX_TOKEN || '';
+      return new Response(
+        `window.MAPBOX_CONFIG = { token: '${token}' };`,
+        {
+          headers: {
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'public, max-age=3600'
+          }
+        }
+      );
+    }
+
     // Route to appropriate handler
     if (url.pathname === '/api/chat') {
       return chatHandler(request, env);
