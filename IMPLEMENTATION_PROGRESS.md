@@ -84,21 +84,25 @@ Build a comprehensive versioning and editing system that allows intuitive itiner
 
 ---
 
-### ✏️ PHASE 4: Inline Editing & Drag-and-Drop
+### ✅ PHASE 4: Inline Editing & Drag-and-Drop (COMPLETED)
 **Goal:** Direct manipulation of itinerary items
 
 **Tasks:**
-- [ ] Add inline edit mode for location details
-- [ ] Implement drag-and-drop reordering within days
-- [ ] Implement drag-and-drop between days
-- [ ] Add quick action buttons (edit, delete, duplicate)
-- [ ] Save all manual edits to database
-- [ ] Update map when items are edited/moved
+- [x] Add inline edit mode for location details (title & time)
+- [x] Implement drag-and-drop reordering within days
+- [x] Implement drag-and-drop between days
+- [x] Add quick action buttons (edit, delete, duplicate)
+- [x] Save all manual edits to database with operation tracking
+- [x] Automatic map updates via page reload
+- [x] Hover-activated control buttons
+- [x] Confirmation dialogs for destructive actions
 
 **Deliverables:**
-- Inline editing for all location fields
-- Drag-and-drop functionality
-- Seamless map synchronization
+- ✅ Inline editing with contentEditable for titles and times
+- ✅ Drag-and-drop functionality within and across days
+- ✅ Quick action buttons (edit, delete, duplicate, drag handle)
+- ✅ Database integration for all operations
+- ✅ Mobile-responsive controls
 
 ---
 
@@ -121,9 +125,9 @@ Build a comprehensive versioning and editing system that allows intuitive itiner
 ---
 
 ## 📊 Current Status
-- **Current Phase:** Phase 4 - Inline Editing & Drag-and-Drop
+- **Current Phase:** Phase 5 - Polish & Optimization
 - **Started:** 2026-03-25
-- **Completion:** 3/5 phases complete (60%)
+- **Completion:** 4/5 phases complete (80%)
 
 ---
 

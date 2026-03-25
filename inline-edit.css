@@ -1,0 +1,175 @@
+/* Inline Editing Controls */
+.edit-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.activity:hover .edit-controls {
+    opacity: 1;
+}
+
+.edit-controls button {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.edit-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.edit-btn:hover {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.delete-btn:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.delete-btn:hover span,
+.edit-btn:hover span,
+.duplicate-btn:hover span {
+    filter: grayscale(100%) brightness(2);
+}
+
+.duplicate-btn:hover {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.drag-handle {
+    cursor: grab;
+    background: #f8f9fa !important;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle:hover {
+    background: #667eea !important;
+    border-color: #667eea;
+}
+
+/* Editing State */
+.activity.editing {
+    outline: 3px solid #667eea;
+    outline-offset: 4px;
+    background: #f8f9ff;
+}
+
+.activity.editing .edit-controls {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Edit Actions (Save/Cancel) */
+.edit-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #667eea;
+}
+
+.save-edit-btn,
+.cancel-edit-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-edit-btn {
+    background: #28a745;
+    color: white;
+}
+
+.save-edit-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.cancel-edit-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.cancel-edit-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* Dragging State */
+.activity.dragging {
+    opacity: 0.4;
+}
+
+.activity.drag-over {
+    border-top: 3px solid #667eea;
+}
+
+/* Enhanced Activity Styles for Editing */
+.activity {
+    transition: all 0.2s;
+}
+
+.activity:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Editable Content Styles */
+[contenteditable="true"] {
+    transition: all 0.2s;
+}
+
+[contenteditable="true"]:focus {
+    background: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .edit-controls {
+        opacity: 1;
+        position: static;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+    }
+
+    .edit-controls button {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .edit-actions {
+        flex-direction: column;
+    }
+
+    .save-edit-btn,
+    .cancel-edit-btn {
+        width: 100%;
+    }
+}
