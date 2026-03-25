@@ -1,4 +1,4 @@
-import { Client } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
 // Cloudflare Pages Function for AI Chat
 export async function onRequestPost(context) {
@@ -97,11 +97,7 @@ Guidelines:
 
                 // Save to database using enhanced change_log system
                 try {
-                    const dbClient = new Client({
-                        connectionString: context.env.NEON_DATABASE_URL,
-                        ssl: { rejectUnauthorized: false }
-                    });
-                    await dbClient.connect();
+                    const sql = neon(context.env.NEON_DATABASE_URL);
 
                     // Build before/after states based on operation type
                     let beforeState = null;
@@ -152,7 +148,7 @@ Guidelines:
                     }
 
                     // Insert into change_log
-                    await dbClient.query(
+                    await sql(
                         `INSERT INTO change_log
                          (operation_type, day, location_id, before_state, after_state, description)
                          VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -167,12 +163,10 @@ Guidelines:
                     );
 
                     // Also insert into legacy table
-                    await dbClient.query(
+                    await sql(
                         'INSERT INTO itinerary_changes (change_type, day, location_data) VALUES ($1, $2, $3)',
                         [operation.type, operation.day || operation.from_day, JSON.stringify(afterState)]
                     );
-
-                    await dbClient.end();
                 } catch (dbError) {
                     console.error('Database save error:', dbError);
                 }

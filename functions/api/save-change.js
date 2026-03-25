@@ -1,17 +1,12 @@
-import { Client } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const client = new Client({
-    connectionString: context.env.NEON_DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-
   try {
-    await client.connect();
+    const sql = neon(context.env.NEON_DATABASE_URL);
 
     const {
       operation_type,  // 'add', 'remove', 'move', 'update', 'reorder', 'replace'
@@ -26,13 +21,13 @@ export async function onRequest(context) {
     const opType = operation_type || 'add';
 
     // Insert into both tables for backward compatibility
-    await client.query(
+    await sql(
       'INSERT INTO itinerary_changes (change_type, day, location_data) VALUES ($1, $2, $3)',
       [opType, day, JSON.stringify(after_state)]
     );
 
     // Insert into change_log for undo/redo
-    const result = await client.query(
+    const result = await sql(
       `INSERT INTO change_log
        (operation_type, day, location_id, before_state, after_state, description)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -48,13 +43,13 @@ export async function onRequest(context) {
     );
 
     // Update total changes counter
-    await client.query(
+    await sql(
       'UPDATE current_state SET total_changes = total_changes + 1 WHERE id = 1'
     );
 
     return new Response(JSON.stringify({
       success: true,
-      change: result.rows[0]
+      change: result[0]
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -67,7 +62,5 @@ export async function onRequest(context) {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
-  } finally {
-    await client.end();
   }
 }

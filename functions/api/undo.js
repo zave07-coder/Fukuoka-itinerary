@@ -1,24 +1,19 @@
-import { Client } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const client = new Client({
-    connectionString: context.env.NEON_DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-
   try {
-    await client.connect();
+    const sql = neon(context.env.NEON_DATABASE_URL);
 
     // Get the last non-undone change
-    const lastChangeResult = await client.query(
+    const lastChangeResult = await sql(
       'SELECT * FROM change_log WHERE is_undone = FALSE ORDER BY created_at DESC LIMIT 1'
     );
 
-    if (lastChangeResult.rows.length === 0) {
+    if (lastChangeResult.length === 0) {
       return new Response(JSON.stringify({
         success: false,
         message: 'Nothing to undo'
@@ -28,10 +23,10 @@ export async function onRequest(context) {
       });
     }
 
-    const lastChange = lastChangeResult.rows[0];
+    const lastChange = lastChangeResult[0];
 
     // Mark as undone
-    await client.query(
+    await sql(
       'UPDATE change_log SET is_undone = TRUE, undone_at = NOW() WHERE id = $1',
       [lastChange.id]
     );
@@ -56,7 +51,5 @@ export async function onRequest(context) {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
-  } finally {
-    await client.end();
   }
 }

@@ -1,13 +1,8 @@
-import { Client } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
 export async function onRequest(context) {
-  const client = new Client({
-    connectionString: context.env.NEON_DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-
   try {
-    await client.connect();
+    const sql = neon(context.env.NEON_DATABASE_URL);
 
     const url = new URL(context.request.url);
     const limit = parseInt(url.searchParams.get('limit') || '50');
@@ -19,11 +14,11 @@ export async function onRequest(context) {
     }
     query += ' ORDER BY created_at DESC LIMIT $1';
 
-    const result = await client.query(query, [limit]);
+    const result = await sql(query, [limit]);
 
     return new Response(JSON.stringify({
       success: true,
-      history: result.rows
+      history: result
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -36,7 +31,5 @@ export async function onRequest(context) {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
-  } finally {
-    await client.end();
   }
 }
