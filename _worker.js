@@ -13,6 +13,17 @@ const chatHandler = async (request, env) => {
   }
 
   try {
+    // Check if API key exists
+    if (!env.OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY not configured');
+      return new Response(JSON.stringify({
+        error: 'OpenAI API key not configured. Please add OPENAI_API_KEY to Cloudflare Pages environment variables.'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const { message } = await request.json();
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -35,6 +46,17 @@ const chatHandler = async (request, env) => {
       })
     });
 
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.json();
+      console.error('OpenAI API error:', errorData);
+      return new Response(JSON.stringify({
+        error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const data = await openaiResponse.json();
 
     return new Response(JSON.stringify({
@@ -44,7 +66,7 @@ const chatHandler = async (request, env) => {
     });
   } catch (error) {
     console.error('Chat error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: `Server error: ${error.message}` }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
