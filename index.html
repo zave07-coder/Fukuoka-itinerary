@@ -2304,7 +2304,11 @@
                 <h3>✨ AI Trip Editor</h3>
                 <p class="ai-subtitle">Powered by GPT-4 Turbo</p>
             </div>
-            <button id="aiClose" class="ai-close-btn">×</button>
+            <div class="ai-header-actions">
+                <button id="aiUndo" class="ai-action-btn" title="Undo last change" disabled>↶</button>
+                <button id="aiRedo" class="ai-action-btn" title="Redo" disabled>↷</button>
+                <button id="aiClose" class="ai-close-btn">×</button>
+            </div>
         </div>
 
         <div id="aiMessages" class="ai-messages">
@@ -2324,11 +2328,33 @@
         </div>
 
         <div class="ai-input-area">
+            <div class="ai-mode-toggle">
+                <button class="mode-btn active" data-mode="chat" title="Chat mode - just suggestions">💬 Chat</button>
+                <button class="mode-btn" data-mode="edit" title="Auto-edit mode - apply changes directly">✨ Auto-Edit</button>
+            </div>
             <textarea id="aiInput" placeholder="Tell me what you'd like to change about your trip..." rows="3"></textarea>
             <button id="aiSend" class="ai-send-btn">
                 <span id="aiSendText">Send</span>
                 <span id="aiSendIcon">→</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Edit Preview Modal -->
+    <div id="editPreviewModal" class="edit-preview-modal">
+        <div class="edit-preview-dialog">
+            <div class="edit-preview-header">
+                <h3>✨ Preview Changes</h3>
+                <button class="edit-preview-close" onclick="closeEditPreview()">×</button>
+            </div>
+            <div class="edit-preview-body">
+                <div id="editExplanation" class="edit-explanation"></div>
+                <div id="editChanges" class="edit-changes"></div>
+            </div>
+            <div class="edit-preview-actions">
+                <button class="edit-preview-cancel" onclick="closeEditPreview()">Cancel</button>
+                <button class="edit-preview-apply" onclick="applyEdits()">✓ Apply Changes</button>
+            </div>
         </div>
     </div>
 

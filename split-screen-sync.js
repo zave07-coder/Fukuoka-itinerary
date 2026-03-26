@@ -106,6 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // AI Sidebar Functionality
 let currentAIContext = null;
+let currentAIMode = 'chat'; // 'chat' or 'edit'
+let pendingEdits = null;
+let editHistory = [];
+let editHistoryIndex = -1;
 
 window.openAISidebar = function(type, button = null) {
     const sidebar = document.getElementById('aiSidebar');
@@ -178,20 +182,52 @@ async function sendAIMessage() {
     sendBtn.disabled = true;
 
     try {
-        let systemPrompt = currentAIContext?.type === 'day'
-            ? `You are helping edit Day ${currentAIContext.dayNumber} (${currentAIContext.dayTitle}) of a Fukuoka trip. Give specific, actionable suggestions.`
-            : `You are helping edit a 10-day Fukuoka family trip. Give practical suggestions.`;
+        if (currentAIMode === 'edit') {
+            // Auto-edit mode: Generate structured edits
+            const context = currentAIContext?.type === 'day'
+                ? `Editing Day ${currentAIContext.dayNumber}: ${currentAIContext.dayTitle}`
+                : `Editing entire 10-day Fukuoka family trip`;
 
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: `${systemPrompt}\n\n${message}`
-            })
-        });
+            // Get current itinerary content
+            const currentContent = getCurrentItineraryContent();
 
-        const data = await response.json();
-        addAIMessage('bot', data.reply);
+            const response = await fetch('/api/ai-edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message,
+                    context,
+                    currentContent
+                })
+            });
+
+            const editData = await response.json();
+
+            if (editData.error) {
+                addAIMessage('bot', `<span style="color: #f5576c;">Error: ${editData.error}</span>`);
+            } else {
+                // Show preview modal
+                showEditPreview(editData);
+                addAIMessage('bot', `✨ I've prepared ${editData.edits?.length || 0} changes. Review them in the preview!`);
+            }
+
+        } else {
+            // Chat mode: Just suggestions
+            let systemPrompt = currentAIContext?.type === 'day'
+                ? `You are helping edit Day ${currentAIContext.dayNumber} (${currentAIContext.dayTitle}) of a Fukuoka trip. Give specific, actionable suggestions.`
+                : `You are helping edit a 10-day Fukuoka family trip. Give practical suggestions.`;
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `${systemPrompt}\n\n${message}`
+                })
+            });
+
+            const data = await response.json();
+            addAIMessage('bot', data.reply);
+        }
 
     } catch (error) {
         addAIMessage('bot', `<span style="color: #f5576c;">Sorry, there was an error: ${error.message}</span>`);
@@ -199,6 +235,197 @@ async function sendAIMessage() {
         sendBtn.innerHTML = originalText;
         sendBtn.disabled = false;
     }
+}
+
+function getCurrentItineraryContent() {
+    // Extract current itinerary from the DOM
+    const days = [];
+    document.querySelectorAll('.accordion-item').forEach(item => {
+        const dayNum = item.getAttribute('data-day');
+        const title = item.querySelector('.day-title-short')?.textContent || '';
+        const activities = Array.from(item.querySelectorAll('.activity-item')).map(a => a.textContent.trim());
+
+        days.push({
+            day: dayNum,
+            title,
+            activities
+        });
+    });
+
+    return JSON.stringify(days, null, 2);
+}
+
+function showEditPreview(editData) {
+    pendingEdits = editData;
+
+    const modal = document.getElementById('editPreviewModal');
+    const explanation = document.getElementById('editExplanation');
+    const changes = document.getElementById('editChanges');
+
+    explanation.textContent = editData.explanation || 'AI has generated the following changes:';
+
+    changes.innerHTML = '';
+    (editData.edits || []).forEach(edit => {
+        const changeItem = document.createElement('div');
+        changeItem.className = 'edit-change-item';
+        changeItem.innerHTML = `
+            <div class="edit-change-header">
+                <span class="edit-change-badge ${edit.type}">${edit.type.toUpperCase()}</span>
+                <span class="edit-change-day">Day ${edit.dayNumber} • ${edit.timeSlot || 'General'}</span>
+            </div>
+            <div class="edit-change-content">${edit.content}</div>
+            <div class="edit-change-reason">💡 ${edit.reason}</div>
+        `;
+        changes.appendChild(changeItem);
+    });
+
+    modal.classList.add('active');
+}
+
+window.closeEditPreview = function() {
+    document.getElementById('editPreviewModal').classList.remove('active');
+    pendingEdits = null;
+};
+
+window.applyEdits = function() {
+    if (!pendingEdits || !pendingEdits.edits) return;
+
+    // Store snapshot before applying edits
+    const snapshot = captureCurrentState();
+
+    // Apply each edit to the DOM
+    pendingEdits.edits.forEach(edit => {
+        applyEditToDOM(edit);
+    });
+
+    // Save to history (clear redo stack)
+    editHistory = editHistory.slice(0, editHistoryIndex + 1);
+    editHistory.push({
+        timestamp: new Date().toISOString(),
+        edits: pendingEdits.edits,
+        beforeState: snapshot
+    });
+    editHistoryIndex = editHistory.length - 1;
+
+    updateUndoRedoButtons();
+
+    // Show success message
+    addAIMessage('bot', `<strong>✅ Applied ${pendingEdits.edits.length} changes successfully!</strong>`);
+
+    closeEditPreview();
+};
+
+function captureCurrentState() {
+    // Capture current DOM state for undo
+    const state = {};
+    document.querySelectorAll('.accordion-item').forEach(item => {
+        const dayNum = item.getAttribute('data-day');
+        state[dayNum] = item.innerHTML;
+    });
+    return state;
+}
+
+function restoreState(state) {
+    // Restore DOM from snapshot
+    Object.keys(state).forEach(dayNum => {
+        const item = document.querySelector(`.accordion-item[data-day="${dayNum}"]`);
+        if (item) {
+            item.innerHTML = state[dayNum];
+        }
+    });
+}
+
+window.undoLastEdit = function() {
+    if (editHistoryIndex < 0) return;
+
+    const edit = editHistory[editHistoryIndex];
+    if (edit.beforeState) {
+        restoreState(edit.beforeState);
+    }
+
+    editHistoryIndex--;
+    updateUndoRedoButtons();
+
+    addAIMessage('bot', '↶ <strong>Undid last change</strong>');
+};
+
+window.redoEdit = function() {
+    if (editHistoryIndex >= editHistory.length - 1) return;
+
+    editHistoryIndex++;
+    const edit = editHistory[editHistoryIndex];
+
+    // Reapply the edits
+    edit.edits.forEach(e => applyEditToDOM(e));
+
+    updateUndoRedoButtons();
+
+    addAIMessage('bot', '↷ <strong>Redid change</strong>');
+};
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('aiUndo');
+    const redoBtn = document.getElementById('aiRedo');
+
+    if (undoBtn) {
+        undoBtn.disabled = editHistoryIndex < 0;
+    }
+
+    if (redoBtn) {
+        redoBtn.disabled = editHistoryIndex >= editHistory.length - 1;
+    }
+}
+
+function applyEditToDOM(edit) {
+    const accordionItem = document.querySelector(`.accordion-item[data-day="${edit.dayNumber}"]`);
+    if (!accordionItem) return;
+
+    const contentArea = accordionItem.querySelector('.accordion-content');
+    if (!contentArea) return;
+
+    // Create or modify activity based on edit type
+    if (edit.type === 'add') {
+        const newActivity = document.createElement('div');
+        newActivity.className = 'activity-item';
+        newActivity.innerHTML = `
+            <div class="time-badge">${edit.timeSlot}</div>
+            <div class="activity-details">
+                <p>${edit.content}</p>
+            </div>
+        `;
+        contentArea.appendChild(newActivity);
+
+    } else if (edit.type === 'modify') {
+        // Find matching activity by time slot
+        const activities = contentArea.querySelectorAll('.activity-item');
+        for (const activity of activities) {
+            const timeBadge = activity.querySelector('.time-badge');
+            if (timeBadge && timeBadge.textContent.includes(edit.timeSlot)) {
+                const details = activity.querySelector('.activity-details p');
+                if (details) {
+                    details.textContent = edit.content;
+                }
+                break;
+            }
+        }
+
+    } else if (edit.type === 'remove') {
+        // Find and remove matching activity
+        const activities = contentArea.querySelectorAll('.activity-item');
+        for (const activity of activities) {
+            const timeBadge = activity.querySelector('.time-badge');
+            if (timeBadge && timeBadge.textContent.includes(edit.timeSlot)) {
+                activity.remove();
+                break;
+            }
+        }
+    }
+
+    // Highlight the day that was edited
+    accordionItem.style.borderLeft = '4px solid #667eea';
+    setTimeout(() => {
+        accordionItem.style.borderLeft = '';
+    }, 3000);
 }
 
 window.sendAISuggestion = function(text) {
@@ -212,6 +439,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('aiClose');
     const sendBtn = document.getElementById('aiSend');
     const input = document.getElementById('aiInput');
+    const undoBtn = document.getElementById('aiUndo');
+    const redoBtn = document.getElementById('aiRedo');
 
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => openAISidebar('trip'));
@@ -234,10 +463,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (undoBtn) {
+        undoBtn.addEventListener('click', undoLastEdit);
+    }
+
+    if (redoBtn) {
+        redoBtn.addEventListener('click', redoEdit);
+    }
+
+    // Mode toggle buttons
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentAIMode = btn.getAttribute('data-mode');
+
+            // Update placeholder based on mode
+            if (input) {
+                if (currentAIMode === 'edit') {
+                    input.placeholder = 'Describe the changes you want (e.g., "Add more beach time to Day 3")';
+                    addAIMessage('bot', '✨ <strong>Auto-Edit mode activated!</strong> I\'ll generate changes and show you a preview before applying.');
+                } else {
+                    input.placeholder = 'Tell me what you\'d like to change about your trip...';
+                    addAIMessage('bot', '💬 <strong>Chat mode activated!</strong> I\'ll give you suggestions.');
+                }
+            }
+        });
+    });
+
     // Close on ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeAISidebar();
+            closeEditPreview();
         }
     });
 });

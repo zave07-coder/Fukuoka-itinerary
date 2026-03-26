@@ -51,6 +51,70 @@ const chatHandler = async (request, env) => {
   }
 };
 
+const aiEditHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const { message, context, currentContent } = await request.json();
+
+    const systemPrompt = `You are an itinerary editor for a Fukuoka family trip.
+The user wants to modify their itinerary. Analyze their request and return a JSON object with structured edits.
+
+Return ONLY valid JSON in this exact format:
+{
+  "explanation": "Brief explanation of changes (2-3 sentences)",
+  "edits": [
+    {
+      "type": "modify|add|remove",
+      "target": "activity|restaurant|note",
+      "dayNumber": 1,
+      "timeSlot": "9:00 AM",
+      "content": "New/modified content",
+      "reason": "Why this change helps"
+    }
+  ]
+}
+
+Current itinerary content:
+${currentContent}
+
+Context: ${context}`;
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4-turbo-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    const data = await openaiResponse.json();
+    const editData = JSON.parse(data.choices[0].message.content);
+
+    return new Response(JSON.stringify(editData), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('AI Edit error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
 const saveChangeHandler = async (request, env) => {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -217,6 +281,8 @@ export default {
     // Route to appropriate handler
     if (url.pathname === '/api/chat') {
       return chatHandler(request, env);
+    } else if (url.pathname === '/api/ai-edit') {
+      return aiEditHandler(request, env);
     } else if (url.pathname === '/api/save-change') {
       return saveChangeHandler(request, env);
     } else if (url.pathname === '/api/get-changes') {
