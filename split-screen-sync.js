@@ -104,140 +104,142 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// AI Edit Functionality
-let currentEditContext = null;
+// AI Sidebar Functionality
+let currentAIContext = null;
 
-window.openDayAIEdit = function(button) {
-    const modal = document.getElementById('aiEditModal');
-    if (!modal) {
-        console.error('AI Edit modal not found');
-        return;
+window.openAISidebar = function(type, button = null) {
+    const sidebar = document.getElementById('aiSidebar');
+    if (!sidebar) return;
+
+    // Set context
+    if (type === 'day' && button) {
+        const accordionItem = button.closest('.accordion-item');
+        const dayNumber = accordionItem.getAttribute('data-day');
+        const dayTitle = accordionItem.querySelector('.day-title-short').textContent;
+
+        currentAIContext = {
+            type: 'day',
+            dayNumber: dayNumber,
+            dayTitle: dayTitle
+        };
+
+        // Add context message
+        addAIMessage('bot', `I'll help you edit <strong>Day ${dayNumber}</strong>. What would you like to change?`);
+    } else {
+        currentAIContext = { type: 'trip' };
+        addAIMessage('bot', `I'll help you edit your <strong>entire trip</strong>. What changes would you like to make?`);
     }
 
-    const accordionItem = button.closest('.accordion-item');
-    const dayNumber = accordionItem.getAttribute('data-day');
-    const dayTitle = accordionItem.querySelector('.day-title-short').textContent;
-
-    currentEditContext = {
-        type: 'day',
-        dayNumber: dayNumber,
-        element: accordionItem
-    };
-
-    const title = document.getElementById('aiEditTitle');
-    const context = document.getElementById('aiEditContext');
-    const prompt = document.getElementById('aiEditPrompt');
-
-    if (title) title.textContent = `Edit Day ${dayNumber} with AI`;
-    if (context) context.textContent = `Editing: ${dayTitle}`;
-    if (prompt) {
-        prompt.value = '';
-        prompt.placeholder = `Example: Add more beach time, reduce driving, make it more kid-friendly...`;
-    }
-
-    modal.classList.add('active');
-    if (prompt) setTimeout(() => prompt.focus(), 100);
+    sidebar.classList.add('open');
+    setTimeout(() => document.getElementById('aiInput').focus(), 300);
 };
 
-window.openTripAIEdit = function() {
-    const modal = document.getElementById('aiEditModal');
-    if (!modal) {
-        console.error('AI Edit modal not found');
-        return;
-    }
-
-    currentEditContext = {
-        type: 'trip',
-        element: document.querySelector('.itinerary-accordion')
-    };
-
-    const title = document.getElementById('aiEditTitle');
-    const context = document.getElementById('aiEditContext');
-    const prompt = document.getElementById('aiEditPrompt');
-
-    if (title) title.textContent = 'Edit Entire Trip with AI';
-    if (context) context.textContent = 'Editing: Full 10-day itinerary';
-    if (prompt) {
-        prompt.value = '';
-        prompt.placeholder = `Example: Add more cultural sites, include more hot springs, reduce daily driving time...`;
-    }
-
-    modal.classList.add('active');
-    if (prompt) setTimeout(() => prompt.focus(), 100);
+window.closeAISidebar = function() {
+    const sidebar = document.getElementById('aiSidebar');
+    sidebar.classList.remove('open');
+    currentAIContext = null;
 };
 
-window.closeAIEditModal = function() {
-    const modal = document.getElementById('aiEditModal');
-    modal.classList.remove('active');
-    currentEditContext = null;
-    document.getElementById('aiEditPrompt').value = '';
-    document.getElementById('aiEditResult').style.display = 'none';
-};
+function addAIMessage(sender, content) {
+    const messagesDiv = document.getElementById('aiMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ai-${sender}`;
 
-window.submitAIEdit = async function() {
-    const prompt = document.getElementById('aiEditPrompt').value.trim();
-
-    if (!prompt) {
-        alert('Please enter what you\'d like to change');
-        return;
+    if (sender === 'bot') {
+        messageDiv.innerHTML = `
+            <div class="ai-avatar">🤖</div>
+            <div class="ai-content">${content}</div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="ai-content">${content}</div>
+            <div class="ai-avatar">👤</div>
+        `;
     }
 
-    const submitBtn = document.querySelector('.ai-edit-submit');
-    const resultDiv = document.getElementById('aiEditResult');
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = '✨ Generating...';
-    resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<p style="color: #666;">AI is thinking... This may take a few seconds.</p>';
+async function sendAIMessage() {
+    const input = document.getElementById('aiInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // Add user message
+    addAIMessage('user', message);
+    input.value = '';
+
+    // Show loading
+    const sendBtn = document.getElementById('aiSend');
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = '<span>⏳</span>';
+    sendBtn.disabled = true;
 
     try {
-        let systemPrompt = '';
-        if (currentEditContext.type === 'day') {
-            systemPrompt = `You are a travel itinerary editor. The user wants to modify Day ${currentEditContext.dayNumber} of their Fukuoka trip. Provide specific, actionable suggestions for changes. Keep it concise (3-5 bullet points).`;
-        } else {
-            systemPrompt = `You are a travel itinerary editor. The user wants to modify their entire 10-day Fukuoka trip. Provide high-level, strategic suggestions. Keep it concise (4-6 bullet points).`;
-        }
+        let systemPrompt = currentAIContext?.type === 'day'
+            ? `You are helping edit Day ${currentAIContext.dayNumber} (${currentAIContext.dayTitle}) of a Fukuoka trip. Give specific, actionable suggestions.`
+            : `You are helping edit a 10-day Fukuoka family trip. Give practical suggestions.`;
 
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: `${systemPrompt}\n\nUser request: ${prompt}`
+                message: `${systemPrompt}\n\n${message}`
             })
         });
 
         const data = await response.json();
-
-        resultDiv.innerHTML = `
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
-                <strong style="color: #667eea; display: block; margin-bottom: 0.5rem;">AI Suggestions:</strong>
-                <div style="color: #333; white-space: pre-wrap;">${data.reply}</div>
-            </div>
-            <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                <em>Note: These are suggestions. You can manually edit the itinerary in the page content.</em>
-            </p>
-        `;
+        addAIMessage('bot', data.reply);
 
     } catch (error) {
-        resultDiv.innerHTML = `<p style="color: #f5576c;">Error: ${error.message}</p>`;
+        addAIMessage('bot', `<span style="color: #f5576c;">Sorry, there was an error: ${error.message}</span>`);
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✨ Generate Changes';
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
     }
+}
+
+window.sendAISuggestion = function(text) {
+    document.getElementById('aiInput').value = text;
+    sendAIMessage();
 };
 
-// Close modal on ESC key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeAIEditModal();
-    }
-});
+// Event listeners for AI sidebar
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('aiToggle');
+    const closeBtn = document.getElementById('aiClose');
+    const sendBtn = document.getElementById('aiSend');
+    const input = document.getElementById('aiInput');
 
-// Close modal on background click
-document.getElementById('aiEditModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'aiEditModal') {
-        closeAIEditModal();
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => openAISidebar('trip'));
     }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeAISidebar);
+    }
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendAIMessage);
+    }
+
+    if (input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendAIMessage();
+            }
+        });
+    }
+
+    // Close on ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAISidebar();
+        }
+    });
 });
 
 // Function to be called from map markers

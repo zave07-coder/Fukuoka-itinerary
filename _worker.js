@@ -22,16 +22,16 @@ const chatHandler = async (request, env) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4-turbo-preview',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful travel assistant specializing in Fukuoka, Japan. Help users plan their itinerary, suggest activities, restaurants, and provide local insights.'
+            content: 'You are a helpful travel assistant specializing in Fukuoka, Japan. Help users plan their itinerary, suggest activities, restaurants, and provide local insights. Provide concise, actionable responses.'
           },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 500
+        max_tokens: 800
       })
     });
 
