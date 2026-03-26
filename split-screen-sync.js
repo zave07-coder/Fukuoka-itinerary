@@ -112,8 +112,14 @@ let editHistory = [];
 let editHistoryIndex = -1;
 
 window.openAISidebar = function(type, button = null) {
+    console.log('[AI] openAISidebar called with type:', type, 'button:', button);
     const sidebar = document.getElementById('aiSidebar');
-    if (!sidebar) return;
+    if (!sidebar) {
+        console.error('[AI] Sidebar element not found!');
+        return;
+    }
+
+    console.log('[AI] Sidebar found, opening...');
 
     // Set context
     if (type === 'day' && button) {
@@ -127,15 +133,21 @@ window.openAISidebar = function(type, button = null) {
             dayTitle: dayTitle
         };
 
+        console.log('[AI] Context set for day:', dayNumber);
         // Add context message
         addAIMessage('bot', `I'll help you edit <strong>Day ${dayNumber}</strong>. What would you like to change?`);
     } else {
         currentAIContext = { type: 'trip' };
+        console.log('[AI] Context set for entire trip');
         addAIMessage('bot', `I'll help you edit your <strong>entire trip</strong>. What changes would you like to make?`);
     }
 
     sidebar.classList.add('open');
-    setTimeout(() => document.getElementById('aiInput').focus(), 300);
+    console.log('[AI] Sidebar opened successfully');
+    setTimeout(() => {
+        const input = document.getElementById('aiInput');
+        if (input) input.focus();
+    }, 300);
 };
 
 window.closeAISidebar = function() {
@@ -435,6 +447,8 @@ window.sendAISuggestion = function(text) {
 
 // Event listeners for AI sidebar
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[AI] Initializing AI sidebar event listeners...');
+
     const toggleBtn = document.getElementById('aiToggle');
     const closeBtn = document.getElementById('aiClose');
     const sendBtn = document.getElementById('aiSend');
@@ -443,12 +457,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const redoBtn = document.getElementById('aiRedo');
     const editTripBtn = document.getElementById('editTripBtn');
 
+    console.log('[AI] Elements found:', { toggleBtn: !!toggleBtn, editTripBtn: !!editTripBtn, closeBtn: !!closeBtn });
+
     if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => openAISidebar('trip'));
+        console.log('[AI] Attaching click handler to aiToggle');
+        toggleBtn.addEventListener('click', () => {
+            console.log('[AI] Toggle button clicked!');
+            openAISidebar('trip');
+        });
+    } else {
+        console.error('[AI] aiToggle button not found!');
     }
 
     if (editTripBtn) {
-        editTripBtn.addEventListener('click', () => openAISidebar('trip'));
+        console.log('[AI] Attaching click handler to editTripBtn');
+        editTripBtn.addEventListener('click', () => {
+            console.log('[AI] Edit Trip button clicked!');
+            openAISidebar('trip');
+        });
+    } else {
+        console.error('[AI] editTripBtn button not found!');
     }
 
     if (closeBtn) {
@@ -456,10 +484,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event delegation for day edit buttons
+    console.log('[AI] Setting up event delegation for day edit buttons');
     document.addEventListener('click', (e) => {
         const dayEditBtn = e.target.closest('[data-action="edit-day"]');
         if (dayEditBtn) {
+            console.log('[AI] Day edit button clicked!', dayEditBtn);
             e.stopPropagation();
+            e.preventDefault();
             openAISidebar('day', dayEditBtn);
         }
     });

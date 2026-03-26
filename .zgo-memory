@@ -1,13 +1,3 @@
-`, creating a race condition where `initMap()` would execute before `window.MAPBOX_CONFIG` was defined.
-
-**Solution:** Moved `/config.js` to the `<head>` section so it loads synchronously before any other scripts that depend on it.
-
-**Changes:**
-- ✅ Moved `<script src="/config.js?v=3"></script>` to `<head>` section
-- ✅ Removed duplicate from bottom of page
-- ✅ Bumpe
-
-[2026-03-25] Perfect! Now the fix is deployed. Let me summarize what was fixed:
 
 ## ✅ Fixed All JavaScript Issues!
 
@@ -103,3 +93,17 @@ The error is now resolved. The problem was that `split-screen-sync.js` loads wit
 - ✅ Fixed preview modal butt
 
 [2026-03-26] Prompt is too long
+
+[2026-03-26] ## ✅ Fixed JavaScript Errors!
+
+**Changes deployed:** Commit `cc1f59f`
+
+### What Was Wrong:
+
+You had **two competing AI chat systems** running at the same time:
+1. **Old system** in `script.js` - looking for DOM elements that don't exist
+2. **New sidebar system** in `split-screen-sync.js` - the modern sidebar UI
+
+This caused the error: `Cannot read properties of null (reading 'addEventListener')` because `script.js` was trying to attach event listeners to elements that were never created.
+
+### Wh
