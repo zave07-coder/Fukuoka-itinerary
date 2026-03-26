@@ -132,7 +132,7 @@
             <div class="itinerary-header">
                 <h2>📅 Your Journey</h2>
                 <p class="trip-dates">June 14-23, 2026 • 10 Days</p>
-                <button class="ai-edit-trip-btn" onclick="openAISidebar('trip')">
+                <button class="ai-edit-trip-btn" id="editTripBtn">
                     ✨ Edit Trip with AI
                 </button>
             </div>
@@ -182,7 +182,7 @@
                             <span class="day-title-short">Arrival & Settling In</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 14 (Sat)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -316,7 +316,7 @@
                             <span class="day-title-short">Fukuoka City Highlights</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 15 (Sun)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -453,7 +453,7 @@
                             <span class="day-title-short">Marine World & Seaside Park</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 16 (Mon)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -606,7 +606,7 @@
                             <span class="day-title-short">Yufuin & Beppu Hot Springs Road Trip</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 17 (Tue)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -808,7 +808,7 @@
                             <span class="day-title-short">Relaxed Day - Anpanman & Beach</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 18 (Wed)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -970,7 +970,7 @@
                             <span class="day-title-short">Dazaifu Cultural & Historical Day</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 19 (Thu)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1170,7 +1170,7 @@
                             <span class="day-title-short">Karatsu Castle & Coastal Drive</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 20 (Fri)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1354,7 +1354,7 @@
                             <span class="day-title-short">Nokonoshima Island Adventure</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 21 (Sat)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1574,7 +1574,7 @@
                             <span class="day-title-short">Flexible Day - Choose Your Adventure</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 22 (Sun)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -1805,7 +1805,7 @@
                             <span class="day-title-short">Departure Day - Sayonara Fukuoka! 👋</span>
                         </div>
                         <div class="accordion-meta">
-                            <button class="ai-edit-day-btn" onclick="event.stopPropagation(); openAISidebar('day', this)" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+                            <button class="ai-edit-day-btn" data-action="edit-day" title="Edit this day with AI"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
                             <span class="day-date">June 23 (Mon)</span>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -2318,10 +2318,10 @@
                     <p><strong>Hi! I can help you customize your trip.</strong></p>
                     <p>Try asking:</p>
                     <div class="ai-suggestions">
-                        <button class="ai-suggestion-btn" onclick="sendAISuggestion('Make Day 3 more relaxed with less walking')">Make a day more relaxed</button>
-                        <button class="ai-suggestion-btn" onclick="sendAISuggestion('Add more kid-friendly activities to Day 5')">Add kid activities</button>
-                        <button class="ai-suggestion-btn" onclick="sendAISuggestion('Suggest cheaper restaurant alternatives')">Find cheaper food</button>
-                        <button class="ai-suggestion-btn" onclick="sendAISuggestion('Add a hot spring visit to Day 7')">Add hot springs</button>
+                        <button class="ai-suggestion-btn" data-suggestion="Make Day 3 more relaxed with less walking">Make a day more relaxed</button>
+                        <button class="ai-suggestion-btn" data-suggestion="Add more kid-friendly activities to Day 5">Add kid activities</button>
+                        <button class="ai-suggestion-btn" data-suggestion="Suggest cheaper restaurant alternatives">Find cheaper food</button>
+                        <button class="ai-suggestion-btn" data-suggestion="Add a hot spring visit to Day 7">Add hot springs</button>
                     </div>
                 </div>
             </div>
@@ -2345,15 +2345,15 @@
         <div class="edit-preview-dialog">
             <div class="edit-preview-header">
                 <h3>✨ Preview Changes</h3>
-                <button class="edit-preview-close" onclick="closeEditPreview()">×</button>
+                <button class="edit-preview-close" id="closePreviewBtn">×</button>
             </div>
             <div class="edit-preview-body">
                 <div id="editExplanation" class="edit-explanation"></div>
                 <div id="editChanges" class="edit-changes"></div>
             </div>
             <div class="edit-preview-actions">
-                <button class="edit-preview-cancel" onclick="closeEditPreview()">Cancel</button>
-                <button class="edit-preview-apply" onclick="applyEdits()">✓ Apply Changes</button>
+                <button class="edit-preview-cancel" id="cancelPreviewBtn">Cancel</button>
+                <button class="edit-preview-apply" id="applyEditsBtn">✓ Apply Changes</button>
             </div>
         </div>
     </div>

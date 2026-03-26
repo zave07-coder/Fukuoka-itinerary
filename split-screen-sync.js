@@ -441,14 +441,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('aiInput');
     const undoBtn = document.getElementById('aiUndo');
     const redoBtn = document.getElementById('aiRedo');
+    const editTripBtn = document.getElementById('editTripBtn');
 
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => openAISidebar('trip'));
     }
 
+    if (editTripBtn) {
+        editTripBtn.addEventListener('click', () => openAISidebar('trip'));
+    }
+
     if (closeBtn) {
         closeBtn.addEventListener('click', closeAISidebar);
     }
+
+    // Event delegation for day edit buttons
+    document.addEventListener('click', (e) => {
+        const dayEditBtn = e.target.closest('[data-action="edit-day"]');
+        if (dayEditBtn) {
+            e.stopPropagation();
+            openAISidebar('day', dayEditBtn);
+        }
+    });
 
     if (sendBtn) {
         sendBtn.addEventListener('click', sendAIMessage);
@@ -490,6 +504,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    });
+
+    // Preview modal buttons
+    const closePreviewBtn = document.getElementById('closePreviewBtn');
+    const cancelPreviewBtn = document.getElementById('cancelPreviewBtn');
+    const applyEditsBtn = document.getElementById('applyEditsBtn');
+
+    if (closePreviewBtn) {
+        closePreviewBtn.addEventListener('click', closeEditPreview);
+    }
+
+    if (cancelPreviewBtn) {
+        cancelPreviewBtn.addEventListener('click', closeEditPreview);
+    }
+
+    if (applyEditsBtn) {
+        applyEditsBtn.addEventListener('click', applyEdits);
+    }
+
+    // Suggestion buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('ai-suggestion-btn')) {
+            const suggestion = e.target.getAttribute('data-suggestion');
+            if (suggestion) {
+                sendAISuggestion(suggestion);
+            }
+        }
     });
 
     // Close on ESC
