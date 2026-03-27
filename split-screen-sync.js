@@ -26,6 +26,47 @@ function loadHistoryFromLocalStorage() {
     }
 }
 
+function showHistorySidebar() {
+    const sidebar = document.getElementById('historySidebar');
+    const content = document.getElementById('historyContent');
+
+    if (!sidebar || !content) return;
+
+    // Build history HTML
+    if (editHistory.length === 0) {
+        content.innerHTML = '<p style="padding: 1rem; color: #666;">No changes yet. Make some edits to see your history here!</p>';
+    } else {
+        content.innerHTML = '';
+        editHistory.forEach((item, index) => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            if (index === editHistoryIndex) {
+                historyItem.classList.add('current');
+            }
+
+            const date = new Date(item.timestamp);
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            historyItem.innerHTML = `
+                <div class="history-item-header">
+                    <span class="history-time">${timeStr}</span>
+                    <span class="history-count">${item.edits.length} change${item.edits.length > 1 ? 's' : ''}</span>
+                </div>
+                <div class="history-item-content">
+                    ${item.edits.map(e => `<div class="history-edit">
+                        <span class="history-badge ${e.type}">${e.type}</span>
+                        Day ${e.dayNumber}: ${e.content.substring(0, 60)}${e.content.length > 60 ? '...' : ''}
+                    </div>`).join('')}
+                </div>
+            `;
+
+            content.appendChild(historyItem);
+        });
+    }
+
+    sidebar.classList.add('open');
+}
+
 // Toggle accordion
 function toggleAccordion(header) {
     const item = header.parentElement;
@@ -688,6 +729,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (redoBtn) {
         redoBtn.addEventListener('click', redoEdit);
+    }
+
+    // Main toolbar undo/redo buttons (in version-control toolbar)
+    const mainUndoBtn = document.getElementById('undoBtn');
+    const mainRedoBtn = document.getElementById('redoBtn');
+
+    if (mainUndoBtn) {
+        mainUndoBtn.addEventListener('click', undoLastEdit);
+    }
+
+    if (mainRedoBtn) {
+        mainRedoBtn.addEventListener('click', redoEdit);
+    }
+
+    // Update both sets of buttons whenever history changes
+    const originalUpdateButtons = updateUndoRedoButtons;
+    window.updateUndoRedoButtons = function() {
+        // Update AI sidebar buttons
+        originalUpdateButtons();
+
+        // Update toolbar buttons
+        if (mainUndoBtn) {
+            mainUndoBtn.disabled = editHistoryIndex < 0;
+        }
+        if (mainRedoBtn) {
+            mainRedoBtn.disabled = editHistoryIndex >= editHistory.length - 1;
+        }
+    };
+
+    // History sidebar
+    const historyBtn = document.getElementById('historyBtn');
+    const historySidebar = document.getElementById('historySidebar');
+    const closeHistoryBtn = document.getElementById('closeHistory');
+
+    if (historyBtn) {
+        historyBtn.addEventListener('click', () => {
+            showHistorySidebar();
+        });
+    }
+
+    if (closeHistoryBtn) {
+        closeHistoryBtn.addEventListener('click', () => {
+            historySidebar?.classList.remove('open');
+        });
     }
 
     // Mode toggle buttons
