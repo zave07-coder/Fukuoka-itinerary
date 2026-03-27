@@ -161,6 +161,15 @@ function addAIMessage(sender, content) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `ai-message ai-${sender}`;
 
+    // Configure marked.js for better line breaks
+    if (typeof marked !== 'undefined' && !marked.configured) {
+        marked.setOptions({
+            breaks: true,  // Convert \n to <br>
+            gfm: true      // GitHub Flavored Markdown
+        });
+        marked.configured = true;
+    }
+
     // Format bot messages with markdown, user messages stay plain
     const formattedContent = (sender === 'bot' && typeof marked !== 'undefined')
         ? marked.parse(content)
@@ -248,8 +257,19 @@ async function sendAIMessage() {
             // Show detailed error if present (check both HTTP status and error field)
             if (!response.ok || data.error) {
                 const errorMsg = data.details?.error?.message || data.error || 'Unknown error';
-                const detailsJson = JSON.stringify(data.details || data, null, 2);
-                addAIMessage('bot', `**Error (HTTP ${response.status}):** ${errorMsg}\n\n**Full OpenAI Response:**\n\`\`\`json\n${detailsJson}\n\`\`\``);
+                const modelRequested = data.requestedModel || 'unknown';
+
+                // Build formatted error message
+                let errorDisplay = `## ❌ Error (HTTP ${response.status})\n\n`;
+                errorDisplay += `**Message:** ${errorMsg}\n\n`;
+                errorDisplay += `**Model Requested:** \`${modelRequested}\`\n\n`;
+
+                if (data.details) {
+                    errorDisplay += `### Full Error Details:\n\n`;
+                    errorDisplay += '```json\n' + JSON.stringify(data.details, null, 2) + '\n```';
+                }
+
+                addAIMessage('bot', errorDisplay);
             } else {
                 addAIMessage('bot', data.reply);
             }
