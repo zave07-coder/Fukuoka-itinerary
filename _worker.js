@@ -102,18 +102,13 @@ const aiEditHandler = async (request, env) => {
   try {
     const { message, context, currentContent } = await request.json();
 
-    const systemPrompt = `Fukuoka trip editor. Return ONLY valid JSON, no markdown.
+    const systemPrompt = `Edit Fukuoka itinerary. Return JSON only.
 
-{"explanation":"Brief summary","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"Description","location":{"name":"Place","lat":33.59,"lng":130.40,"type":"restaurant"}}]}
+Example: {"explanation":"Summary","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"Visit place"}]}
 
-Rules:
-- type: add/modify/remove
-- Include location ONLY for venues (omit if just text edit)
-- Use real Fukuoka coordinates
-- No code blocks, no markdown, pure JSON only
+Add location field with GPS if adding a venue: "location":{"name":"Name","lat":33.59,"lng":130.40,"type":"restaurant"}
 
-Context: ${context}
-Current: ${currentContent}`;
+User request: ${context}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -127,8 +122,8 @@ Current: ${currentContent}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
-        max_completion_tokens: 1500,
+        temperature: 0.5,
+        max_completion_tokens: 3000,
         response_format: { type: "json_object" }
       })
     });
@@ -139,7 +134,25 @@ Current: ${currentContent}`;
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error('Unexpected OpenAI response structure:', JSON.stringify(data, null, 2));
       return new Response(JSON.stringify({
-        error: `Unexpected response from OpenAI: ${data.error?.message || 'Missing choices array'}`
+        error: `Unexpected response from OpenAI: ${data.error?.message || 'Missing choices array'}`,
+        fullResponse: data
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const content = data.choices[0].message.content;
+    console.log('Raw AI response:', content);
+    console.log('Response length:', content?.length);
+    console.log('Full data object:', JSON.stringify(data, null, 2));
+
+    // Check if content is empty
+    if (!content || content.trim() === '') {
+      return new Response(JSON.stringify({
+        error: 'AI returned empty response',
+        finishReason: data.choices[0].finish_reason,
+        fullData: data
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -148,15 +161,13 @@ Current: ${currentContent}`;
 
     let editData;
     try {
-      const content = data.choices[0].message.content;
-      console.log('Raw AI response:', content);
       editData = JSON.parse(content);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      console.error('Failed content:', data.choices[0].message.content);
       return new Response(JSON.stringify({
         error: `Failed to parse AI response: ${parseError.message}`,
-        rawResponse: data.choices[0].message.content.substring(0, 500)
+        rawResponse: content.substring(0, 1000),
+        contentLength: content.length
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
