@@ -33,7 +33,7 @@ const chatHandler = async (request, env) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-5.4-nano',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -50,9 +50,10 @@ const chatHandler = async (request, env) => {
       const errorData = await openaiResponse.json();
       console.error('OpenAI API error:', errorData);
       return new Response(JSON.stringify({
-        error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`
+        error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`,
+        details: errorData
       }), {
-        status: 500,
+        status: openaiResponse.status,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -111,7 +112,7 @@ Context: ${context}`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-5.4-nano',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }

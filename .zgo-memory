@@ -1,25 +1,4 @@
-em with preview and undo/redo! Here's what's new:
-
-### 🎯 **Two AI Modes:**
-
-1. **💬 Chat Mode** (Default)
-   - Just gives suggestions
-   - No automatic changes
-
-2. **✨ Auto-Edit Mode** (New!)
-   - AI generates structured edits
-   - Shows preview before applying
-   - One-click to apply all changes
-
-### ✨ **Key Features:**
-
-**1. Mode Toggle**
-- Switch between Chat and Auto-Edit at the bottom of the sidebar
-- Diffe
-
-[2026-03-26] ## ✅ Fixed!
-
-The error is now resolved. The problem was that `split-screen-sync.js` loads with the `defer` attribute, which means it executes after the DOM is parsed. But the inline `onclick` handlers were trying to call functions that didn't exist yet.
+` loads with the `defer` attribute, which means it executes after the DOM is parsed. But the inline `onclick` handlers were trying to call functions that didn't exist yet.
 
 **What I fixed:**
 - ✅ Removed all inline `onclick` handlers
@@ -122,3 +101,18 @@ If you don't have them, I can guide you through creating them:
    - ✅ **Bold/Italic** - `**bold**`, `*italic*`
    - ✅ **Code** - `inline code` and code blocks
    - ✅ **Links** - C
+
+[2026-03-27] ## ✅ Upgraded to GPT-5.4-nano!
+
+**Changes deployed:** Commit `36771b2`
+
+### What Changed:
+- ✅ Upgraded from `gpt-4o-mini` → **`gpt-5.4-nano`**
+- ✅ Applied to both chat and auto-edit endpoints
+- ✅ Should be faster and more capable
+
+**Wait 1-2 minutes** for Cloudflare to deploy, then test the AI chat!
+
+If you encounter any errors with `gpt-5.4-nano`, let me know and I can:
+- Try `gpt-5.1-nano` instead
+- Or fall back to `gpt-4o-mini` if the GPT-5 models aren't available in your OpenAI account yet
