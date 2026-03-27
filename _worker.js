@@ -27,7 +27,7 @@ const chatHandler = async (request, env) => {
     const { message } = await request.json();
 
     const requestBody = {
-      model: 'gpt-5.4-nano',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',

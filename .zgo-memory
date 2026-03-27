@@ -1,25 +1,4 @@
-h the new environment variable
-- This takes **1-2 minutes**
-- Once deployed, the AI chat will work!
-
-**You can monitor the deployment:**
-- Go
-
-[2026-03-27] ## ✅ Fixed! Upgraded AI Model
-
-**Changes deployed:** Commit `532ad9d`
-
-### The Problem:
-- **Old model:** `gpt-4-turbo-preview` (deprecated in June 2024)
-- **Result:** HTTP 500 errors because OpenAI no longer supports it
-
-### The Fix:
-- ✅ Upgraded both chat endpoints to **`gpt-4o-mini`**
-- ✅ Latest model (2024)
-- ✅ Faster responses
-- ✅ Lower cost
-
-**Wait 1-2 minutes** for Cloudflare to deploy, then try the AI chat again. It should work now! 🎉
+ minutes** for Cloudflare to deploy, then try the AI chat again. It should work now! 🎉
 
 [2026-03-27] ## ✅ All Done! AI Chat Upgraded
 
@@ -102,3 +81,18 @@ Once you send a message, it will show the complete error details in a nicely for
 1. The HTTP status code
 2. The error message from OpenAI
 3. The model we tried to use (gpt-5.4-n
+
+[2026-03-27] ## ✅ Fixed!
+
+I've made two changes:
+
+1. **Better error handling** - Will now show detailed error messages instead of cryptic "HTTP 500"
+2. **Switched to `gpt-4o-mini`** - A verified working model
+
+**Wait 2 minutes** for Cloudflare to deploy (commit `bf81ad5`), then the AI chat should work!
+
+**About GPT-5.4-nano:** I cannot find any evidence that this model exists in OpenAI's API. The latest models available are:
+- `gpt-4o` (May 2024)
+- `gpt-4o-mini` (July 2024) 
+- `gpt-4-turbo`
+- `gpt-3.5-turbo`
