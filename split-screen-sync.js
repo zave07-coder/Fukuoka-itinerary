@@ -161,14 +161,19 @@ function addAIMessage(sender, content) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `ai-message ai-${sender}`;
 
+    // Format bot messages with markdown, user messages stay plain
+    const formattedContent = (sender === 'bot' && typeof marked !== 'undefined')
+        ? marked.parse(content)
+        : content;
+
     if (sender === 'bot') {
         messageDiv.innerHTML = `
             <div class="ai-avatar">🤖</div>
-            <div class="ai-content">${content}</div>
+            <div class="ai-content">${formattedContent}</div>
         `;
     } else {
         messageDiv.innerHTML = `
-            <div class="ai-content">${content}</div>
+            <div class="ai-content">${formattedContent}</div>
             <div class="ai-avatar">👤</div>
         `;
     }

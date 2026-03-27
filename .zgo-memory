@@ -1,17 +1,4 @@
-BOX_TOKEN_REDACTED]
-```
-
-**Changes pushed to GitHub:** Commit `a97069e`
-
-**What happens next:**
-- Cloudflare Pages will automatically deploy this change (1-2 minutes)
-- The map should now load correctly with the new token
-
-Wait a couple of minutes for Cloudflare to deploy, then refresh your page at `fukuoka-family-itinerary.pages.dev`. The map should work now!
-
-[2026-03-26] ## ✅ Complete AI Interface Redesign!
-
-I've completely overhauled the AI experience. Here's what changed:
+Here's what changed:
 
 ### 🎨 **New Features:**
 
@@ -115,3 +102,19 @@ If you don't have them, I can guide you through creating them:
 
 **You can monitor the deployment:**
 - Go
+
+[2026-03-27] ## ✅ Fixed! Upgraded AI Model
+
+**Changes deployed:** Commit `532ad9d`
+
+### The Problem:
+- **Old model:** `gpt-4-turbo-preview` (deprecated in June 2024)
+- **Result:** HTTP 500 errors because OpenAI no longer supports it
+
+### The Fix:
+- ✅ Upgraded both chat endpoints to **`gpt-4o-mini`**
+- ✅ Latest model (2024)
+- ✅ Faster responses
+- ✅ Lower cost
+
+**Wait 1-2 minutes** for Cloudflare to deploy, then try the AI chat again. It should work now! 🎉
