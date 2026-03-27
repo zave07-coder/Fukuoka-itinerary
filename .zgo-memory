@@ -1,12 +1,4 @@
-d:** Commit `cc1f59f`
-
-### What Was Wrong:
-
-You had **two competing AI chat systems** running at the same time:
-1. **Old system** in `script.js` - looking for DOM elements that don't exist
-2. **New sidebar system** in `split-screen-sync.js` - the modern sidebar UI
-
-This caused the error: `Cannot read properties of null (reading 'addEventListener')` because `script.js` was trying to attach event listeners to elements that were never created.
+` because `script.js` was trying to attach event listeners to elements that were never created.
 
 ### Wh
 
@@ -119,3 +111,9 @@ If you encounter any errors with `gpt-5.4-nano`, let me know and I can:
 
 ### Current Available Models (as of Jan 2025):
 - **gpt-4o** ←
+
+[2026-03-27] Done! I've switched it to `gpt-5.4-nano` as you requested.
+
+**Wait 1-2 minutes** for Cloudflare to deploy, then test it. 
+
+If you still get an HTTP 500 error, please share the full error message that appears in the chat - the error should now include details from OpenAI that will tell us the exact issue (like available model names).

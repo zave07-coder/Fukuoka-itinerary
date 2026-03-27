@@ -243,7 +243,14 @@ async function sendAIMessage() {
             });
 
             const data = await response.json();
-            addAIMessage('bot', data.reply);
+
+            // Show detailed error if present
+            if (data.error) {
+                const errorMsg = data.details?.error?.message || data.error;
+                addAIMessage('bot', `**Error:** ${errorMsg}\n\nFull details: \`\`\`json\n${JSON.stringify(data.details, null, 2)}\n\`\`\``);
+            } else {
+                addAIMessage('bot', data.reply);
+            }
         }
 
     } catch (error) {
