@@ -102,13 +102,7 @@ const aiEditHandler = async (request, env) => {
   try {
     const { message, context, currentContent } = await request.json();
 
-    const systemPrompt = `Edit Fukuoka itinerary. Return JSON only.
-
-Example: {"explanation":"Summary","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"Visit place"}]}
-
-Add location field with GPS if adding a venue: "location":{"name":"Name","lat":33.59,"lng":130.40,"type":"restaurant"}
-
-User request: ${context}`;
+    const systemPrompt = `Return JSON: {"explanation":"...","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"...","location":{"name":"...","lat":33.59,"lng":130.40,"type":"restaurant"}}]}. Include location only for venues. ${context}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -123,7 +117,7 @@ User request: ${context}`;
           { role: 'user', content: message }
         ],
         temperature: 0.5,
-        max_completion_tokens: 3000,
+        max_completion_tokens: 8000,
         response_format: { type: "json_object" }
       })
     });
