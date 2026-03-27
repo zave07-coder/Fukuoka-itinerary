@@ -344,16 +344,22 @@ function showEditPreview(editData) {
     explanation.textContent = editData.explanation || 'AI has generated the following changes:';
 
     changes.innerHTML = '';
-    (editData.edits || []).forEach(edit => {
+    (editData.edits || []).forEach((edit, index) => {
         const changeItem = document.createElement('div');
         changeItem.className = 'edit-change-item';
         changeItem.innerHTML = `
-            <div class="edit-change-header">
-                <span class="edit-change-badge ${edit.type}">${edit.type.toUpperCase()}</span>
-                <span class="edit-change-day">Day ${edit.dayNumber} • ${edit.timeSlot || 'General'}</span>
+            <div class="edit-change-checkbox">
+                <input type="checkbox" id="edit-${index}" checked data-edit-index="${index}">
             </div>
-            <div class="edit-change-content">${edit.content}</div>
-            <div class="edit-change-reason">💡 ${edit.reason}</div>
+            <div class="edit-change-body">
+                <div class="edit-change-header">
+                    <span class="edit-change-badge ${edit.type}">${edit.type.toUpperCase()}</span>
+                    <span class="edit-change-day">Day ${edit.dayNumber} • ${edit.timeSlot || 'General'}</span>
+                </div>
+                <div class="edit-change-content">${edit.content}</div>
+                ${edit.reason ? `<div class="edit-change-reason">💡 ${edit.reason}</div>` : ''}
+                ${edit.location ? `<div class="edit-change-location">📍 ${edit.location.name}</div>` : ''}
+            </div>
         `;
         changes.appendChild(changeItem);
     });
@@ -369,11 +375,25 @@ window.closeEditPreview = function() {
 window.applyEdits = function() {
     if (!pendingEdits || !pendingEdits.edits) return;
 
+    // Get selected edits only
+    const selectedEdits = [];
+    document.querySelectorAll('#editChanges input[type="checkbox"]').forEach(checkbox => {
+        if (checkbox.checked) {
+            const index = parseInt(checkbox.dataset.editIndex);
+            selectedEdits.push(pendingEdits.edits[index]);
+        }
+    });
+
+    if (selectedEdits.length === 0) {
+        addAIMessage('bot', '⚠️ No changes selected. Please select at least one change to apply.');
+        return;
+    }
+
     // Store snapshot before applying edits
     const snapshot = captureCurrentState();
 
-    // Apply each edit to the DOM
-    pendingEdits.edits.forEach(edit => {
+    // Apply selected edits to the DOM
+    selectedEdits.forEach(edit => {
         applyEditToDOM(edit);
     });
 
@@ -381,7 +401,7 @@ window.applyEdits = function() {
     editHistory = editHistory.slice(0, editHistoryIndex + 1);
     editHistory.push({
         timestamp: new Date().toISOString(),
-        edits: pendingEdits.edits,
+        edits: selectedEdits,
         beforeState: snapshot
     });
     editHistoryIndex = editHistory.length - 1;
@@ -392,7 +412,7 @@ window.applyEdits = function() {
     updateUndoRedoButtons();
 
     // Show success message
-    addAIMessage('bot', `<strong>✅ Applied ${pendingEdits.edits.length} changes successfully!</strong>`);
+    addAIMessage('bot', `<strong>✅ Applied ${selectedEdits.length} of ${pendingEdits.edits.length} changes successfully!</strong>`);
 
     closeEditPreview();
 };
@@ -515,15 +535,26 @@ function applyEditToDOM(edit) {
 
 function updateMapForEdit(edit) {
     // Check if edit has location data with GPS coordinates
-    if (!edit.location || !edit.location.lat || !edit.location.lng) return;
+    if (!edit.location || !edit.location.lat || !edit.location.lng) {
+        console.log('No location data in edit:', edit);
+        return;
+    }
+
+    console.log('Attempting to update map for edit:', edit.location);
 
     // Access the global map and markers if available
-    if (typeof window.map === 'undefined' || typeof mapboxgl === 'undefined') {
-        console.warn('Map not available for marker update');
+    if (typeof window.map === 'undefined') {
+        console.warn('window.map not available - map not initialized');
+        return;
+    }
+
+    if (typeof mapboxgl === 'undefined') {
+        console.warn('mapboxgl library not loaded');
         return;
     }
 
     const loc = edit.location;
+    console.log('Adding marker for:', loc.name, 'at', loc.lat, loc.lng);
 
     if (edit.type === 'add' || edit.type === 'modify') {
         // Add new marker to map

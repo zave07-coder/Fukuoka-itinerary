@@ -1,41 +1,4 @@
-
-
-1. **If it works** - Great! My knowledge was indeed outdated
-2. **If you get an error** - The improved error logging will now show the exact OpenAI error message with full details
-
-With the better error handling I added, if the model name is wrong, you'll see a detailed error message showing:
-- The exact error from OpenAI
-- What model was requested
-- The full JSON response
-
-This will tell us
-
-[2026-03-27] Based on your link, it seems the model exists. However, with the improved error logging I added, when you test the chat now it should show the exact error from OpenAI if the model name format is incorrect.
-
-Common variations might be:
-- `gpt-5.4-nano`
-- `gpt-5-nano`
-- `chatgpt-5.4-nano`
-- `o1-nano` (OpenAI's reasoning model)
-
-The code is already set to `gpt-5.4-nano`. **Please test the AI chat now** and share the full error message that appears. The improved error handling will show:
-
-```
-## ❌ E
-
-[2026-03-27] Perfect! Now wait **2-3 minutes** for Cloudflare to deploy, then:
-
-1. **Hard refresh your browser** (Ctrl+Shift+R or Cmd+Shift+R)
-2. Try the AI chat again
-
-The cache bust (`?v=4`) will force your browser to load the new JavaScript with:
-- ✅ Proper line break formatting (markdown enabled)
-- ✅ Detailed error messages with JSON
-- ✅ Shows the model name requested
-
-After you hard refresh and test, you should see a nicely formatted error message that tells us exactly what OpenAI says about the `gpt-5.
-
-[2026-03-27] Perfect! I can see the issue now. The worker is using `gpt-5.4-nano` on lines 30 and 122. The error handling is already in place (lines 55-66), which should return detailed error info. 
+dling is already in place (lines 55-66), which should return detailed error info. 
 
 Based on what I see:
 1. ✅ Error handling is correct (returns `details`, `error`, and `requestedModel`)
@@ -98,3 +61,46 @@ It should now work if your OpenAI API key is properly configured in Cloudflare P
 ## How to Test
 
 **Wait 2-3 minutes** for deployment, then
+
+[2026-03-27] Perfect! ✅ **All done!**
+
+## What I Implemented
+
+### 1. **Optimized AI Prompts** (60% token reduction)
+   - Shortened system prompt from ~450 tokens → ~180 tokens
+   - Removed verbose instructions, kept only essentials
+   - Saves API costs and reduces latency
+
+### 2. **GPS-Based Map Markers**
+   - AI now returns `location` object with GPS coordinates for any place
+   - Map automatically adds markers when AI suggests restaurants/attractions
+   - Uses real Fukuoka coordinates
+   - Each location ty
+
+[2026-03-27] Perfect! ✅ **Deployed JSON fix**
+
+## What I Fixed
+
+1. **Better error handling** - Wraps JSON.parse in try-catch
+2. **Detailed error messages** - Shows the raw AI response (first 500 chars) when parsing fails
+3. **Improved prompt** - Explicitly tells AI "no markdown, pure JSON only"
+4. **Debug logging** - Logs raw response to Cloudflare logs for debugging
+
+## What Will Happen Now
+
+**Wait 2-3 minutes**, then test at **https://fkk.zavecoder.com/**:
+
+- If AI returns valid JSON → Works perfectly ✅
+-
+
+[2026-03-27] Perfect! **Deployed with extensive debugging**. Wait 2-3 minutes, then test at **https://fkk.zavecoder.com/**
+
+This time when you get the error, it will show:
+- `finishReason` - tells us why the response ended (e.g., "length", "stop", "content_filter")
+- `fullData` - the complete response object from OpenAI
+- Response length
+- More detailed logging
+
+This will tell us exactly why the response is empty. My theory is that either:
+1. The prompt is too long and leaving no room for response
+2. There's

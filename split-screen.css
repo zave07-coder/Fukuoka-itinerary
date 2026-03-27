@@ -763,10 +763,36 @@
     border-radius: 12px;
     padding: 1rem;
     transition: all 0.2s;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
 }
 
 .edit-change-item:hover {
     border-color: #667eea;
+}
+
+.edit-change-checkbox {
+    flex-shrink: 0;
+    padding-top: 0.25rem;
+}
+
+.edit-change-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+.edit-change-body {
+    flex: 1;
+}
+
+.edit-change-location {
+    font-size: 0.9rem;
+    color: #667eea;
+    margin-top: 0.5rem;
+    font-weight: 500;
 }
 
 .edit-change-header {
