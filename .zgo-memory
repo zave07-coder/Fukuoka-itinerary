@@ -1,20 +1,4 @@
-ption 1: Get OpenAI API Key**
-1. Go to https://platform.openai.com/api-keys
-2. Click "Create new secret key"
-3. Copy the key (starts with `sk
-
-[2026-03-26] ## ✅ OpenAI API Key Added Successfully!
-
-**What I did:**
-
-1. ✅ Found your `OPENAI_API_KEY` in environment variables
-2. ✅ Found your `CLOUDFLARE_API_TOKEN` and account ID
-3. ✅ Used Cloudflare API to add `OPENAI_API_KEY` to production environment
-4. ✅ Triggered a new deployment (commit `976d668`)
-
-**What happens next:**
-
-- Cloudflare Pages is now building with the new environment variable
+h the new environment variable
 - This takes **1-2 minutes**
 - Once deployed, the AI chat will work!
 
@@ -107,3 +91,14 @@ This time you should see:
 3. **The model name we requested** (gpt-5.4-nano)
 
 Once you send a message, it will show the complete error details in a nicely formatted code block. Please share what it says - that will tell us exactly what OpenAI's API is returning and we can fix it p
+
+[2026-03-27] Perfect! Now the error messages will be properly formatted with:
+- ✅ **Line breaks working** (enabled GFM mode in marked.js)
+- ✅ **Clear error sections** with headings
+- ✅ **Model name shown** so we can see what was requested
+- ✅ **Full JSON details** in a code block
+
+**Wait 1-2 minutes** for deployment, then try the AI chat again. This time you should see a nicely formatted error message that shows:
+1. The HTTP status code
+2. The error message from OpenAI
+3. The model we tried to use (gpt-5.4-n

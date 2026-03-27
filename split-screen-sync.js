@@ -251,7 +251,14 @@ async function sendAIMessage() {
                 })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                addAIMessage('bot', `## ❌ Error\n\nFailed to parse response (HTTP ${response.status})\n\nRaw error: ${parseError.message}`);
+                return;
+            }
+
             console.log('API Response:', response.status, data);
 
             // Show detailed error if present (check both HTTP status and error field)
