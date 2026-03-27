@@ -102,23 +102,18 @@ const aiEditHandler = async (request, env) => {
   try {
     const { message, context, currentContent } = await request.json();
 
-    const systemPrompt = `Fukuoka trip editor. Return JSON edits with GPS for locations.
+    const systemPrompt = `Fukuoka trip editor. Return ONLY valid JSON, no markdown.
 
-Format:
-{
-  "explanation": "Brief summary",
-  "edits": [{
-    "type": "add|modify|remove",
-    "dayNumber": 1,
-    "timeSlot": "9:00 AM",
-    "content": "Activity description",
-    "location": {"name": "Place", "lat": 33.59, "lng": 130.40, "type": "restaurant"}
-  }]
-}
+{"explanation":"Brief summary","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"Description","location":{"name":"Place","lat":33.59,"lng":130.40,"type":"restaurant"}}]}
 
-Include location only for restaurants/attractions. Use real Fukuoka GPS.
-Current: ${currentContent}
-User: ${context}`;
+Rules:
+- type: add/modify/remove
+- Include location ONLY for venues (omit if just text edit)
+- Use real Fukuoka coordinates
+- No code blocks, no markdown, pure JSON only
+
+Context: ${context}
+Current: ${currentContent}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -151,7 +146,22 @@ User: ${context}`;
       });
     }
 
-    const editData = JSON.parse(data.choices[0].message.content);
+    let editData;
+    try {
+      const content = data.choices[0].message.content;
+      console.log('Raw AI response:', content);
+      editData = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Failed content:', data.choices[0].message.content);
+      return new Response(JSON.stringify({
+        error: `Failed to parse AI response: ${parseError.message}`,
+        rawResponse: data.choices[0].message.content.substring(0, 500)
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
     return new Response(JSON.stringify(editData), {
       headers: { 'Content-Type': 'application/json' }
