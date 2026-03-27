@@ -1,17 +1,4 @@
-Here's what changed:
-
-### 🎨 **New Features:**
-
-1. **Modern Sidebar Interface** - Slides in from the right (like ChatGPT)
-2. **GPT-4 Turbo** - Upgraded from the outdated GPT-4o-mini
-3. **Chat History** - See the conversation flow
-4. **Quick Suggestions** - One-click prompts like "Make a day more relaxed"
-5. **Floating Button** - Bottom-right "✨ AI Editor" button for easy access
-6. **Mobile Responsive** - Full-scr
-
-[2026-03-26] ## ✅ Auto-Edit Feature Complete!
-
-I've successfully added the full AI auto-edit system with preview and undo/redo! Here's what's new:
+em with preview and undo/redo! Here's what's new:
 
 ### 🎯 **Two AI Modes:**
 
@@ -118,3 +105,20 @@ If you don't have them, I can guide you through creating them:
 - ✅ Lower cost
 
 **Wait 1-2 minutes** for Cloudflare to deploy, then try the AI chat again. It should work now! 🎉
+
+[2026-03-27] ## ✅ All Done! AI Chat Upgraded
+
+**Changes deployed:** Commit `a028cc6`
+
+### What Changed:
+
+1. **Model:** Keeping **`gpt-4o-mini`** (latest available model as of Jan 2025)
+   - No GPT-5 models exist yet
+   - `gpt-4o-mini` is fast, affordable, and high-quality
+
+2. **Markdown Support Added:**
+   - ✅ **Headings** - `# Heading`, `## Subheading`
+   - ✅ **Lists** - Bulleted and numbered
+   - ✅ **Bold/Italic** - `**bold**`, `*italic*`
+   - ✅ **Code** - `inline code` and code blocks
+   - ✅ **Links** - C
