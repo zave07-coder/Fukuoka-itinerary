@@ -398,8 +398,8 @@ function showEditPreview(editData) {
                     <span class="edit-change-day">Day ${edit.dayNumber} • ${edit.timeSlot || 'General'}</span>
                 </div>
                 <div class="edit-change-content">${edit.content}</div>
-                ${edit.reason ? `<div class="edit-change-reason">💡 ${edit.reason}</div>` : ''}
-                ${edit.location ? `<div class="edit-change-location">📍 ${edit.location.name}</div>` : ''}
+                ${edit.reason && edit.reason !== 'undefined' ? `<div class="edit-change-reason">💡 ${edit.reason}</div>` : ''}
+                ${edit.location && edit.location.name ? `<div class="edit-change-location">📍 ${edit.location.name}</div>` : ''}
             </div>
         `;
         changes.appendChild(changeItem);
