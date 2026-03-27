@@ -1,23 +1,4 @@
-o-mini but still fast
-
-### Current Available Models (as of Jan 2025):
-- **gpt-4o** ←
-
-[2026-03-27] Done! I've switched it to `gpt-5.4-nano` as you requested.
-
-**Wait 1-2 minutes** for Cloudflare to deploy, then test it. 
-
-If you still get an HTTP 500 error, please share the full error message that appears in the chat - the error should now include details from OpenAI that will tell us the exact issue (like available model names).
-
-[2026-03-27] Perfect! I've added detailed error logging. Now when you try the AI chat again (wait 1-2 minutes for deployment), it will show the **full error details from OpenAI** including:
-
-- The exact error message
-- All error details in JSON format
-- This will tell us if the model name is wrong or if there's another issue
-
-**Please try the AI chat again after the deployment completes**, and share the full error message it shows. That will tell us exactly what's wrong!
-
-[2026-03-27] Perfect! Now the error logging is much better. **Wait 1-2 minutes** for Cloudflare to deploy, then try the AI chat again.
+e AI chat again.
 
 This time you should see:
 1. **The exact error message from OpenAI**
@@ -87,3 +68,27 @@ The code is already set to `gpt-5.4-nano`. **Please test the AI chat now** and s
 
 ```
 ## ❌ E
+
+[2026-03-27] Perfect! Now wait **2-3 minutes** for Cloudflare to deploy, then:
+
+1. **Hard refresh your browser** (Ctrl+Shift+R or Cmd+Shift+R)
+2. Try the AI chat again
+
+The cache bust (`?v=4`) will force your browser to load the new JavaScript with:
+- ✅ Proper line break formatting (markdown enabled)
+- ✅ Detailed error messages with JSON
+- ✅ Shows the model name requested
+
+After you hard refresh and test, you should see a nicely formatted error message that tells us exactly what OpenAI says about the `gpt-5.
+
+[2026-03-27] Perfect! I can see the issue now. The worker is using `gpt-5.4-nano` on lines 30 and 122. The error handling is already in place (lines 55-66), which should return detailed error info. 
+
+Based on what I see:
+1. ✅ Error handling is correct (returns `details`, `error`, and `requestedModel`)
+2. ✅ Frontend displays errors with markdown and line breaks
+3. ✅ Cache bust is set to `?v=4`
+
+**The problem is likely one of these:**
+
+1. **Cloudflare hasn't finished deploying** - It can take 2-5 minutes
+2. **

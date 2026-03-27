@@ -67,6 +67,19 @@ const chatHandler = async (request, env) => {
 
     const data = await openaiResponse.json();
 
+    // Check if response has expected structure
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Unexpected OpenAI response structure:', JSON.stringify(data, null, 2));
+      return new Response(JSON.stringify({
+        error: `Unexpected response from OpenAI: ${data.error?.message || 'Missing choices array'}`,
+        details: data,
+        requestedModel: requestBody.model
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     return new Response(JSON.stringify({
       reply: data.choices[0].message.content
     }), {
@@ -131,6 +144,18 @@ Context: ${context}`;
     });
 
     const data = await openaiResponse.json();
+
+    // Check if response has expected structure
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Unexpected OpenAI response structure:', JSON.stringify(data, null, 2));
+      return new Response(JSON.stringify({
+        error: `Unexpected response from OpenAI: ${data.error?.message || 'Missing choices array'}`
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const editData = JSON.parse(data.choices[0].message.content);
 
     return new Response(JSON.stringify(editData), {
