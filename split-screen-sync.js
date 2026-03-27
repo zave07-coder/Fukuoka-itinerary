@@ -1,5 +1,31 @@
 // Split-screen accordion and map synchronization
 
+// History management with localStorage
+function saveHistoryToLocalStorage() {
+    try {
+        localStorage.setItem('fukuoka_itinerary_history', JSON.stringify({
+            history: editHistory,
+            index: editHistoryIndex
+        }));
+    } catch (e) {
+        console.error('Failed to save history:', e);
+    }
+}
+
+function loadHistoryFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('fukuoka_itinerary_history');
+        if (saved) {
+            const data = JSON.parse(saved);
+            editHistory = data.history || [];
+            editHistoryIndex = data.index || -1;
+            updateUndoRedoButtons();
+        }
+    } catch (e) {
+        console.error('Failed to load history:', e);
+    }
+}
+
 // Toggle accordion
 function toggleAccordion(header) {
     const item = header.parentElement;
@@ -360,6 +386,9 @@ window.applyEdits = function() {
     });
     editHistoryIndex = editHistory.length - 1;
 
+    // Save history to localStorage
+    saveHistoryToLocalStorage();
+
     updateUndoRedoButtons();
 
     // Show success message
@@ -479,6 +508,23 @@ function applyEditToDOM(edit) {
     setTimeout(() => {
         accordionItem.style.borderLeft = '';
     }, 3000);
+
+    // Update map markers if location-related edit
+    updateMapForEdit(edit);
+}
+
+function updateMapForEdit(edit) {
+    // Check if the edit contains location information
+    if (!edit.content) return;
+
+    // Look for location patterns in the content (e.g., restaurant names, landmarks)
+    const locationKeywords = ['restaurant', 'cafe', 'shop', 'temple', 'shrine', 'park', 'museum', 'beach', 'tower', 'castle'];
+    const hasLocation = locationKeywords.some(keyword => edit.content.toLowerCase().includes(keyword));
+
+    if (hasLocation && typeof window.refreshMapMarkers === 'function') {
+        // Trigger map refresh if available
+        window.refreshMapMarkers();
+    }
 }
 
 window.sendAISuggestion = function(text) {
@@ -489,6 +535,9 @@ window.sendAISuggestion = function(text) {
 // Event listeners for AI sidebar
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[AI] Initializing AI sidebar event listeners...');
+
+    // Load history from localStorage on page load
+    loadHistoryFromLocalStorage();
 
     const toggleBtn = document.getElementById('aiToggle');
     const closeBtn = document.getElementById('aiClose');
