@@ -102,28 +102,23 @@ const aiEditHandler = async (request, env) => {
   try {
     const { message, context, currentContent } = await request.json();
 
-    const systemPrompt = `You are an itinerary editor for a Fukuoka family trip.
-The user wants to modify their itinerary. Analyze their request and return a JSON object with structured edits.
+    const systemPrompt = `Fukuoka trip editor. Return JSON edits with GPS for locations.
 
-Return ONLY valid JSON in this exact format:
+Format:
 {
-  "explanation": "Brief explanation of changes (2-3 sentences)",
-  "edits": [
-    {
-      "type": "modify|add|remove",
-      "target": "activity|restaurant|note",
-      "dayNumber": 1,
-      "timeSlot": "9:00 AM",
-      "content": "New/modified content",
-      "reason": "Why this change helps"
-    }
-  ]
+  "explanation": "Brief summary",
+  "edits": [{
+    "type": "add|modify|remove",
+    "dayNumber": 1,
+    "timeSlot": "9:00 AM",
+    "content": "Activity description",
+    "location": {"name": "Place", "lat": 33.59, "lng": 130.40, "type": "restaurant"}
+  }]
 }
 
-Current itinerary content:
-${currentContent}
-
-Context: ${context}`;
+Include location only for restaurants/attractions. Use real Fukuoka GPS.
+Current: ${currentContent}
+User: ${context}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

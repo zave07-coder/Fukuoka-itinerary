@@ -514,17 +514,70 @@ function applyEditToDOM(edit) {
 }
 
 function updateMapForEdit(edit) {
-    // Check if the edit contains location information
-    if (!edit.content) return;
+    // Check if edit has location data with GPS coordinates
+    if (!edit.location || !edit.location.lat || !edit.location.lng) return;
 
-    // Look for location patterns in the content (e.g., restaurant names, landmarks)
-    const locationKeywords = ['restaurant', 'cafe', 'shop', 'temple', 'shrine', 'park', 'museum', 'beach', 'tower', 'castle'];
-    const hasLocation = locationKeywords.some(keyword => edit.content.toLowerCase().includes(keyword));
-
-    if (hasLocation && typeof window.refreshMapMarkers === 'function') {
-        // Trigger map refresh if available
-        window.refreshMapMarkers();
+    // Access the global map and markers if available
+    if (typeof window.map === 'undefined' || typeof mapboxgl === 'undefined') {
+        console.warn('Map not available for marker update');
+        return;
     }
+
+    const loc = edit.location;
+
+    if (edit.type === 'add' || edit.type === 'modify') {
+        // Add new marker to map
+        const el = document.createElement('div');
+        el.className = 'custom-mapbox-marker';
+        el.innerHTML = getMarkerEmojiForType(loc.type);
+        el.style.cursor = 'pointer';
+
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+                <div style="padding: 8px;">
+                    <strong>${loc.name}</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">${edit.content}</span>
+                </div>
+            `);
+
+        const marker = new mapboxgl.Marker(el)
+            .setLngLat([loc.lng, loc.lat])
+            .setPopup(popup)
+            .addTo(window.map);
+
+        // Store marker reference for potential removal
+        if (!window.aiAddedMarkers) window.aiAddedMarkers = [];
+        window.aiAddedMarkers.push({
+            marker,
+            editId: `day${edit.dayNumber}_${edit.timeSlot}`,
+            location: loc
+        });
+
+        // Fly to new location
+        window.map.flyTo({
+            center: [loc.lng, loc.lat],
+            zoom: 15,
+            duration: 1500
+        });
+    }
+}
+
+function getMarkerEmojiForType(type) {
+    const emojiMap = {
+        restaurant: '🍜',
+        cafe: '☕',
+        attraction: '🏛️',
+        shop: '🛍️',
+        temple: '⛩️',
+        shrine: '⛩️',
+        park: '🌳',
+        museum: '🖼️',
+        beach: '🏖️',
+        tower: '🗼',
+        castle: '🏯',
+        other: '📍'
+    };
+    return emojiMap[type] || '📍';
 }
 
 window.sendAISuggestion = function(text) {
