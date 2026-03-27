@@ -33,7 +33,7 @@ const chatHandler = async (request, env) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-5.4-nano',
         messages: [
           {
             role: 'system',
@@ -112,7 +112,7 @@ Context: ${context}`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-5.4-nano',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }

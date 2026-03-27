@@ -1,17 +1,4 @@
-` loads with the `defer` attribute, which means it executes after the DOM is parsed. But the inline `onclick` handlers were trying to call functions that didn't exist yet.
-
-**What I fixed:**
-- ✅ Removed all inline `onclick` handlers
-- ✅ Added proper event listeners in `DOMContentLoaded`
-- ✅ Used event delegation for dynamic elements (day edit buttons)
-- ✅ Fixed the AI suggestion buttons
-- ✅ Fixed preview modal butt
-
-[2026-03-26] Prompt is too long
-
-[2026-03-26] ## ✅ Fixed JavaScript Errors!
-
-**Changes deployed:** Commit `cc1f59f`
+d:** Commit `cc1f59f`
 
 ### What Was Wrong:
 
@@ -116,3 +103,19 @@ If you don't have them, I can guide you through creating them:
 If you encounter any errors with `gpt-5.4-nano`, let me know and I can:
 - Try `gpt-5.1-nano` instead
 - Or fall back to `gpt-4o-mini` if the GPT-5 models aren't available in your OpenAI account yet
+
+[2026-03-27] ## ✅ Fixed! Switched to GPT-4o
+
+**Changes deployed:** Commit `40ed173`
+
+### The Issue:
+- GPT-5.4-nano and GPT-5.1-nano **don't exist yet** in OpenAI's API
+- Those might be model names from other platforms or future releases
+
+### The Fix:
+- ✅ Switched to **`gpt-4o`** - OpenAI's latest and most capable model (released May 2024)
+- ✅ Better error messages now show the actual OpenAI error
+- ✅ More powerful than gpt-4o-mini but still fast
+
+### Current Available Models (as of Jan 2025):
+- **gpt-4o** ←
