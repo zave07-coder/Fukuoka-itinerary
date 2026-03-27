@@ -26,32 +26,39 @@ const chatHandler = async (request, env) => {
 
     const { message } = await request.json();
 
+    const requestBody = {
+      model: 'gpt-5.4-nano',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful travel assistant specializing in Fukuoka, Japan. Help users plan their itinerary, suggest activities, restaurants, and provide local insights. Provide concise, actionable responses.'
+        },
+        { role: 'user', content: message }
+      ],
+      temperature: 0.7,
+      max_tokens: 800
+    };
+
+    console.log('Sending request to OpenAI with model:', requestBody.model);
+
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'gpt-5.4-nano',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful travel assistant specializing in Fukuoka, Japan. Help users plan their itinerary, suggest activities, restaurants, and provide local insights. Provide concise, actionable responses.'
-          },
-          { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 800
-      })
+      body: JSON.stringify(requestBody)
     });
+
+    console.log('OpenAI Response Status:', openaiResponse.status);
 
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.json();
-      console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API error:', JSON.stringify(errorData, null, 2));
       return new Response(JSON.stringify({
         error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`,
-        details: errorData
+        details: errorData,
+        requestedModel: requestBody.model
       }), {
         status: openaiResponse.status,
         headers: { 'Content-Type': 'application/json' }

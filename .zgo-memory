@@ -1,16 +1,4 @@
-` because `script.js` was trying to attach event listeners to elements that were never created.
-
-### Wh
-
-[2026-03-26] ## ✅ Fixed Button Styling + Added Debugging!
-
-**Changes deployed:** Commit `832f84b`
-
-### 🎨 **UI Improvements:**
-
-1. **"Edit Trip with AI" button** - Now has a beautiful purple gradient instead of that ugly white box with black border
-2. **Daily "AI" buttons** - Clean white buttons with better shadows, removes the thin border look
-3. **Better hover effects** - Smooth animations and color transitions
+** - Smooth animations and color transitions
 4. **Improved spacing** - Buttons look less cramped
 
 ### 🐛 **Debugging Added:**
@@ -117,3 +105,11 @@ If you encounter any errors with `gpt-5.4-nano`, let me know and I can:
 **Wait 1-2 minutes** for Cloudflare to deploy, then test it. 
 
 If you still get an HTTP 500 error, please share the full error message that appears in the chat - the error should now include details from OpenAI that will tell us the exact issue (like available model names).
+
+[2026-03-27] Perfect! I've added detailed error logging. Now when you try the AI chat again (wait 1-2 minutes for deployment), it will show the **full error details from OpenAI** including:
+
+- The exact error message
+- All error details in JSON format
+- This will tell us if the model name is wrong or if there's another issue
+
+**Please try the AI chat again after the deployment completes**, and share the full error message it shows. That will tell us exactly what's wrong!

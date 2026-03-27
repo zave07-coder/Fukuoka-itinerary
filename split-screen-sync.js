@@ -243,11 +243,13 @@ async function sendAIMessage() {
             });
 
             const data = await response.json();
+            console.log('API Response:', response.status, data);
 
-            // Show detailed error if present
-            if (data.error) {
-                const errorMsg = data.details?.error?.message || data.error;
-                addAIMessage('bot', `**Error:** ${errorMsg}\n\nFull details: \`\`\`json\n${JSON.stringify(data.details, null, 2)}\n\`\`\``);
+            // Show detailed error if present (check both HTTP status and error field)
+            if (!response.ok || data.error) {
+                const errorMsg = data.details?.error?.message || data.error || 'Unknown error';
+                const detailsJson = JSON.stringify(data.details || data, null, 2);
+                addAIMessage('bot', `**Error (HTTP ${response.status}):** ${errorMsg}\n\n**Full OpenAI Response:**\n\`\`\`json\n${detailsJson}\n\`\`\``);
             } else {
                 addAIMessage('bot', data.reply);
             }
