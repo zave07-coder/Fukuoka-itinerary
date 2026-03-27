@@ -1,34 +1,4 @@
-old**`, `*italic*`
-   - ✅ **Code** - `inline code` and code blocks
-   - ✅ **Links** - C
-
-[2026-03-27] ## ✅ Upgraded to GPT-5.4-nano!
-
-**Changes deployed:** Commit `36771b2`
-
-### What Changed:
-- ✅ Upgraded from `gpt-4o-mini` → **`gpt-5.4-nano`**
-- ✅ Applied to both chat and auto-edit endpoints
-- ✅ Should be faster and more capable
-
-**Wait 1-2 minutes** for Cloudflare to deploy, then test the AI chat!
-
-If you encounter any errors with `gpt-5.4-nano`, let me know and I can:
-- Try `gpt-5.1-nano` instead
-- Or fall back to `gpt-4o-mini` if the GPT-5 models aren't available in your OpenAI account yet
-
-[2026-03-27] ## ✅ Fixed! Switched to GPT-4o
-
-**Changes deployed:** Commit `40ed173`
-
-### The Issue:
-- GPT-5.4-nano and GPT-5.1-nano **don't exist yet** in OpenAI's API
-- Those might be model names from other platforms or future releases
-
-### The Fix:
-- ✅ Switched to **`gpt-4o`** - OpenAI's latest and most capable model (released May 2024)
-- ✅ Better error messages now show the actual OpenAI error
-- ✅ More powerful than gpt-4o-mini but still fast
+o-mini but still fast
 
 ### Current Available Models (as of Jan 2025):
 - **gpt-4o** ←
@@ -92,3 +62,28 @@ The HTTP 500 error you're seeing is **because OpenAI doesn't recognize that mode
 
 **However**, if you believe this model exists, please:
 1. Try the chat now (with gpt-4o-mini) - it
+
+[2026-03-27] The deployment with `gpt-5.4-nano` is now live. **Please try the AI chat** and let me know what happens:
+
+1. **If it works** - Great! My knowledge was indeed outdated
+2. **If you get an error** - The improved error logging will now show the exact OpenAI error message with full details
+
+With the better error handling I added, if the model name is wrong, you'll see a detailed error message showing:
+- The exact error from OpenAI
+- What model was requested
+- The full JSON response
+
+This will tell us
+
+[2026-03-27] Based on your link, it seems the model exists. However, with the improved error logging I added, when you test the chat now it should show the exact error from OpenAI if the model name format is incorrect.
+
+Common variations might be:
+- `gpt-5.4-nano`
+- `gpt-5-nano`
+- `chatgpt-5.4-nano`
+- `o1-nano` (OpenAI's reasoning model)
+
+The code is already set to `gpt-5.4-nano`. **Please test the AI chat now** and share the full error message that appears. The improved error handling will show:
+
+```
+## ❌ E
