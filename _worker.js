@@ -102,7 +102,12 @@ const aiEditHandler = async (request, env) => {
   try {
     const { message, context, currentContent } = await request.json();
 
-    const systemPrompt = `Return JSON: {"explanation":"...","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"...","location":{"name":"...","lat":33.59,"lng":130.40,"type":"restaurant"}}]}. Include location only for venues. ${context}`;
+    // More concise prompt for entire trip to reduce reasoning tokens
+    const systemPrompt = `Return JSON with max 5 edits: {"explanation":"...","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"...","location":{"name":"...","lat":33.59,"lng":130.40,"type":"restaurant"}}]}. Location optional. ${context}`;
+
+    // Detect if editing entire trip (needs more tokens) vs single day
+    const isEntireTrip = context.toLowerCase().includes('entire') || context.toLowerCase().includes('10-day');
+    const maxTokens = isEntireTrip ? 16000 : 8000;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -117,7 +122,7 @@ const aiEditHandler = async (request, env) => {
           { role: 'user', content: message }
         ],
         temperature: 0.5,
-        max_completion_tokens: 8000,
+        max_completion_tokens: maxTokens,
         response_format: { type: "json_object" }
       })
     });
