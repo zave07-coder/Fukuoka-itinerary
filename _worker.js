@@ -36,7 +36,7 @@ const chatHandler = async (request, env) => {
         { role: 'user', content: message }
       ],
       temperature: 0.7,
-      max_tokens: 800
+      max_completion_tokens: 800
     };
 
     console.log('Sending request to OpenAI with model:', requestBody.model);
@@ -138,7 +138,7 @@ Context: ${context}`;
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_completion_tokens: 1500,
         response_format: { type: "json_object" }
       })
     });
