@@ -5,13 +5,13 @@
     z-index: 900;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 8px 0;
+    padding: 6px 0;
 }
 
 .toolbar-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -26,13 +26,13 @@
 .toolbar-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: 5px;
+    padding: 6px 14px;
     background: rgba(255,255,255,0.15);
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 8px;
     color: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -94,7 +94,7 @@
 .history-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 20px;
+    padding: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -102,7 +102,7 @@
 
 .history-header h3 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .close-btn {
@@ -123,20 +123,20 @@
 .history-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 16px;
 }
 
 .history-empty {
     text-align: center;
     color: #999;
-    padding: 40px 20px;
+    padding: 32px 16px;
 }
 
 .history-item {
-    padding: 16px;
+    padding: 12px;
     border-left: 4px solid #667eea;
     background: #f8f9fa;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
