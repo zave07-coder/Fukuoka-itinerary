@@ -1,0 +1,55 @@
+# <type>: <subject> (max 50 chars)
+# |<----  Using a Maximum Of 50 Characters  ---->|
+
+
+# <body> (wrap at 72 chars)
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+
+# 📋 Documentation Checklist
+# ---------------------------
+# Did you update relevant docs?
+# - [ ] docs/ROADMAP.md (if feature complete/changed)
+# - [ ] docs/CHANGELOG.md (always update for features/fixes)
+# - [ ] docs/TECHNICAL_ARCHITECTURE.md (if architecture changed)
+# - [ ] docs/README.md (if status changed)
+
+
+# 🏷️  Type (choose one):
+# ----------------------
+# feat:     New feature
+# fix:      Bug fix
+# docs:     Documentation only changes
+# style:    Formatting, missing semi colons, etc (no code change)
+# refactor: Code change that neither fixes a bug nor adds a feature
+# perf:     Performance improvement
+# test:     Adding missing tests
+# chore:    Build process, tooling, dependencies
+
+
+# 💡 Writing Good Commit Messages:
+# --------------------------------
+# Subject line:
+#   - Use imperative mood ("Add feature" not "Added feature")
+#   - Don't end with period
+#   - Capitalize first letter
+#   - Max 50 characters
+#
+# Body (optional):
+#   - Explain what and why (not how)
+#   - Reference docs: "See docs/ROADMAP.md Phase 1A"
+#   - Reference issues: "Fixes #123"
+#   - Wrap at 72 characters
+#
+# Examples:
+#   feat: Add multi-trip dashboard with card grid
+#   fix: Prevent localStorage quota exceeded error
+#   docs: Update ROADMAP.md Phase 1A progress
+#   refactor: Extract trip manager to separate module
+
+
+# 📚 Documentation References:
+# ----------------------------
+# - ROADMAP.md: docs/ROADMAP.md
+# - ARCHITECTURE: docs/TECHNICAL_ARCHITECTURE.md
+# - WORKFLOW: docs/DEVELOPMENT_WORKFLOW.md
