@@ -115,12 +115,33 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+}
+
+.nav-back-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--light-color);
+    color: var(--dark-color);
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.nav-back-btn:hover {
+    background: #d5dbdd;
+    transform: translateX(-3px);
 }
 
 .nav-brand {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
+    flex: 1;
 }
 
 .nav-links {

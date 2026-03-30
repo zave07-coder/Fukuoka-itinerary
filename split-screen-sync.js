@@ -72,14 +72,19 @@ function toggleAccordion(header) {
     const item = header.parentElement;
     const wasActive = item.classList.contains('active');
 
-    // Close all accordion items
+    // Close all accordion items and update ARIA attributes
     document.querySelectorAll('.accordion-item').forEach(accordion => {
         accordion.classList.remove('active');
+        const accordionHeader = accordion.querySelector('.accordion-header');
+        if (accordionHeader) {
+            accordionHeader.setAttribute('aria-expanded', 'false');
+        }
     });
 
     // Open clicked item if it wasn't active
     if (!wasActive) {
         item.classList.add('active');
+        header.setAttribute('aria-expanded', 'true');
 
         // Sync with map
         const dayNumber = item.getAttribute('data-day');
@@ -100,6 +105,22 @@ function toggleAccordion(header) {
     }
 }
 
+// Keyboard navigation for accordion headers
+document.addEventListener('DOMContentLoaded', function() {
+    // Add keyboard event listeners to all accordion headers
+    const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+    accordionHeaders.forEach(header => {
+        header.addEventListener('keydown', function(event) {
+            // Handle Enter and Space keys
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleAccordion(this);
+            }
+        });
+    });
+});
+
 // Day selector change handler
 document.addEventListener('DOMContentLoaded', function() {
     const daySelector = document.getElementById('daySelector');
@@ -116,6 +137,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Close all accordions
                 document.querySelectorAll('.accordion-item').forEach(item => {
                     item.classList.remove('active');
+                    const header = item.querySelector('.accordion-header');
+                    if (header) {
+                        header.setAttribute('aria-expanded', 'false');
+                    }
                 });
             } else {
                 // Update map for specific day
@@ -129,10 +154,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Close all first
                     document.querySelectorAll('.accordion-item').forEach(item => {
                         item.classList.remove('active');
+                        const header = item.querySelector('.accordion-header');
+                        if (header) {
+                            header.setAttribute('aria-expanded', 'false');
+                        }
                     });
 
                     // Open selected
                     accordionItem.classList.add('active');
+                    const selectedHeader = accordionItem.querySelector('.accordion-header');
+                    if (selectedHeader) {
+                        selectedHeader.setAttribute('aria-expanded', 'true');
+                    }
 
                     // Scroll into view
                     setTimeout(() => {
@@ -864,3 +897,232 @@ window.selectDayFromMap = function(dayNumber) {
         }, 100);
     }
 };
+
+// ========================================
+// MOBILE NAVIGATION ENHANCEMENTS
+// ========================================
+
+// Mobile Bottom Navigation - Active State Management
+(function initMobileBottomNav() {
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+
+    if (mobileNavItems.length === 0) return;
+
+    // Update active state based on scroll position
+    const updateActiveNav = () => {
+        const sections = ['main-content', 'map', 'restaurants', 'tips'];
+        let currentSection = '';
+
+        // Find which section is currently in view
+        for (const sectionId of sections) {
+            const section = document.getElementById(sectionId) || document.querySelector(`[id="${sectionId}"]`);
+            if (section) {
+                const rect = section.getBoundingClientRect();
+                const viewportMiddle = window.innerHeight / 2;
+
+                // Check if section is in middle of viewport
+                if (rect.top <= viewportMiddle && rect.bottom >= viewportMiddle) {
+                    currentSection = sectionId;
+                    break;
+                }
+            }
+        }
+
+        // Update active states
+        mobileNavItems.forEach(item => {
+            const href = item.getAttribute('href');
+            if (!href) return;
+
+            const targetId = href.substring(1); // Remove '#'
+
+            if (targetId === currentSection ||
+                (targetId === 'itinerary' && currentSection === 'main-content')) {
+                item.classList.add('active');
+                item.setAttribute('aria-current', 'page');
+            } else {
+                item.classList.remove('active');
+                item.removeAttribute('aria-current');
+            }
+        });
+    };
+
+    // Throttle scroll event for performance
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateActiveNav, 100);
+    }, { passive: true });
+
+    // Smooth scroll with offset for mobile nav
+    mobileNavItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const href = item.getAttribute('href');
+            if (!href) return;
+
+            const targetId = href.substring(1);
+            let targetElement = document.getElementById(targetId);
+
+            // Handle special case for itinerary
+            if (targetId === 'itinerary') {
+                targetElement = document.getElementById('main-content');
+            }
+
+            if (targetElement) {
+                const navbar = document.getElementById('navbar');
+                const navbarHeight = navbar?.offsetHeight || 60;
+                const offset = navbarHeight + 10;
+
+                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - offset;
+
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+
+                // Provide haptic feedback on mobile (if supported)
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            }
+        });
+    });
+
+    // Initial update
+    setTimeout(updateActiveNav, 500);
+})();
+
+// Mobile navigation toggle with improved accessibility
+(function setupMobileNav() {
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (!navToggle || !navLinks) return;
+
+    // Toggle mobile menu
+    navToggle.addEventListener('click', () => {
+        const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', !isExpanded);
+        navLinks.classList.toggle('active');
+
+        // Haptic feedback if supported
+        if ('vibrate' in navigator && !isExpanded) {
+            navigator.vibrate(10);
+        }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
+            navToggle.setAttribute('aria-expanded', 'false');
+            navLinks.classList.remove('active');
+        }
+    });
+
+    // Close menu when clicking a link
+    navLinks.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            navToggle.setAttribute('aria-expanded', 'false');
+            navLinks.classList.remove('active');
+        });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+            navToggle.setAttribute('aria-expanded', 'false');
+            navLinks.classList.remove('active');
+            navToggle.focus();
+        }
+    });
+})();
+
+// Enhanced accessibility - Focus trap for mobile menu
+(function setupFocusTrap() {
+    const navLinks = document.querySelector('.nav-links');
+    const navToggle = document.getElementById('navToggle');
+
+    if (!navLinks || !navToggle) return;
+
+    // Get all focusable elements within nav
+    const getFocusableElements = () => {
+        return navLinks.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    };
+
+    // Trap focus when mobile menu is open
+    navLinks.addEventListener('keydown', (e) => {
+        if (!navLinks.classList.contains('active')) return;
+
+        const focusable = Array.from(getFocusableElements());
+        const firstFocusable = focusable[0];
+        const lastFocusable = focusable[focusable.length - 1];
+
+        // Tab key handling
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                // Shift + Tab
+                if (document.activeElement === firstFocusable) {
+                    e.preventDefault();
+                    lastFocusable.focus();
+                }
+            } else {
+                // Tab
+                if (document.activeElement === lastFocusable) {
+                    e.preventDefault();
+                    firstFocusable.focus();
+                }
+            }
+        }
+    });
+
+    // When menu opens, focus first item
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                const isActive = navLinks.classList.contains('active');
+                if (isActive) {
+                    const focusable = getFocusableElements();
+                    if (focusable.length > 0) {
+                        setTimeout(() => focusable[0].focus(), 100);
+                    }
+                }
+            }
+        });
+    });
+
+    observer.observe(navLinks, { attributes: true });
+})();
+
+// Touch gesture improvements for mobile
+(function setupTouchGestures() {
+    // Prevent double-tap zoom on buttons
+    const preventDoubleTapZoom = (selector) => {
+        document.querySelectorAll(selector).forEach(element => {
+            let lastTap = 0;
+            element.addEventListener('touchend', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    e.preventDefault();
+                }
+                lastTap = currentTime;
+            }, { passive: false });
+        });
+    };
+
+    // Apply to all interactive elements
+    preventDoubleTapZoom('button, .nav-link, .accordion-header, .mobile-nav-item, .ai-edit-day-btn');
+
+    // Add touch feedback class
+    document.querySelectorAll('button, a, .accordion-header').forEach(element => {
+        element.addEventListener('touchstart', function() {
+            this.classList.add('touch-active');
+        }, { passive: true });
+
+        element.addEventListener('touchend', function() {
+            setTimeout(() => {
+                this.classList.remove('touch-active');
+            }, 150);
+        }, { passive: true });
+    });
+})();

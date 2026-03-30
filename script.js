@@ -1,9 +1,163 @@
+// ========================================
+// TRIP LOADING FOR MULTI-TRIP SYSTEM
+// Load specific trip data from localStorage
+// ========================================
+
+let currentTrip = null;
+let currentTripId = null;
+const tripManager = new TripManager();
+
+// Initialize trip loading on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTripViewer();
+});
+
+/**
+ * Initialize trip viewer by loading trip from URL parameter
+ */
+function initializeTripViewer() {
+    // Get trip ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentTripId = urlParams.get('trip');
+
+    // Redirect to dashboard if no trip ID
+    if (!currentTripId) {
+        console.log('No trip ID found, redirecting to dashboard');
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Load trip data
+    loadTripData(currentTripId);
+}
+
+/**
+ * Load trip data and update page
+ * @param {string} tripId - Trip ID to load
+ */
+function loadTripData(tripId) {
+    currentTrip = tripManager.getTrip(tripId);
+
+    if (!currentTrip) {
+        alert('Trip not found! Returning to dashboard.');
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Update page metadata
+    updatePageMetadata();
+
+    // Render itinerary if days exist
+    if (currentTrip.days && currentTrip.days.length > 0) {
+        renderItinerary(currentTrip.days);
+    } else {
+        console.log('No itinerary data yet - user will build it');
+    }
+}
+
+/**
+ * Update page title and hero section with trip data
+ */
+function updatePageMetadata() {
+    if (!currentTrip) return;
+
+    // Update document title
+    document.title = `${currentTrip.name} | WayWeave`;
+
+    // Update hero section if it exists
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) {
+        heroTitle.textContent = currentTrip.name;
+    }
+
+    const heroSubtitle = document.querySelector('.hero-subtitle');
+    if (heroSubtitle) {
+        heroSubtitle.textContent = formatDateRange(currentTrip.startDate, currentTrip.endDate);
+    }
+
+    // Update navbar title if exists
+    const navTitle = document.querySelector('.nav-title');
+    if (navTitle) {
+        navTitle.textContent = currentTrip.name;
+    }
+}
+
+/**
+ * Format date range for display
+ * @param {string} startDate - Start date
+ * @param {string} endDate - End date
+ * @returns {string} Formatted date range
+ */
+function formatDateRange(startDate, endDate) {
+    if (!startDate) return 'No dates set';
+
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+
+    const options = { month: 'long', day: 'numeric', year: 'numeric' };
+    const startStr = start.toLocaleDateString('en-US', options);
+
+    if (!end || startDate === endDate) {
+        return startStr;
+    }
+
+    const endStr = end.toLocaleDateString('en-US', options);
+    return `${startStr} - ${endStr}`;
+}
+
+/**
+ * Render itinerary days (placeholder - existing rendering logic will be used)
+ * @param {Array} days - Array of day objects
+ */
+function renderItinerary(days) {
+    console.log('Rendering itinerary with', days.length, 'days');
+    // Existing rendering logic in the page will handle this
+    // This function is a placeholder for future dynamic rendering
+}
+
+/**
+ * Save current trip changes back to localStorage
+ */
+function saveTripChanges() {
+    if (!currentTripId || !currentTrip) {
+        console.error('No trip loaded to save');
+        return;
+    }
+
+    // Extract current itinerary state from DOM
+    const updatedDays = extractDaysFromDOM();
+
+    // Update trip data
+    tripManager.updateTrip(currentTripId, {
+        days: updatedDays,
+        updatedAt: new Date().toISOString()
+    });
+
+    console.log('Trip changes saved');
+}
+
+/**
+ * Extract current day data from DOM (for saving edits)
+ * @returns {Array} Array of day objects
+ */
+function extractDaysFromDOM() {
+    // This will be implemented when we integrate with existing accordion system
+    // For now, return the current trip's days
+    return currentTrip?.days || [];
+}
+
+// ========================================
+// EXISTING SCRIPT.JS CODE BELOW
+// ========================================
+
 // Navigation Toggle for Mobile
 const navToggle = document.getElementById('navToggle');
 const navLinks = document.querySelector('.nav-links');
 
 navToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
+    const isExpanded = navLinks.classList.toggle('active');
+    // Update ARIA attribute for accessibility
+    navToggle.setAttribute('aria-expanded', isExpanded);
 });
 
 // Navbar Scroll Effect
@@ -208,18 +362,25 @@ function exportToCalendar() {
 
 // Add to localStorage for offline access
 function saveItineraryOffline() {
-    const itineraryData = {
-        savedDate: new Date().toISOString(),
-        tripDates: 'June 14-23, 2025',
-        days: Array.from(dayCards).map(card => ({
-            day: card.getAttribute('data-day'),
-            tags: card.getAttribute('data-tags'),
-            html: card.innerHTML
-        }))
-    };
+    if (!currentTripId) {
+        console.error('No trip loaded');
+        return;
+    }
 
-    localStorage.setItem('fukuokaItinerary', JSON.stringify(itineraryData));
-    alert('Itinerary saved for offline viewing!');
+    // Extract days from DOM
+    const days = Array.from(dayCards).map(card => ({
+        day: card.getAttribute('data-day'),
+        tags: card.getAttribute('data-tags'),
+        html: card.innerHTML
+    }));
+
+    // Update trip with new data
+    tripManager.updateTrip(currentTripId, {
+        days: days,
+        updatedAt: new Date().toISOString()
+    });
+
+    alert('Itinerary saved!');
 }
 
 // Check if there's a saved version
@@ -667,3 +828,118 @@ if (document.getElementById('interactiveMap')) {
 }
 
 // AI Chat functionality is now handled by split-screen-sync.js
+
+// ========================================
+// MOBILE BOTTOM NAVIGATION - ACTIVE STATE
+// ========================================
+function updateMobileNavActiveState() {
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    const sections = document.querySelectorAll('main, section[id]');
+
+    if (!mobileNavItems.length) return;
+
+    // Function to check which section is in viewport
+    function checkActiveSection() {
+        const scrollPos = window.scrollY + 100; // Offset for navbar height
+
+        let currentSection = '';
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+            const sectionId = section.id || section.getAttribute('id');
+
+            if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+                currentSection = sectionId;
+            }
+        });
+
+        // Update active class on mobile nav items
+        mobileNavItems.forEach(item => {
+            const href = item.getAttribute('href');
+            if (href === `#${currentSection}` ||
+                (currentSection === 'main-content' && href === '#itinerary')) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    // Throttle scroll event for performance
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) {
+            window.cancelAnimationFrame(scrollTimeout);
+        }
+        scrollTimeout = window.requestAnimationFrame(() => {
+            checkActiveSection();
+        });
+    }, { passive: true });
+
+    // Initial check
+    checkActiveSection();
+}
+
+// Initialize mobile nav when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateMobileNavActiveState);
+} else {
+    updateMobileNavActiveState();
+}
+
+// ========================================
+// ACCESSIBILITY ENHANCEMENTS
+// ========================================
+
+// Keyboard navigation for accordion items
+document.querySelectorAll('.accordion-header').forEach((header) => {
+    // Make accordion keyboard accessible
+    header.setAttribute('tabindex', '0');
+    header.setAttribute('role', 'button');
+
+    header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            header.click();
+        }
+    });
+});
+
+// Close mobile nav when clicking outside
+document.addEventListener('click', (e) => {
+    if (navLinks.classList.contains('active')) {
+        if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
+            navLinks.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+});
+
+// Close mobile nav on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.focus(); // Return focus to toggle button
+    }
+});
+
+// Trap focus within mobile nav when open
+navLinks.addEventListener('keydown', (e) => {
+    if (!navLinks.classList.contains('active')) return;
+
+    const focusableElements = navLinks.querySelectorAll('a, button');
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+        }
+    }
+});
