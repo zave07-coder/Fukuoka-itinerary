@@ -1,33 +1,4 @@
-r, I can guide you through a simpler approach:
-
----
-
-## 🚀 **Quick Method: Add via Cloudflare Dashboard (2 minutes)**
-
-Since I don't have your Cloudflare API token, here's the fastest way:
-
-### **Step-by-Step:**
-
-1. **Go to Cloudflare Pages Dashboard**
-   - Visit: https://dash.cloudflare.com/
-   - Click **Pages** in sidebar
-   - Find your project (likely named `fkk` or `fukuoka-family-itinerary
-
-[2026-03-30] I don't see a Cloudflare API token in your env files. The easiest approach is for you to add the environment variable manually through the Cloudflare dashboard. However, if you can provide me with:
-
-1. **Cloudflare API Token** (from https://dash.cloudflare.com/profile/api-tokens)
-2. **Your Account ID** (visible in Cloudflare dashboard URL or any project page)
-3. **Your Pages Project Name** (e.g., `fkk`)
-
-Then I can use the Cloudflare API to add the `GOOGLE_AI_API_KEY` automatically.
-
----
-
-## 📋
-
-[2026-03-30] ## ✅ **Success! Google AI API Key Added to Cloudflare**
-
-The `GOOGLE_AI_API_KEY` has been successfully added to both **production** and **preview** environments via the Cloudflare API.
+dded to both **production** and **preview** environments via the Cloudflare API.
 
 ### **What's Configured:**
 - ✅ **API Key**: Stored as encrypted `secret_text` in Cloudflare
@@ -118,3 +89,45 @@ Wait ~2-3 minutes for deployment, then check it out!
 - ❌ Accordion-heavy (everything collapsed)
 - ❌ Map buried or not prominent
 - ❌ Version control toolbar taking spa
+
+[2026-03-30] ## 🎉 **Enhanced with AI Per Day + Activity Images!**
+
+### **New Features Added:**
+
+### **1. 🤖 AI Edit Per Day**
+- **Blue "AI Edit Day" button** on each day card
+- Opens modal with day-specific context
+- Separate from manual edit button
+- On mobile: Shows icon only to save space
+
+### **2. 🖼️ Activity Images**
+- **Beautiful 200px images** for visual activities
+- **Hover zoom effect** (1.05x scale) - subtle and smooth
+- **Rounded corners** (12px) matching design system
+- **Example images added:*
+
+[2026-03-30] Perfect! 
+
+## ✅ **Fixed! Images Now Thumbnail-Sized**
+
+### **Changes Made:**
+
+**Before:**
+- 📏 Full-width 200px images
+- ❌ Cards were too tall and image-heavy
+- ❌ Pushed text content down
+
+**After:**
+- ✅ **120×120px thumbnails** (desktop)
+- ✅ **Float right** - text wraps around image
+- ✅ **100×100px** on mobile
+- ✅ Compact, balanced cards
+
+---
+
+### **Visual Layout:**
+
+```
+┌──────────────────────────────────────────┐
+│ [9:00 AM]                       ┌─────┐ │
+│                                  │
