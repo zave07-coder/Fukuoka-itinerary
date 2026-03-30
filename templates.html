@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Templates - WayWeave</title>
+    <link rel="stylesheet" href="dashboard-v2.css?v=3">
+    <script src="templates.js"></script>
+    <script src="trip-manager.js"></script>
+    <style>
+        .templates-page {
+            min-height: 100vh;
+            background: var(--color-bg);
+            padding-top: var(--top-bar-height);
+        }
+
+        .templates-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+            color: white;
+            padding: var(--space-16) var(--space-6);
+            text-align: center;
+        }
+
+        .templates-header h1 {
+            font-size: 36px;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-3);
+        }
+
+        .templates-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .templates-filters {
+            max-width: var(--max-width);
+            margin: var(--space-8) auto;
+            padding: 0 var(--space-6);
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+        }
+
+        .filter-select {
+            padding: var(--space-2) var(--space-3);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color var(--transition-fast);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .templates-grid {
+            max-width: var(--max-width);
+            margin: 0 auto var(--space-16);
+            padding: 0 var(--space-6);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .template-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .template-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .template-content {
+            padding: var(--space-5);
+        }
+
+        .template-category {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-3);
+        }
+
+        .template-title {
+            font-size: 20px;
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .template-description {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--space-4);
+        }
+
+        .template-meta {
+            display: flex;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .template-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .template-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .template-tag {
+            padding: var(--space-1) var(--space-2);
+            background: var(--color-bg);
+            color: var(--color-text-secondary);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .btn-use-template {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-use-template:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-preview {
+            padding: var(--space-3) var(--space-4);
+            background: white;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-preview:hover {
+            background: var(--color-primary-light);
+        }
+
+        @media (max-width: 768px) {
+            .templates-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="top-bar">
+        <div class="top-bar-content">
+            <div class="logo-area" onclick="window.location.href='dashboard-v2.html'" style="cursor: pointer;">
+                <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span class="logo-text">WayWeave</span>
+            </div>
+            <div class="top-bar-actions">
+                <button class="btn-secondary" onclick="window.location.href='dashboard-v2.html'">
+                    ← Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="templates-page">
+        <!-- Header -->
+        <div class="templates-header">
+            <h1>Trip Templates</h1>
+            <p>Start with a pre-built itinerary and customize it to your needs</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="templates-filters">
+            <div class="filter-group">
+                <label>Category:</label>
+                <select class="filter-select" id="filterCategory" onchange="applyFilters()">
+                    <option value="">All Categories</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Urban">Urban</option>
+                    <option value="Food">Food</option>
+                    <option value="Historical">Historical</option>
+                    <option value="Nature">Nature</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Duration:</label>
+                <select class="filter-select" id="filterDuration" onchange="applyFilters()">
+                    <option value="">Any Length</option>
+                    <option value="2">2 days</option>
+                    <option value="3">3 days</option>
+                    <option value="5">5 days</option>
+                    <option value="7">7 days</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Budget:</label>
+                <select class="filter-select" id="filterBudget" onchange="applyFilters()">
+                    <option value="">Any Budget</option>
+                    <option value="budget">Budget</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Templates Grid -->
+        <div class="templates-grid" id="templatesGrid">
+            <!-- Templates populated by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Load and render templates
+        function loadTemplates() {
+            const filters = {
+                category: document.getElementById('filterCategory')?.value || '',
+                duration: document.getElementById('filterDuration')?.value || '',
+                budget: document.getElementById('filterBudget')?.value || ''
+            };
+
+            const templates = templateManager.filterTemplates(filters);
+            renderTemplates(templates);
+        }
+
+        function renderTemplates(templates) {
+            const grid = document.getElementById('templatesGrid');
+
+            if (templates.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--color-text-secondary);">No templates match your filters</p>';
+                return;
+            }
+
+            grid.innerHTML = templates.map(template => `
+                <div class="template-card" onclick="event.stopPropagation()">
+                    <img src="${template.coverImage}" alt="${template.name}" class="template-image">
+                    <div class="template-content">
+                        <span class="template-category">${template.category}</span>
+                        <h3 class="template-title">${template.name}</h3>
+                        <p class="template-description">${template.description}</p>
+
+                        <div class="template-meta">
+                            <div class="template-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                ${template.duration} days
+                            </div>
+                            <div class="template-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                                ${template.budget.charAt(0).toUpperCase() + template.budget.slice(1)}
+                            </div>
+                        </div>
+
+                        <div class="template-tags">
+                            ${template.tags.slice(0, 3).map(tag => `<span class="template-tag">#${tag}</span>`).join('')}
+                        </div>
+
+                        <div class="template-actions">
+                            <button class="btn-use-template" onclick="useTemplate('${template.id}')">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function applyFilters() {
+            loadTemplates();
+        }
+
+        function useTemplate(templateId) {
+            const tripManager = new TripManager();
+            const trip = templateManager.createTripFromTemplate(templateId);
+
+            // Save to localStorage
+            const savedTrip = tripManager.createTrip(trip);
+
+            // Redirect to trip planner
+            window.location.href = `trip-planner-v2.html?trip=${savedTrip.id}`;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTemplates();
+        });
+    </script>
+</body>
+</html>

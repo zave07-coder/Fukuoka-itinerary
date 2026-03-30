@@ -1,42 +1,4 @@
-oder.com/preview-v2.html`
-
-Wait ~2-3 minutes for Cloudflare to deploy, then visit the link above.
-
----
-
-## 🎯 **What You'll See:**
-
-### **✨ Interactive Features:**
-1. **Click "New Trip"** → Opens method selection modal with 3 options
-2. **Click "Generate with AI"** → Shows AI prompt form with tags
-3. **Click Search icon** → Expands search bar with blur effect
-4. **Hover over trip cards** → Re
-
-[2026-03-30] Perfect! Now you can see the redesigned trip planner!
-
-## 🎉 **Trip Planner V2 Redesign Complete!**
-
-### **Preview URL:**
-`https://fkk.zavecoder.com/trip-planner-v2.html`
-
-Wait ~2-3 minutes for deployment, then check it out!
-
----
-
-## 🎨 **What's Different: Before vs After**
-
-### **OLD Design Issues:**
-- ❌ Cluttered header with multiple toolbars
-- ❌ Small text, hard to read activities
-- ❌ Accordion-heavy (everything collapsed)
-- ❌ Map buried or not prominent
-- ❌ Version control toolbar taking spa
-
-[2026-03-30] ## 🎉 **Enhanced with AI Per Day + Activity Images!**
-
-### **New Features Added:**
-
-### **1. 🤖 AI Edit Per Day**
+ Per Day**
 - **Blue "AI Edit Day" button** on each day card
 - Opens modal with day-specific context
 - Separate from manual edit button
@@ -138,3 +100,50 @@ I've successfully integrated **Supabase authentication** and **cloud sync** into
 - **JWT verification** - Secure backend API protection
 
 #### **2. Cloud Syn
+
+[2026-03-30] ## ✅ **Upgraded to GPT-5.4-mini!**
+
+Perfect! I've upgraded your AI fallback system. Here's what changed:
+
+---
+
+### 🎯 **What's New:**
+
+**Primary Model (Unchanged):**
+- ✅ **Gemini 2.0 Flash** - FREE, fast, excellent quality
+- ✅ Handles 95%+ of requests
+
+**Fallback Model (Upgraded):**
+- ❌ ~~GPT-5.4-nano~~ - Basic quality
+- ✅ **GPT-5.4-mini** - 2x better quality
+
+---
+
+### 📊 **Cost Comparison:**
+
+| Scenario | Old (Nano) | New (Mini) | Difference |
+|----------|-----------|------------|------------|
+
+[2026-03-30] Perfect! Let me give you a comprehensive overview of what's in the roadmap:
+
+---
+
+## 🗺️ **WayWeave Roadmap Overview**
+
+You have an **extensive** roadmap with 5 major phases! Here's what's planned:
+
+---
+
+### ✅ **Phase 0: Foundation (COMPLETE)**
+- Single-trip viewer with AI editing
+- Split-screen map + itinerary
+- Version control (undo/redo)
+- Mobile-responsive design
+- **Status:** Live and working
+
+---
+
+### 🎯 **Phase 1A: Multi-Trip MVP (90% COMPLETE)**
+
+**What We've Built:**
+- ✅ Dashboard with
