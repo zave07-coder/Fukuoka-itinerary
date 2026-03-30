@@ -1,42 +1,4 @@
-th 200px images
-- ❌ Cards were too tall and image-heavy
-- ❌ Pushed text content down
-
-**After:**
-- ✅ **120×120px thumbnails** (desktop)
-- ✅ **Float right** - text wraps around image
-- ✅ **100×100px** on mobile
-- ✅ Compact, balanced cards
-
----
-
-### **Visual Layout:**
-
-```
-┌──────────────────────────────────────────┐
-│ [9:00 AM]                       ┌─────┐ │
-│                                  │
-
-[2026-03-30] Perfect! Now it should work. The issue was browser caching - the CSS was updated but your browser was still using the old cached version.
-
-## 🔄 **Cache Busting Applied!**
-
-I've updated the CSS version parameter to force your browser to reload the new styles.
-
-### **After deployment (~2 minutes):**
-
-1. **Visit:** `https://fkk.zavecoder.com/trip-planner-v2.html?v=2`
-2. **Or do a hard refresh:**
-   - **Windows/Linux:** `Ctrl + Shift + R` or `Ctrl + F5`
-   - **Mac:** `Cmd + Shift + R`
-
-### **What y
-
-[2026-03-30] ## 🎉 **Phase 1A Week 2 - Major Progress Complete!**
-
-### **✅ What Just Got Built:**
-
-### **1. 🎮 Fully Functional Dashboard**
+y Functional Dashboard**
 - **Real trip management** - Create, read, update, delete
 - **Search system** - Real-time filtering by name/destination
 - **Sort options** - Recent, Alphabetical, Upcoming, By Date
@@ -149,3 +111,39 @@ I've successfully finished all three phases. Here's what's been built:
 - ✅ **localStorage Quota Monitor** (`storage-monitor.js`)
   - Warns at 80% full
   - Critical aler
+
+[2026-03-30] ## ✅ **Mapbox Issue Fixed!**
+
+### **What Was Wrong:**
+1. **Async Loading Problem** - The map tried to `fetch('/config.js')` which is:
+   - ❌ Served dynamically by Cloudflare Worker (only works in production)
+   - ❌ Async call that could fail or race with map init
+   - ❌ Not available in local development
+
+2. **Missing Fallback** - No static config file for development/testing
+
+### **What I Fixed:**
+1. ✅ **Created `config.js`** - Static file with Mapbox token
+2. ✅ **Load config synchronously** -
+
+[2026-03-30] **Please provide your new Mapbox token and I'll update the files for you.**
+
+Paste it here like this:
+```
+pk.eyJ1IjoiYWJjMTIzIiwiYSI6ImNsb25nLXN0cmluZy1oZXJlIn0.xxxxx
+```
+
+---
+
+### **Step 3: Update .env and Cloudflare**
+
+I'll also need to update:
+1. ✅ `.env` - For local development
+2. ✅ `config.js` - For the static file
+3. ⚠️ **Cloudflare Pages** - You'll need to add it manually
+
+---
+
+### **Alternative: Use My Test Token (Temporary)**
+
+If you want to test immediately, I can use a temporary publi
