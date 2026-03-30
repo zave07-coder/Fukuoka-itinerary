@@ -497,14 +497,17 @@ body {
   min-width: 0;
 }
 
-/* Activity Images */
+/* Activity Images - Thumbnail Style */
 .activity-image-wrapper {
-  width: 100%;
-  height: 200px;
+  width: 120px;
+  height: 120px;
   border-radius: var(--radius-md);
   overflow: hidden;
-  margin-bottom: var(--space-4);
+  flex-shrink: 0;
   background: var(--color-bg);
+  float: right;
+  margin-left: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .activity-image {
@@ -515,12 +518,7 @@ body {
 }
 
 .activity-item:hover .activity-image {
-  transform: scale(1.05);
-}
-
-/* Activity with image gets extra spacing */
-.activity-with-image {
-  padding-bottom: var(--space-8);
+  transform: scale(1.08);
 }
 
 .activity-header {
@@ -820,6 +818,10 @@ body {
   }
 
   .activity-image-wrapper {
-    height: 160px;
+    width: 100px;
+    height: 100px;
+    float: none;
+    margin-left: 0;
+    margin-bottom: var(--space-3);
   }
 }
