@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTrips();
   setupEventListeners();
   updateCharCount();
+  initializeAuth();
 });
 
 /**
@@ -469,3 +470,133 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+/**
+ * Authentication and Sync Integration
+ */
+function initializeAuth() {
+  // Wait for auth service to initialize
+  if (typeof authService === 'undefined') {
+    console.log('Auth service not available - running in offline mode');
+    document.getElementById('signInBtn').style.display = 'block';
+    return;
+  }
+
+  authService.init().then(() => {
+    updateAuthUI();
+
+    // Listen for auth changes
+    authService.onAuthStateChange((user) => {
+      updateAuthUI();
+      if (user) {
+        // User just logged in - sync trips
+        syncService.migrateLocalTripsToCloud();
+      }
+    });
+
+    // Listen for sync changes
+    if (typeof syncService !== 'undefined') {
+      syncService.onSyncComplete = (result) => {
+        if (result.success) {
+          updateSyncUI('synced');
+          loadTrips(); // Reload trips after sync
+        } else {
+          updateSyncUI('error');
+        }
+      };
+    }
+  });
+}
+
+/**
+ * Update auth UI based on user state
+ */
+function updateAuthUI() {
+  const user = authService.getCurrentUser();
+  const userMenu = document.getElementById('userMenu');
+  const signInBtn = document.getElementById('signInBtn');
+  const syncStatus = document.getElementById('syncStatus');
+
+  if (user) {
+    // User is signed in
+    userMenu.style.display = 'block';
+    signInBtn.style.display = 'none';
+    syncStatus.style.display = 'flex';
+
+    // Update user info
+    const displayName = user.user_metadata?.full_name || user.email;
+    const initials = displayName.charAt(0).toUpperCase();
+
+    document.getElementById('userInitials').textContent = initials;
+    document.getElementById('userName').textContent = displayName;
+    document.getElementById('userEmail').textContent = user.email;
+
+    // Show sync status
+    updateSyncUI('synced');
+  } else {
+    // User is signed out
+    userMenu.style.display = 'none';
+    signInBtn.style.display = 'block';
+    syncStatus.style.display = 'none';
+  }
+}
+
+/**
+ * Update sync UI indicator
+ */
+function updateSyncUI(status) {
+  const syncStatus = document.getElementById('syncStatus');
+  const syncText = document.getElementById('syncText');
+
+  if (!syncStatus) return;
+
+  syncStatus.className = 'sync-status';
+
+  switch (status) {
+    case 'syncing':
+      syncStatus.classList.add('syncing');
+      syncText.textContent = 'Syncing...';
+      break;
+    case 'synced':
+      const lastSync = syncService.getSyncStatus().lastSync;
+      if (lastSync) {
+        const minutes = Math.floor((Date.now() - lastSync.getTime()) / 60000);
+        syncText.textContent = minutes === 0 ? 'Just synced' : `Synced ${minutes}m ago`;
+      } else {
+        syncText.textContent = 'Synced';
+      }
+      break;
+    case 'error':
+      syncStatus.classList.add('error');
+      syncText.textContent = 'Sync failed';
+      break;
+  }
+}
+
+/**
+ * Toggle user dropdown menu
+ */
+function toggleUserDropdown() {
+  const dropdown = document.getElementById('userDropdown');
+  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+/**
+ * Sign out user
+ */
+async function signOut() {
+  if (confirm('Sign out? Your trips will still be saved locally.')) {
+    await authService.signOut();
+    updateAuthUI();
+    showToast('Signed out successfully');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const userMenu = document.getElementById('userMenu');
+  const dropdown = document.getElementById('userDropdown');
+  if (dropdown && userMenu && !userMenu.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});

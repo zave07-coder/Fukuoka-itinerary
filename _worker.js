@@ -1,9 +1,70 @@
 // Helper to execute SQL queries via Neon's HTTP API
 async function executeSQL(env, query, params = []) {
-  // For now, return empty results - database features temporarily disabled
-  // TODO: Implement proper Neon HTTP API or re-add @neondatabase/serverless
-  console.log('Database query skipped:', query);
-  return [];
+  if (!env.NEON_DATABASE_URL) {
+    console.warn('NEON_DATABASE_URL not configured');
+    return { rows: [] };
+  }
+
+  try {
+    // Parse Neon connection URL
+    const dbUrl = new URL(env.NEON_DATABASE_URL);
+    const [username, password] = dbUrl.username && dbUrl.password
+      ? [dbUrl.username, decodeURIComponent(dbUrl.password)]
+      : ['', ''];
+    const host = dbUrl.hostname;
+    const database = dbUrl.pathname.substring(1);
+
+    // Use Neon's HTTP API
+    const response = await fetch(`https://${host}/sql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.NEON_API_KEY || ''}`
+      },
+      body: JSON.stringify({
+        query,
+        params
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Database query failed: ${error}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Database error:', error);
+    throw error;
+  }
+}
+
+// Verify JWT token from Supabase
+async function verifySupabaseToken(request, env) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Missing authorization token');
+  }
+
+  const token = authHeader.substring(7);
+
+  // Decode JWT (simple version - in production use a proper JWT library)
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid token format');
+  }
+
+  const payload = JSON.parse(atob(parts[1]));
+
+  // Check expiration
+  if (payload.exp && payload.exp * 1000 < Date.now()) {
+    throw new Error('Token expired');
+  }
+
+  return {
+    userId: payload.sub,
+    email: payload.email
+  };
 }
 
 // API handlers
@@ -655,21 +716,154 @@ Return ONLY valid JSON (no markdown):
   }
 }
 
+/**
+ * Sync user handler - Creates/updates user in Neon database
+ */
+const syncUserHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const auth = await verifySupabaseToken(request, env);
+    const { supabaseUserId, email, displayName, avatarUrl } = await request.json();
+
+    // Insert or update user
+    await executeSQL(
+      env,
+      `INSERT INTO users (supabase_user_id, email, display_name, avatar_url)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (supabase_user_id)
+       DO UPDATE SET
+         display_name = EXCLUDED.display_name,
+         avatar_url = EXCLUDED.avatar_url,
+         updated_at = NOW()`,
+      [supabaseUserId, email, displayName, avatarUrl]
+    );
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Sync user error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+/**
+ * Trips handler - GET (pull) and POST (push) trips
+ */
+const tripsHandler = async (request, env) => {
+  try {
+    const auth = await verifySupabaseToken(request, env);
+
+    // Get user ID from database
+    const userResult = await executeSQL(
+      env,
+      'SELECT id FROM users WHERE supabase_user_id = $1',
+      [auth.userId]
+    );
+
+    if (!userResult.rows || userResult.rows.length === 0) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    if (request.method === 'GET') {
+      // Pull all trips for user
+      const trips = await executeSQL(
+        env,
+        'SELECT * FROM trips WHERE user_id = $1 ORDER BY updated_at DESC',
+        [userId]
+      );
+
+      return new Response(JSON.stringify(trips.rows || []), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+    } else if (request.method === 'POST') {
+      // Push trip to cloud
+      const { tripId, name, destination, startDate, endDate, coverImage, data, deviceId } = await request.json();
+
+      // Insert or update trip
+      const result = await executeSQL(
+        env,
+        `INSERT INTO trips (id, user_id, name, destination, start_date, end_date, cover_image, data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (id)
+         DO UPDATE SET
+           name = EXCLUDED.name,
+           destination = EXCLUDED.destination,
+           start_date = EXCLUDED.start_date,
+           end_date = EXCLUDED.end_date,
+           cover_image = EXCLUDED.cover_image,
+           data = EXCLUDED.data,
+           updated_at = NOW(),
+           synced_at = NOW()
+         RETURNING *`,
+        [tripId, userId, name, destination, startDate, endDate, coverImage, JSON.stringify(data)]
+      );
+
+      // Update sync metadata
+      await executeSQL(
+        env,
+        `INSERT INTO sync_metadata (user_id, trip_id, device_id, last_sync, sync_version)
+         VALUES ($1, $2, $3, NOW(), 1)
+         ON CONFLICT (trip_id, device_id)
+         DO UPDATE SET
+           last_sync = NOW(),
+           sync_version = sync_metadata.sync_version + 1`,
+        [userId, tripId, deviceId]
+      );
+
+      return new Response(JSON.stringify(result.rows[0]), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+    } else {
+      return new Response('Method not allowed', { status: 405 });
+    }
+
+  } catch (error) {
+    console.error('Trips handler error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Serve Mapbox config from environment variable
+    // Serve config from environment variables
     if (url.pathname === '/config.js') {
       // Try env var first, then fall back to constructed token
-      let token = env.MAPBOX_TOKEN;
-      if (!token) {
+      let mapboxToken = env.MAPBOX_TOKEN;
+      if (!mapboxToken) {
         // Construct token from parts to avoid GitHub secret scanning
         const parts = ['pk.eyJ1Ijoi', 'emF2ZTA3Ii', 'wiYSI6ImNt', 'bjUzeHZod', 'DA2dWIycW', 'oubXJrdjo', 'yZ3EifQ.x', 'xXOVUTVaA', 'XD3GjecNM', 'WvA'];
-        token = parts.join('');
+        mapboxToken = parts.join('');
       }
+
+      // Supabase config (optional - for auth features)
+      const supabaseConfig = env.SUPABASE_URL && env.SUPABASE_ANON_KEY
+        ? `window.SUPABASE_CONFIG = {
+             SUPABASE_URL: '${env.SUPABASE_URL}',
+             SUPABASE_ANON_KEY: '${env.SUPABASE_ANON_KEY}'
+           };`
+        : 'window.SUPABASE_CONFIG = null;';
+
       return new Response(
-        `window.MAPBOX_CONFIG = { token: '${token}' };`,
+        `window.MAPBOX_CONFIG = { token: '${mapboxToken}' };\n${supabaseConfig}`,
         {
           headers: {
             'Content-Type': 'application/javascript',
@@ -698,6 +892,10 @@ export default {
       return redoHandler(request, env);
     } else if (url.pathname === '/api/get-history') {
       return getHistoryHandler(request, env);
+    } else if (url.pathname === '/api/sync-user') {
+      return syncUserHandler(request, env);
+    } else if (url.pathname === '/api/trips') {
+      return tripsHandler(request, env);
     }
 
     // For non-API routes, return the static file (handled by Pages)
