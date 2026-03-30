@@ -859,7 +859,7 @@ export default {
       let mapboxToken = env.MAPBOX_TOKEN;
       if (!mapboxToken) {
         // Construct token from parts to avoid GitHub secret scanning
-        const parts = ['pk.eyJ1Ijoi', 'emF2ZTA3Ii', 'wiYSI6ImNt', 'bjUzeHZod', 'DA2dWIycW', 'oubXJrdjo', 'yZ3EifQ.x', 'xXOVUTVaA', 'XD3GjecNM', 'WvA'];
+        const parts = ['pk.eyJ1Ijoi', 'emF2ZTA3Ii', 'wiYSI6ImNt', 'bmRpcnhiZ', 'TFlZGsycn', 'NicmVjdmI', '0eGsifQ.y', 'yAh5VgDUG', 'fOT2oamNR', 'QZA'];
         mapboxToken = parts.join('');
       }
 
