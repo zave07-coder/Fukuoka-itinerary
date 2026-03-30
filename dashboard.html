@@ -141,9 +141,9 @@
                     <span>or</span>
                 </div>
 
-                <button type="button" class="btn-secondary btn-full" id="generateWithAI" disabled>
+                <button type="button" class="btn-secondary btn-full" id="generateWithAI">
                     <span class="btn-icon">✨</span>
-                    Generate with AI (Coming Soon)
+                    Generate with AI
                 </button>
             </form>
 
@@ -170,6 +170,114 @@
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
                 <button type="button" class="btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Generation Modal -->
+    <div class="modal" id="aiGenerateModal" role="dialog" aria-labelledby="aiModalTitle" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeAIGenerateModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="aiModalTitle">✨ Generate Trip with AI</h2>
+                <button class="modal-close" onclick="closeAIGenerateModal()" aria-label="Close modal">×</button>
+            </div>
+
+            <form id="aiGenerateForm" class="modal-body">
+                <div class="form-group">
+                    <label for="aiPrompt">Describe your ideal trip</label>
+                    <textarea
+                        id="aiPrompt"
+                        name="aiPrompt"
+                        rows="4"
+                        placeholder="e.g., 5-day cultural adventure in Kyoto with temples, tea ceremonies, and traditional ryokan stays"
+                        required
+                    ></textarea>
+                    <small class="form-help">Be specific: mention duration, destination, interests, and travel style</small>
+                </div>
+
+                <div class="form-divider">
+                    <span>Quick Options</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="aiDestination">Destination (optional)</label>
+                        <input
+                            type="text"
+                            id="aiDestination"
+                            name="aiDestination"
+                            placeholder="e.g., Tokyo, Japan"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiDuration">Duration (optional)</label>
+                        <select id="aiDuration" name="aiDuration">
+                            <option value="">Any duration</option>
+                            <option value="3">3 days</option>
+                            <option value="5">5 days</option>
+                            <option value="7">7 days</option>
+                            <option value="10">10 days</option>
+                            <option value="14">14 days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Trip Style (optional)</label>
+                    <div class="tag-group">
+                        <button type="button" class="tag-option" data-style="cultural">🏛️ Cultural</button>
+                        <button type="button" class="tag-option" data-style="food">🍜 Food</button>
+                        <button type="button" class="tag-option" data-style="nature">🏔️ Nature</button>
+                        <button type="button" class="tag-option" data-style="adventure">🎒 Adventure</button>
+                        <button type="button" class="tag-option" data-style="relaxation">🧘 Relaxation</button>
+                        <button type="button" class="tag-option" data-style="family">👨‍👩‍👧 Family</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAIGenerateModal()">Cancel</button>
+                <button type="submit" form="aiGenerateForm" class="btn-primary" id="generateTripBtn">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-text">Generate Trip</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Generation Loading Modal -->
+    <div class="modal" id="aiLoadingModal" role="dialog" aria-hidden="true">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-body" style="text-align: center; padding: 3rem 2rem;">
+                <div class="loading-spinner"></div>
+                <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Generating your trip...</h3>
+                <p style="color: var(--text-secondary); margin: 0;">This may take 10-15 seconds</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Preview Modal -->
+    <div class="modal" id="aiPreviewModal" role="dialog" aria-labelledby="previewModalTitle" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeAIPreviewModal()"></div>
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="previewModalTitle">Preview Your Trip</h2>
+                <button class="modal-close" onclick="closeAIPreviewModal()" aria-label="Close modal">×</button>
+            </div>
+
+            <div class="modal-body" id="aiPreviewContent" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Generated trip preview will be inserted here -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAIPreviewModal()">Edit More</button>
+                <button type="button" class="btn-primary" id="saveGeneratedTripBtn">
+                    <span class="btn-icon">💾</span>
+                    <span class="btn-text">Save & Open Trip</span>
+                </button>
             </div>
         </div>
     </div>

@@ -44,6 +44,22 @@ function setupEventListeners() {
   // Sort select
   document.getElementById('sortSelect').addEventListener('change', handleSearchAndSort);
 
+  // AI Generate button
+  document.getElementById('generateWithAI').addEventListener('click', openAIGenerateModal);
+
+  // AI Generate form submission
+  document.getElementById('aiGenerateForm').addEventListener('submit', handleAIGenerate);
+
+  // Tag options (style selection)
+  document.querySelectorAll('.tag-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+    });
+  });
+
+  // Save generated trip button
+  document.getElementById('saveGeneratedTripBtn').addEventListener('click', saveGeneratedTrip);
+
   // Modal overlay clicks
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -559,4 +575,205 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
+}
+
+// ========== AI Trip Generation Functions ==========
+
+let generatedTripData = null; // Store generated trip for preview
+
+/**
+ * Open AI generation modal
+ */
+function openAIGenerateModal() {
+  closeCreateTripModal(); // Close manual creation modal if open
+  const modal = document.getElementById('aiGenerateModal');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+
+  // Focus prompt textarea
+  setTimeout(() => {
+    document.getElementById('aiPrompt').focus();
+  }, 100);
+}
+
+/**
+ * Close AI generation modal
+ */
+function closeAIGenerateModal() {
+  const modal = document.getElementById('aiGenerateModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+
+  // Reset form
+  document.getElementById('aiGenerateForm').reset();
+  document.querySelectorAll('.tag-option.active').forEach(btn => {
+    btn.classList.remove('active');
+  });
+}
+
+/**
+ * Handle AI generate form submission
+ * @param {Event} e - Form submit event
+ */
+async function handleAIGenerate(e) {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+  const prompt = formData.get('aiPrompt').trim();
+  const destination = formData.get('aiDestination').trim();
+  const duration = formData.get('aiDuration');
+
+  // Get selected styles
+  const selectedStyles = Array.from(document.querySelectorAll('.tag-option.active'))
+    .map(btn => btn.dataset.style);
+
+  if (!prompt) {
+    showToast('Please describe your trip ⚠️');
+    return;
+  }
+
+  // Build enhanced prompt
+  let enhancedPrompt = prompt;
+  if (destination) {
+    enhancedPrompt += `\nDestination: ${destination}`;
+  }
+  if (duration) {
+    enhancedPrompt += `\nDuration: ${duration} days`;
+  }
+  if (selectedStyles.length > 0) {
+    enhancedPrompt += `\nTravel style: ${selectedStyles.join(', ')}`;
+  }
+
+  // Close AI modal and show loading
+  closeAIGenerateModal();
+  showLoadingModal();
+
+  try {
+    const response = await fetch('/api/generate-trip', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: enhancedPrompt })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate trip');
+    }
+
+    const tripData = await response.json();
+    generatedTripData = tripData;
+
+    // Close loading and show preview
+    hideLoadingModal();
+    showPreviewModal(tripData);
+
+  } catch (error) {
+    console.error('AI generation error:', error);
+    hideLoadingModal();
+    showToast(`Error: ${error.message} ⚠️`);
+  }
+}
+
+/**
+ * Show loading modal
+ */
+function showLoadingModal() {
+  const modal = document.getElementById('aiLoadingModal');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+/**
+ * Hide loading modal
+ */
+function hideLoadingModal() {
+  const modal = document.getElementById('aiLoadingModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+/**
+ * Show preview modal with generated trip
+ * @param {Object} tripData - Generated trip data
+ */
+function showPreviewModal(tripData) {
+  const modal = document.getElementById('aiPreviewModal');
+  const content = document.getElementById('aiPreviewContent');
+
+  // Update modal title
+  document.getElementById('previewModalTitle').textContent = `Preview: ${tripData.name}`;
+
+  // Render preview
+  content.innerHTML = `
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: var(--radius-md); border: 1px solid var(--primary-200);">
+      <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-600);">${escapeHtml(tripData.name)}</h3>
+      <p style="margin: 0; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+        <span>📍 ${escapeHtml(tripData.destination)}</span>
+        <span>•</span>
+        <span>📅 ${formatDateRange(tripData.startDate, tripData.endDate)}</span>
+        <span>•</span>
+        <span>${tripData.days.length} days</span>
+      </p>
+    </div>
+
+    ${tripData.days.map((day, index) => `
+      <div class="preview-day">
+        <div class="preview-day-header">
+          📅 Day ${index + 1}: ${escapeHtml(day.title || `Day ${index + 1}`)}
+        </div>
+        ${day.activities.map(activity => `
+          <div class="preview-activity">
+            <div class="preview-time">🕐 ${escapeHtml(activity.time)}</div>
+            <div class="preview-activity-name">${escapeHtml(activity.name)}</div>
+            ${activity.details ? `<div class="preview-activity-details">${escapeHtml(activity.details)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+  `;
+
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+/**
+ * Close preview modal
+ */
+function closeAIPreviewModal() {
+  const modal = document.getElementById('aiPreviewModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+  generatedTripData = null;
+}
+
+/**
+ * Save generated trip and redirect to trip viewer
+ */
+function saveGeneratedTrip() {
+  if (!generatedTripData) {
+    showToast('No trip data to save ⚠️');
+    return;
+  }
+
+  try {
+    const newTrip = tripManager.createTrip(generatedTripData);
+    showToast('Trip created successfully! ✓');
+
+    closeAIPreviewModal();
+
+    // Redirect to trip viewer
+    setTimeout(() => {
+      window.location.href = `trip.html?trip=${newTrip.id}`;
+    }, 500);
+  } catch (error) {
+    console.error('Error saving trip:', error);
+
+    if (error.message.includes('quota')) {
+      showToast('Storage full! Delete some trips first. ⚠️');
+    } else {
+      showToast('Error saving trip. Please try again. ⚠️');
+    }
+  }
 }
