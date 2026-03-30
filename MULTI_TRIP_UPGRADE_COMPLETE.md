@@ -175,16 +175,25 @@
 
 ---
 
-## 🚧 Not Yet Implemented (Week 2)
+## ✅ Week 2 Features (Implemented)
 
-- [ ] Auto-save every 5 seconds
+- [x] **Auto-save every 5 seconds** - Saves changes automatically with visual indicator
+- [x] **Modern Design System** - Professional Inter font, refined colors, better spacing
+- [x] **Glass-morphism UI** - Backdrop blur effects on navbar
+- [x] **Improved shadows** - Softer, more modern shadows
+- [x] **Better typography** - Modern scale with tight letter-spacing
+- [x] **Save indicator** - Visual feedback for save status
+
+## 🚧 Future Enhancements
+
 - [ ] AI trip generation from prompt
-- [ ] Search & filter UI (logic exists, UI needs 3+ trips)
-- [ ] Export/import trips
+- [ ] Search & filter UI enhancement
+- [ ] Export/import trips (JSON)
 - [ ] Trip templates library
 - [ ] Cover image upload
 - [ ] Collaborative editing
 - [ ] Cloud sync
+- [ ] Dark mode
 
 ---
 
