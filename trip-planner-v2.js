@@ -249,14 +249,21 @@ function initializeMap() {
   }
 
   try {
-    mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
+    const token = window.MAPBOX_CONFIG.token;
+    console.log('Token from config:', token);
+    console.log('Token length:', token.length);
+    console.log('Token starts with pk.:', token.startsWith('pk.'));
+
+    mapboxgl.accessToken = token;
     console.log('Mapbox token set, creating map...');
+    console.log('mapboxgl.accessToken:', mapboxgl.accessToken);
 
     map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [135.7681, 35.0116], // Default to Kyoto
-      zoom: 11
+      zoom: 11,
+      attributionControl: true
     });
 
     map.on('load', () => {
@@ -266,7 +273,11 @@ function initializeMap() {
 
     map.on('error', (e) => {
       console.error('Map error:', e);
-      showMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
+      console.error('Full error object:', JSON.stringify(e, null, 2));
+
+      // Extract actual error message
+      const errorMsg = e.error?.message || e.message || 'Unknown error';
+      showMapError(`Map error: ${errorMsg}`);
     });
 
     map.addControl(new mapboxgl.NavigationControl());
