@@ -190,7 +190,7 @@ function attachCardEventListeners() {
  * @param {string} tripId - Trip ID
  */
 function openTrip(tripId) {
-  window.location.href = `trip.html?trip=${tripId}`;
+  window.location.href = `trip-planner-v2.html?trip=${tripId}`;
 }
 
 /**
@@ -303,7 +303,7 @@ function handleCreateTrip(e) {
 
     // Redirect to trip viewer to start building itinerary
     setTimeout(() => {
-      window.location.href = `trip.html?trip=${newTrip.id}`;
+      window.location.href = `trip-planner-v2.html?trip=${newTrip.id}`;
     }, 500);
   } catch (error) {
     console.error('Error creating trip:', error);
@@ -765,7 +765,7 @@ function saveGeneratedTrip() {
 
     // Redirect to trip viewer
     setTimeout(() => {
-      window.location.href = `trip.html?trip=${newTrip.id}`;
+      window.location.href = `trip-planner-v2.html?trip=${newTrip.id}`;
     }, 500);
   } catch (error) {
     console.error('Error saving trip:', error);
