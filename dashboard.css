@@ -43,10 +43,8 @@
 }
 
 .brand-text {
-    background: var(--gradient-1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary-600, #2563eb);
+    font-weight: 600;
 }
 
 .dashboard-actions {
@@ -58,21 +56,22 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--gradient-1);
+    background: var(--primary-600, #2563eb);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 50px;
+    border-radius: var(--radius-full, 50px);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
 }
 
 .btn-create-trip:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    background: var(--primary-700, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-create-trip:active {
@@ -323,28 +322,32 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    max-width: 500px;
+    max-width: 600px;
     margin: 4rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4, 1rem);
 }
 
 .empty-state-icon {
-    font-size: 5rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.5;
+    font-size: 4rem;
+    opacity: 0.3;
     animation: float 3s ease-in-out infinite;
 }
 
 .empty-state-title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--dark-color);
+    font-size: var(--text-3xl, 1.875rem);
+    font-weight: var(--font-semibold, 600);
+    color: var(--text-primary, #171717);
+    margin: 0;
 }
 
 .empty-state-text {
-    font-size: 1.1rem;
-    color: var(--gray-color);
-    margin-bottom: 2rem;
+    font-size: var(--text-base, 1rem);
+    color: var(--text-secondary, #737373);
+    line-height: 1.6;
+    margin: 0;
 }
 
 /* Buttons */
@@ -353,23 +356,25 @@
 .btn-danger {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: var(--font-medium, 500);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     min-height: 44px;
+    font-family: var(--font-sans, inherit);
 }
 
 .btn-primary {
-    background: var(--gradient-1);
+    background: var(--primary-600, #2563eb);
     color: white;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    background: var(--primary-700, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
