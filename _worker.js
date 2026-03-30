@@ -332,9 +332,21 @@ const generateTripHandler = async (request, env) => {
   try {
     const { prompt } = await request.json();
 
+    // Validation
     if (!prompt || prompt.trim() === '') {
       return new Response(JSON.stringify({
-        error: 'Prompt is required'
+        error: 'Please provide a trip description',
+        userMessage: 'Please describe your trip (e.g., "5-day cultural trip to Kyoto")'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (prompt.length > 2000) {
+      return new Response(JSON.stringify({
+        error: 'Prompt too long',
+        userMessage: 'Please keep your trip description under 2000 characters'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -346,21 +358,51 @@ const generateTripHandler = async (request, env) => {
     // Try Gemini 2.0 Flash first (primary, cheaper)
     let tripData;
     let usedModel = 'gemini-2.0-flash';
+    let lastError = null;
 
     try {
       tripData = await generateWithGemini(prompt, env);
       console.log('Successfully generated with Gemini');
     } catch (geminiError) {
-      console.warn('Gemini failed, falling back to GPT:', geminiError.message);
+      console.warn('Gemini failed:', geminiError.message);
+      lastError = geminiError;
 
       // Fallback to GPT-5.4-nano
-      if (!env.OPENAI_API_KEY) {
-        throw new Error('Both Gemini and OpenAI API keys are missing');
-      }
+      try {
+        if (!env.OPENAI_API_KEY) {
+          throw new Error('OpenAI API key not configured');
+        }
 
-      usedModel = 'gpt-5.4-nano';
-      tripData = await generateWithGPT(prompt, env);
-      console.log('Successfully generated with GPT fallback');
+        console.log('Attempting GPT fallback...');
+        usedModel = 'gpt-5.4-nano';
+        tripData = await generateWithGPT(prompt, env);
+        console.log('Successfully generated with GPT fallback');
+        lastError = null; // Clear error on success
+      } catch (gptError) {
+        console.error('GPT fallback also failed:', gptError.message);
+
+        // Both failed - return detailed error
+        return new Response(JSON.stringify({
+          error: 'AI generation failed',
+          userMessage: 'Unable to generate trip. Please try again in a moment.',
+          details: {
+            gemini: geminiError.message,
+            gpt: gptError.message
+          },
+          retryable: true
+        }), {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        });
+      }
+    }
+
+    // Validate generated data
+    if (!tripData || !tripData.days || !Array.isArray(tripData.days)) {
+      throw new Error('Invalid trip data structure received from AI');
     }
 
     // Add metadata
@@ -369,15 +411,37 @@ const generateTripHandler = async (request, env) => {
     tripData.generatedAt = new Date().toISOString();
 
     return new Response(JSON.stringify(tripData), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store'
+      }
     });
 
   } catch (error) {
     console.error('Trip generation error:', error);
+
+    // Determine error type and appropriate response
+    let statusCode = 500;
+    let userMessage = 'An unexpected error occurred. Please try again.';
+    let retryable = true;
+
+    if (error.message.includes('quota') || error.message.includes('rate limit')) {
+      statusCode = 429;
+      userMessage = 'Too many requests. Please wait a moment and try again.';
+    } else if (error.message.includes('API key')) {
+      statusCode = 503;
+      userMessage = 'Service temporarily unavailable. Please try again later.';
+    } else if (error.message.includes('timeout')) {
+      statusCode = 504;
+      userMessage = 'Request timed out. Please try a shorter trip or try again.';
+    }
+
     return new Response(JSON.stringify({
-      error: `Failed to generate trip: ${error.message}`
+      error: error.message,
+      userMessage: userMessage,
+      retryable: retryable
     }), {
-      status: 500,
+      status: statusCode,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -452,8 +516,26 @@ Important:
   );
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Gemini API error: ${error.error?.message || 'Unknown error'}`);
+    const errorText = await response.text();
+    let errorMessage = 'Unknown error';
+
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error?.message || errorText;
+
+      // Handle specific Gemini error codes
+      if (response.status === 429) {
+        errorMessage = 'Rate limit exceeded';
+      } else if (response.status === 403) {
+        errorMessage = 'API key invalid or quota exceeded';
+      } else if (response.status === 400) {
+        errorMessage = 'Invalid request format';
+      }
+    } catch (e) {
+      errorMessage = errorText.substring(0, 200);
+    }
+
+    throw new Error(`Gemini API error (${response.status}): ${errorMessage}`);
   }
 
   const data = await response.json();
@@ -535,8 +617,26 @@ Return ONLY valid JSON (no markdown):
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+    const errorText = await response.text();
+    let errorMessage = 'Unknown error';
+
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error?.message || errorText;
+
+      // Handle specific OpenAI error codes
+      if (response.status === 429) {
+        errorMessage = 'Rate limit exceeded';
+      } else if (response.status === 401) {
+        errorMessage = 'API key invalid';
+      } else if (response.status === 400) {
+        errorMessage = 'Invalid request format';
+      }
+    } catch (e) {
+      errorMessage = errorText.substring(0, 200);
+    }
+
+    throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
   }
 
   const data = await response.json();
@@ -546,7 +646,13 @@ Return ONLY valid JSON (no markdown):
   }
 
   const content = data.choices[0].message.content;
-  return JSON.parse(content);
+
+  try {
+    return JSON.parse(content);
+  } catch (parseError) {
+    console.error('Failed to parse GPT JSON:', content);
+    throw new Error('Failed to parse GPT response as JSON');
+  }
 }
 
 export default {
