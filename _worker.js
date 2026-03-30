@@ -428,16 +428,16 @@ const generateTripHandler = async (request, env) => {
       console.warn('Gemini failed:', geminiError.message);
       lastError = geminiError;
 
-      // Fallback to GPT-5.4-nano
+      // Fallback to GPT-5.4-mini (better quality than nano)
       try {
         if (!env.OPENAI_API_KEY) {
           throw new Error('OpenAI API key not configured');
         }
 
-        console.log('Attempting GPT fallback...');
-        usedModel = 'gpt-5.4-nano';
+        console.log('Attempting GPT-5.4-mini fallback...');
+        usedModel = 'gpt-5.4-mini';
         tripData = await generateWithGPT(prompt, env);
-        console.log('Successfully generated with GPT fallback');
+        console.log('Successfully generated with GPT-5.4-mini fallback');
         lastError = null; // Clear error on success
       } catch (gptError) {
         console.error('GPT fallback also failed:', gptError.message);
@@ -626,12 +626,13 @@ Important:
 }
 
 /**
- * Generate trip using GPT-5.4-nano (fallback)
+ * Generate trip using GPT-5.4-mini (fallback)
+ * Better quality than nano with more detailed descriptions
  */
 async function generateWithGPT(prompt, env) {
-  const systemPrompt = `You are a travel planning expert. Generate a detailed trip itinerary.
+  const systemPrompt = `You are a professional travel planning expert. Generate a detailed, well-researched trip itinerary.
 
-Return ONLY valid JSON (no markdown):
+Return ONLY valid JSON (no markdown). Include rich details, practical tips, and accurate information:
 {
   "name": "Trip Name",
   "destination": "City, Country",
@@ -644,20 +645,28 @@ Return ONLY valid JSON (no markdown):
       "activities": [
         {
           "time": "9:00 AM",
-          "name": "Activity",
-          "details": "Description",
+          "name": "Activity Name",
+          "details": "Detailed description with tips, entry fees, best times to visit, etc.",
           "location": {
-            "name": "Place",
-            "address": "Address",
+            "name": "Place Name",
+            "address": "Full Address",
             "lat": 35.6762,
             "lng": 139.6503,
             "type": "attraction"
-          }
+          },
+          "duration": "1-2 hours"
         }
       ]
     }
   ]
-}`;
+}
+
+Important:
+- Provide rich, specific details for each activity
+- Include practical information (costs, timing, tips)
+- Use accurate GPS coordinates
+- Add duration estimates
+- Suggest realistic daily pacing`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -666,7 +675,7 @@ Return ONLY valid JSON (no markdown):
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-5.4-nano',
+      model: 'gpt-5.4-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }

@@ -1,22 +1,4 @@
-what's different:
-
----
-
-## 🎨 **Design Philosophy**
-
-### **Before vs After:**
-
-| Aspect | Old Design | New Design V2 |
-|--------|-----------|---------------|
-| **Visual Hierarchy** | Small images, text-heavy | **Large 240px images**, minimal text |
-| **Space** | Cluttered, inconsistent spacing | **Clear zones**, generous whitespace |
-| **Navigation** | Basic header | **Glassmorphism blur** ef
-
-[2026-03-30] Perfect! Now you can see the preview! 
-
-## 🎨 **View the Redesign:**
-
-**Preview URL:** `https://fkk.zavecoder.com/preview-v2.html`
+oder.com/preview-v2.html`
 
 Wait ~2-3 minutes for Cloudflare to deploy, then visit the link above.
 
@@ -140,3 +122,19 @@ I've updated the CSS version parameter to force your browser to reload the new s
 - ✅ AI edit per day
 
 ### **💾 3. Dat
+
+[2026-03-30] ## ✅ **Phase 1B Complete: Authentication & Cloud Sync!**
+
+I've successfully integrated **Supabase authentication** and **cloud sync** into WayWeave. Here's what's ready:
+
+---
+
+### 🎯 **What's Been Built:**
+
+#### **1. Authentication System**
+- **Google OAuth** - One-click sign-in with Google account
+- **Email Magic Links** - Passwordless email authentication
+- **Modern login page** - Beautiful gradient UI at `/login.html`
+- **JWT verification** - Secure backend API protection
+
+#### **2. Cloud Syn
