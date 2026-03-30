@@ -52,21 +52,21 @@ This roadmap outlines the phased development of WayWeave from a single-trip itin
 
 ---
 
-## 🚧 Phase 1A: Multi-Trip MVP (IN PLANNING)
+## 🚧 Phase 1A: Multi-Trip MVP (IN PROGRESS)
 
-**Timeline:** Weeks 1-2 (April 1-14, 2026)
+**Timeline:** Weeks 1-2 (March 24 - April 7, 2026)
 **Goal:** Enable users to manage multiple trips in guest mode (no auth required yet)
 
-**Status:** 📋 Planning complete, ready to build
+**Status:** 🚧 Week 1 complete, Week 2 in progress
 
 ### Week 1: Core Multi-Trip Foundation
 
 #### **Dashboard Creation**
-- [ ] Create `dashboard.html` - Trip grid landing page
-- [ ] Create `dashboard.css` - Card grid styling (reuse compact design)
-- [ ] Create `trip-manager.js` - localStorage CRUD operations
-- [ ] Modify `index.html` → `trip.html` (trip viewer, receives `?trip=ID`)
-- [ ] Add routing logic: `/` = dashboard, `/?trip=abc123` = trip viewer
+- [x] Create `dashboard.html` - Trip grid landing page
+- [x] Create `dashboard.css` - Card grid styling (reuse compact design)
+- [x] Create `trip-manager.js` - localStorage CRUD operations
+- [x] Modify `index.html` → `trip.html` (trip viewer, receives `?trip=ID`)
+- [x] Add routing logic: `/` = dashboard, `/?trip=abc123` = trip viewer
 
 **localStorage Data Structure:**
 ```javascript
@@ -93,16 +93,16 @@ This roadmap outlines the phased development of WayWeave from a single-trip itin
 ```
 
 #### **Trip Card Component**
-- [ ] Card grid layout (2-3 columns desktop, 1 column mobile)
-- [ ] Card contents: Cover image, name, dates, destination, duration
+- [x] Card grid layout (2-3 columns desktop, 1 column mobile)
+- [x] Card contents: Cover image, name, dates, destination, duration
 - [ ] Hover actions: Duplicate, share (future), delete
 - [ ] Inline editing: Click name → editable text input
 - [ ] Drag-to-reorder (future, not MVP)
 
 #### **New Trip Flow**
-- [ ] Create `new-trip-modal.js` - Modal with 3 options
-- [ ] Option 1: **Start Blank** (instant, empty itinerary)
-- [ ] Option 2: **Generate with AI** (prompt modal)
+- [x] Create `new-trip-modal.js` - Modal with 3 options
+- [x] Option 1: **Start Blank** (instant, empty itinerary)
+- [x] Option 2: **Generate with AI** (prompt modal with Gemini 2.0 Flash)
 - [ ] Option 3: **Use Template** (future, show "Coming Soon")
 
 **Quick-Start Modal (Option 2):**
@@ -128,10 +128,10 @@ This roadmap outlines the phased development of WayWeave from a single-trip itin
 ```
 
 #### **Auto-Save System**
-- [ ] Debounced auto-save (5 second delay after last edit)
-- [ ] Visual indicator: "Saving..." → "All changes saved" → fade out
-- [ ] Save on trip switch (preserve state)
-- [ ] Save on browser close (`beforeunload` event)
+- [x] Debounced auto-save (5 second delay after last edit)
+- [x] Visual indicator: "Saving..." → "All changes saved" → fade out
+- [x] Save on trip switch (preserve state)
+- [x] Save on browser close (`beforeunload` event)
 
 ### Week 2: UX Polish & Edge Cases
 
