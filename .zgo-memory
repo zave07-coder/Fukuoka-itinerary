@@ -1,20 +1,4 @@
-dded to both **production** and **preview** environments via the Cloudflare API.
-
-### **What's Configured:**
-- ✅ **API Key**: Stored as encrypted `secret_text` in Cloudflare
-- ✅ **Production**: `fkk.zavecoder.com` 
-- ✅ **Preview**: All preview deployments
-- ✅ **Project**: `fukuoka-itinerary-git`
-
-### **Next Steps:**
-
-The environment variable will be available on the **next deployment**. Since
-
-[2026-03-30] Perfect! Based on the roadmap and current status, here's where we are and what's next:
-
----
-
-## 📍 **Current Status: Phase 1A Week 1-2 (Multi-Trip MVP)**
+ent Status: Phase 1A Week 1-2 (Multi-Trip MVP)**
 
 ### ✅ **Completed (Week 1):**
 - ✅ Dashboard with trip grid landing page
@@ -131,3 +115,18 @@ Wait ~2-3 minutes for deployment, then check it out!
 ┌──────────────────────────────────────────┐
 │ [9:00 AM]                       ┌─────┐ │
 │                                  │
+
+[2026-03-30] Perfect! Now it should work. The issue was browser caching - the CSS was updated but your browser was still using the old cached version.
+
+## 🔄 **Cache Busting Applied!**
+
+I've updated the CSS version parameter to force your browser to reload the new styles.
+
+### **After deployment (~2 minutes):**
+
+1. **Visit:** `https://fkk.zavecoder.com/trip-planner-v2.html?v=2`
+2. **Or do a hard refresh:**
+   - **Windows/Linux:** `Ctrl + Shift + R` or `Ctrl + F5`
+   - **Mac:** `Cmd + Shift + R`
+
+### **What y
