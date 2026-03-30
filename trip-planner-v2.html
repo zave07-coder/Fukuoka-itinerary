@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="trip-planner-v2.css?v=2">
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src="trip-manager.js"></script>
+    <script src="trip-planner-v2.js?v=1" defer></script>
 </head>
 <body>
 
@@ -415,54 +417,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Demo interactions
-        function openAIEditModal() {
-            document.getElementById('aiEditModal').style.display = 'flex';
-        }
-
-        function closeAIEditModal() {
-            document.getElementById('aiEditModal').style.display = 'none';
-        }
-
-        function focusOnMap(locationId) {
-            alert(`Focusing map on location ${locationId}`);
-        }
-
-        function editDay(dayNum) {
-            alert(`Manual edit Day ${dayNum}`);
-        }
-
-        function editDayWithAI(dayNum) {
-            // Open AI modal pre-filled with day context
-            document.getElementById('aiEditPrompt').value = '';
-            document.getElementById('aiEditPrompt').placeholder = `E.g., "Add a traditional tea ceremony in the afternoon" or "Replace the first activity with something kid-friendly"`;
-            document.getElementById('aiEditModal').querySelector('.modal-header-modern h2').textContent = `Edit Day ${dayNum} with AI`;
-            openAIEditModal();
-        }
-
-        function expandDay(dayNum) {
-            alert(`Expand Day ${dayNum}`);
-        }
-
-        // Initialize simple map
-        if (typeof mapboxgl !== 'undefined') {
-            // Load token from config
-            fetch('/config.js')
-                .then(r => r.text())
-                .then(text => {
-                    eval(text);
-                    mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
-                    const map = new mapboxgl.Map({
-                        container: 'map',
-                        style: 'mapbox://styles/mapbox/streets-v12',
-                        center: [135.7681, 35.0116],
-                        zoom: 11
-                    });
-                });
-        }
-    </script>
 
 </body>
 </html>
