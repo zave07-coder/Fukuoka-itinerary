@@ -1,5 +1,192 @@
 // Split-screen accordion and map synchronization
 
+// ========================================
+// AUTO-SAVE SYSTEM
+// Automatically saves trip changes every 5 seconds
+// ========================================
+
+let autoSaveTimeout = null;
+let lastSaveTimestamp = Date.now();
+let hasUnsavedChanges = false;
+
+/**
+ * Trigger auto-save after 5 seconds of inactivity
+ */
+function triggerAutoSave() {
+    // Clear existing timeout
+    if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+    }
+
+    // Mark as having unsaved changes
+    hasUnsavedChanges = true;
+    updateSaveIndicator('unsaved');
+
+    // Set new timeout for 5 seconds
+    autoSaveTimeout = setTimeout(() => {
+        saveCurrentTrip();
+    }, 5000);
+}
+
+/**
+ * Save current trip data to localStorage
+ */
+function saveCurrentTrip() {
+    // Check if we have a trip loaded (from script.js)
+    if (typeof currentTripId === 'undefined' || !currentTripId) {
+        console.log('[AutoSave] No trip loaded, skipping save');
+        return;
+    }
+
+    if (typeof tripManager === 'undefined') {
+        console.error('[AutoSave] TripManager not available');
+        return;
+    }
+
+    try {
+        updateSaveIndicator('saving');
+
+        // Extract current itinerary from accordion items
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        const days = Array.from(accordionItems).map((item, index) => {
+            return {
+                dayNumber: index + 1,
+                title: item.querySelector('.accordion-header')?.textContent?.trim() || `Day ${index + 1}`,
+                content: item.querySelector('.accordion-content')?.innerHTML || '',
+                rawHTML: item.innerHTML
+            };
+        });
+
+        // Update trip with current data
+        tripManager.updateTrip(currentTripId, {
+            days: days,
+            updatedAt: new Date().toISOString()
+        });
+
+        hasUnsavedChanges = false;
+        lastSaveTimestamp = Date.now();
+
+        updateSaveIndicator('saved');
+
+        console.log('[AutoSave] Trip saved successfully');
+    } catch (error) {
+        console.error('[AutoSave] Error saving trip:', error);
+        updateSaveIndicator('error');
+
+        // Show error toast
+        if (typeof showToast !== 'undefined') {
+            showToast('⚠️ Error saving changes');
+        }
+    }
+}
+
+/**
+ * Update the save indicator UI
+ * @param {string} status - 'unsaved', 'saving', 'saved', 'error'
+ */
+function updateSaveIndicator(status) {
+    const indicator = document.getElementById('saveIndicator');
+    if (!indicator) return;
+
+    const statusConfig = {
+        unsaved: {
+            text: 'Unsaved changes',
+            icon: '●',
+            class: 'unsaved'
+        },
+        saving: {
+            text: 'Saving...',
+            icon: '⟳',
+            class: 'saving'
+        },
+        saved: {
+            text: 'All changes saved',
+            icon: '✓',
+            class: 'saved'
+        },
+        error: {
+            text: 'Error saving',
+            icon: '⚠',
+            class: 'error'
+        }
+    };
+
+    const config = statusConfig[status] || statusConfig.saved;
+
+    indicator.innerHTML = `
+        <span class="save-icon">${config.icon}</span>
+        <span class="save-text">${config.text}</span>
+    `;
+
+    indicator.className = `save-indicator ${config.class}`;
+
+    // Auto-hide "saved" message after 3 seconds
+    if (status === 'saved') {
+        setTimeout(() => {
+            indicator.classList.add('fade-out');
+        }, 3000);
+    } else {
+        indicator.classList.remove('fade-out');
+    }
+}
+
+/**
+ * Initialize auto-save system
+ */
+function initAutoSave() {
+    console.log('[AutoSave] Initializing auto-save system');
+
+    // Create save indicator if it doesn't exist
+    if (!document.getElementById('saveIndicator')) {
+        const indicator = document.createElement('div');
+        indicator.id = 'saveIndicator';
+        indicator.className = 'save-indicator';
+        document.body.appendChild(indicator);
+    }
+
+    // Watch for changes in accordion content
+    const accordionContent = document.querySelector('.accordion-container');
+    if (accordionContent) {
+        // Use MutationObserver to detect content changes
+        const observer = new MutationObserver(() => {
+            triggerAutoSave();
+        });
+
+        observer.observe(accordionContent, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true
+        });
+    }
+
+    // Save before page unload
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges) {
+            saveCurrentTrip();
+            // Optional: Show warning for unsaved changes
+            // e.preventDefault();
+            // e.returnValue = '';
+        }
+    });
+
+    // Save when user switches tabs (visibility change)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && hasUnsavedChanges) {
+            saveCurrentTrip();
+        }
+    });
+
+    // Initial state
+    updateSaveIndicator('saved');
+
+    console.log('[AutoSave] Auto-save system initialized');
+}
+
+// ========================================
+// HISTORY MANAGEMENT
+// ========================================
+
 // History management with localStorage
 function saveHistoryToLocalStorage() {
     try {
@@ -696,6 +883,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load history from localStorage on page load
     loadHistoryFromLocalStorage();
+
+    // Initialize auto-save system
+    initAutoSave();
 
     const toggleBtn = document.getElementById('aiToggle');
     const closeBtn = document.getElementById('aiClose');

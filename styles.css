@@ -1252,3 +1252,91 @@ body.split-view-active #itinerary {
 .toggle-split-view:active {
     transform: translateY(0);
 }
+
+/* ========================================
+   AUTO-SAVE INDICATOR
+   ======================================== */
+.save-indicator {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 999;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.save-indicator.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.save-indicator .save-icon {
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-indicator.unsaved {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.save-indicator.unsaved .save-icon {
+    color: #ffc107;
+}
+
+.save-indicator.saving {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.save-indicator.saving .save-icon {
+    animation: rotate 1s linear infinite;
+}
+
+.save-indicator.saved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.save-indicator.saved .save-icon {
+    color: #28a745;
+}
+
+.save-indicator.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.save-indicator.error .save-icon {
+    color: #dc3545;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .save-indicator {
+        top: auto;
+        bottom: 80px;
+        right: 10px;
+        font-size: 0.85rem;
+        padding: 0.6rem 1rem;
+    }
+}
