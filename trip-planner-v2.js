@@ -235,66 +235,67 @@ function renderActivityActions(activity, dayNumber, activityIndex) {
 function initializeMap() {
   if (typeof mapboxgl === 'undefined') {
     console.error('Mapbox GL JS not loaded');
+    showMapError('Mapbox GL JS library not loaded');
     return;
   }
 
   console.log('Initializing map...');
 
-  fetch('/config.js')
-    .then(r => {
-      if (!r.ok) {
-        throw new Error(`Config fetch failed: ${r.status}`);
-      }
-      return r.text();
-    })
-    .then(text => {
-      console.log('Config loaded, evaluating...');
-      eval(text);
+  // Check if config is already loaded (from config.js script tag)
+  if (!window.MAPBOX_CONFIG || !window.MAPBOX_CONFIG.token) {
+    console.error('Mapbox config not found');
+    showMapError('Mapbox configuration missing');
+    return;
+  }
 
-      if (!window.MAPBOX_CONFIG || !window.MAPBOX_CONFIG.token) {
-        throw new Error('Mapbox token not found in config');
-      }
+  try {
+    mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
+    console.log('Mapbox token set, creating map...');
 
-      mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
-      console.log('Mapbox token set, creating map...');
-
-      map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [135.7681, 35.0116], // Default to Kyoto
-        zoom: 11
-      });
-
-      map.on('load', () => {
-        console.log('Map loaded successfully');
-        updateMapMarkers();
-      });
-
-      map.on('error', (e) => {
-        console.error('Map error:', e);
-      });
-
-      map.addControl(new mapboxgl.NavigationControl());
-    })
-    .catch(err => {
-      console.error('Map initialization error:', err);
-      // Show error in map container
-      const mapContainer = document.getElementById('map');
-      if (mapContainer) {
-        mapContainer.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 16px; padding: 24px; text-align: center; background: #f8f9fa;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            <div>
-              <strong style="color: #475569; display: block; margin-bottom: 8px;">Map unavailable</strong>
-              <p style="color: #94a3b8; font-size: 14px; margin: 0;">Unable to load map. Check console for details.</p>
-            </div>
-          </div>
-        `;
-      }
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [135.7681, 35.0116], // Default to Kyoto
+      zoom: 11
     });
+
+    map.on('load', () => {
+      console.log('Map loaded successfully ✅');
+      updateMapMarkers();
+    });
+
+    map.on('error', (e) => {
+      console.error('Map error:', e);
+      showMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+  } catch (err) {
+    console.error('Map initialization error:', err);
+    showMapError(err.message);
+  }
+}
+
+/**
+ * Show error message in map container
+ */
+function showMapError(errorMessage) {
+  const mapContainer = document.getElementById('map');
+  if (mapContainer) {
+    mapContainer.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 16px; padding: 24px; text-align: center; background: #f8f9fa;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <div>
+          <strong style="color: #475569; display: block; margin-bottom: 8px;">Map unavailable</strong>
+          <p style="color: #94a3b8; font-size: 14px; margin: 0;">${errorMessage}</p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Check browser console for details</p>
+        </div>
+      </div>
+    `;
+  }
 }
 
 /**
