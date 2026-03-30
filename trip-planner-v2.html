@@ -128,23 +128,38 @@
                         <h2 class="day-title">Arrival & Gion District</h2>
                         <p class="day-date">April 1, 2026 (Tuesday)</p>
                     </div>
-                    <button class="day-action-btn" onclick="editDay(1)" title="Edit Day 1">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                    </button>
+                    <div class="day-actions">
+                        <button class="btn-ai-day" onclick="editDayWithAI(1)" title="Edit Day 1 with AI">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            <span>AI Edit Day</span>
+                        </button>
+                        <button class="day-action-btn" onclick="editDay(1)" title="Manual edit">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Activities List -->
                 <div class="activities-list">
 
-                    <!-- Activity Item 1 -->
-                    <div class="activity-item" data-location-id="1">
+                    <!-- Activity Item 1 with Image -->
+                    <div class="activity-item activity-with-image" data-location-id="1">
                         <div class="activity-time">
                             <span class="time-badge">9:00 AM</span>
                         </div>
                         <div class="activity-content">
+                            <!-- Activity Image -->
+                            <div class="activity-image-wrapper">
+                                <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80" alt="Kinkaku-ji Golden Pavilion" class="activity-image">
+                            </div>
+
                             <div class="activity-header">
                                 <h3 class="activity-name">Kinkaku-ji (Golden Pavilion)</h3>
                                 <span class="activity-type activity-type-temple">Temple</span>
@@ -228,12 +243,17 @@
                         </div>
                     </div>
 
-                    <!-- Activity Item 3 -->
-                    <div class="activity-item" data-location-id="3">
+                    <!-- Activity Item 3 with Image -->
+                    <div class="activity-item activity-with-image" data-location-id="3">
                         <div class="activity-time">
                             <span class="time-badge">3:00 PM</span>
                         </div>
                         <div class="activity-content">
+                            <!-- Activity Image -->
+                            <div class="activity-image-wrapper">
+                                <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80" alt="Fushimi Inari Torii Gates" class="activity-image">
+                            </div>
+
                             <div class="activity-header">
                                 <h3 class="activity-name">Fushimi Inari Shrine</h3>
                                 <span class="activity-type activity-type-temple">Temple</span>
@@ -280,20 +300,35 @@
                         <h2 class="day-title">Arashiyama Bamboo & Temples</h2>
                         <p class="day-date">April 2, 2026 (Wednesday)</p>
                     </div>
-                    <button class="day-action-btn" onclick="editDay(2)" title="Edit Day 2">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                    </button>
+                    <div class="day-actions">
+                        <button class="btn-ai-day" onclick="editDayWithAI(2)" title="Edit Day 2 with AI">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            <span>AI Edit Day</span>
+                        </button>
+                        <button class="day-action-btn" onclick="editDay(2)" title="Manual edit">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="activities-list">
-                    <div class="activity-item">
+                    <div class="activity-item activity-with-image">
                         <div class="activity-time">
                             <span class="time-badge">8:00 AM</span>
                         </div>
                         <div class="activity-content">
+                            <!-- Activity Image -->
+                            <div class="activity-image-wrapper">
+                                <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80" alt="Arashiyama Bamboo Grove" class="activity-image">
+                            </div>
+
                             <div class="activity-header">
                                 <h3 class="activity-name">Bamboo Grove Walk</h3>
                                 <span class="activity-type activity-type-nature">Nature</span>
@@ -396,7 +431,15 @@
         }
 
         function editDay(dayNum) {
-            alert(`Edit Day ${dayNum} with AI`);
+            alert(`Manual edit Day ${dayNum}`);
+        }
+
+        function editDayWithAI(dayNum) {
+            // Open AI modal pre-filled with day context
+            document.getElementById('aiEditPrompt').value = '';
+            document.getElementById('aiEditPrompt').placeholder = `E.g., "Add a traditional tea ceremony in the afternoon" or "Replace the first activity with something kid-friendly"`;
+            document.getElementById('aiEditModal').querySelector('.modal-header-modern h2').textContent = `Edit Day ${dayNum} with AI`;
+            openAIEditModal();
         }
 
         function expandDay(dayNum) {
