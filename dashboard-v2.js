@@ -138,6 +138,11 @@ function setupEventListeners() {
   if (aiPrompt) {
     aiPrompt.addEventListener('input', updateCharCount);
   }
+
+  // Quick option tags
+  document.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', handleTagClick);
+  });
 }
 
 /**
@@ -350,6 +355,41 @@ async function generateTrip() {
 
     alert(error.message || 'Failed to generate trip. Please try again.');
   }
+}
+
+/**
+ * Handle quick tag button clicks
+ */
+function handleTagClick(e) {
+  const btn = e.currentTarget;
+  const tag = btn.dataset.tag;
+  const textarea = document.getElementById('aiPrompt');
+
+  // Toggle active state
+  btn.classList.toggle('active');
+
+  // Add tag template to textarea based on type
+  let template = '';
+  switch(tag) {
+    case 'destination':
+      template = '\nDestination: ';
+      break;
+    case 'duration':
+      template = '\nDuration: ';
+      break;
+    case 'style':
+      template = '\nTravel style: ';
+      break;
+  }
+
+  if (btn.classList.contains('active')) {
+    textarea.value += template;
+    textarea.focus();
+    // Position cursor at end of added template
+    textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+  }
+
+  updateCharCount();
 }
 
 /**
