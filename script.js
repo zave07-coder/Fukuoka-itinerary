@@ -23,7 +23,7 @@ function initializeTripViewer() {
     // Redirect to dashboard if no trip ID
     if (!currentTripId) {
         console.log('No trip ID found, redirecting to dashboard');
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard-v2.html';
         return;
     }
 
@@ -40,7 +40,7 @@ function loadTripData(tripId) {
 
     if (!currentTrip) {
         alert('Trip not found! Returning to dashboard.');
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard-v2.html';
         return;
     }
 
