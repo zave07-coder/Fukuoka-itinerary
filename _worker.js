@@ -913,6 +913,173 @@ const tripsHandler = async (request, env) => {
   }
 };
 
+/**
+ * ZMailer helper - Send email via ZMailer API
+ */
+async function sendEmail(env, { from, to, subject, html, text }) {
+  if (!env.ZMAILER_API_KEY) {
+    console.warn('ZMAILER_API_KEY not configured');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const response = await fetch('https://zmailer.zavecoder.com/api/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.ZMAILER_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: from || `noreply@${env.ZMAILER_DOMAIN || 'zavecoder.com'}`,
+        to,
+        subject,
+        html: html || text,
+        text: text || html?.replace(/<[^>]*>/g, '') // Strip HTML tags for text version
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`ZMailer API error: ${error}`);
+    }
+
+    const result = await response.json();
+    return { success: true, ...result };
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Share trip handler - Send trip via email
+ */
+const shareTripHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const { tripId, recipientEmail, senderName } = await request.json();
+
+    // Validate inputs
+    if (!recipientEmail || !tripId) {
+      return new Response(JSON.stringify({
+        error: 'Missing required fields: tripId and recipientEmail'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Get trip data (Note: In production, verify user has access to this trip)
+    const db = new SupabaseClient(env);
+
+    // For now, we'll need the trip data passed from frontend
+    // In future: fetch from database with proper auth
+    const { tripData } = await request.json();
+
+    if (!tripData) {
+      return new Response(JSON.stringify({
+        error: 'Trip data required'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Generate email HTML
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .header p { margin: 10px 0 0; opacity: 0.9; font-size: 16px; }
+    .content { padding: 30px; }
+    .trip-info { margin-bottom: 30px; }
+    .trip-info h2 { margin: 0 0 10px; font-size: 22px; color: #333; }
+    .trip-info p { margin: 5px 0; color: #666; font-size: 14px; }
+    .trip-meta { display: flex; gap: 20px; margin-top: 15px; }
+    .meta-item { flex: 1; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+    .meta-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-value { font-size: 16px; color: #333; font-weight: 600; margin-top: 5px; }
+    .button { display: inline-block; padding: 14px 32px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+    .footer { text-align: center; padding: 20px; color: #888; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌏 Trip Shared With You!</h1>
+      <p>${senderName || 'Someone'} wants to share their travel plans</p>
+    </div>
+    <div class="content">
+      <div class="trip-info">
+        <h2>${tripData.name || 'Untitled Trip'}</h2>
+        <p><strong>📍 Destination:</strong> ${tripData.destination || 'Not specified'}</p>
+        <p><strong>📅 Duration:</strong> ${tripData.days?.length || 0} days</p>
+      </div>
+
+      <div class="trip-meta">
+        <div class="meta-item">
+          <div class="meta-label">Start Date</div>
+          <div class="meta-value">${tripData.startDate || 'TBD'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">End Date</div>
+          <div class="meta-value">${tripData.endDate || 'TBD'}</div>
+        </div>
+      </div>
+
+      <p style="margin-top: 30px; color: #666; line-height: 1.6;">
+        ${senderName || 'Your friend'} has shared their trip itinerary with you.
+        Click the button below to view the full details and save it to your own collection.
+      </p>
+
+      <a href="https://fkk.zavecoder.com?import=${encodeURIComponent(btoa(JSON.stringify(tripData)))}" class="button">
+        View Trip Itinerary
+      </a>
+    </div>
+    <div class="footer">
+      Sent via WayWeave - Your Travel Planning Companion
+    </div>
+  </div>
+</body>
+</html>`;
+
+    // Send email
+    const result = await sendEmail(env, {
+      to: recipientEmail,
+      subject: `${senderName || 'Someone'} shared a trip with you: ${tripData.name}`,
+      html: emailHtml
+    });
+
+    if (result.success) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Trip shared successfully!'
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+
+  } catch (error) {
+    console.error('Share trip error:', error);
+    return new Response(JSON.stringify({
+      error: error.message || 'Failed to share trip'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -969,6 +1136,8 @@ export default {
       return syncUserHandler(request, env);
     } else if (url.pathname === '/api/trips') {
       return tripsHandler(request, env);
+    } else if (url.pathname === '/api/share-trip') {
+      return shareTripHandler(request, env);
     }
 
     // For non-API routes, return the static file (handled by Pages)
