@@ -507,16 +507,16 @@ const generateTripHandler = async (request, env) => {
       console.warn('Gemini failed:', geminiError.message);
       lastError = geminiError;
 
-      // Fallback to GPT-5.4-mini (better quality than nano)
+      // Fallback to GPT-4o-mini
       try {
         if (!env.OPENAI_API_KEY) {
           throw new Error('OpenAI API key not configured');
         }
 
-        console.log('Attempting GPT-5.4-mini fallback...');
-        usedModel = 'gpt-5.4-mini';
+        console.log('Attempting GPT-4o-mini fallback...');
+        usedModel = 'gpt-4o-mini';
         tripData = await generateWithGPT(prompt, env);
-        console.log('Successfully generated with GPT-5.4-mini fallback');
+        console.log('Successfully generated with GPT-4o-mini fallback');
         lastError = null; // Clear error on success
       } catch (gptError) {
         console.error('GPT fallback also failed:', gptError.message);
@@ -754,7 +754,7 @@ Important:
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-5.4-mini',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
