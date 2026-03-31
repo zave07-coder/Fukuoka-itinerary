@@ -180,7 +180,10 @@ if (typeof window !== 'undefined') {
     authPrompt.init();
   });
 
-  // Show exit prompt
+  // Beforeunload warning disabled - trips auto-save to localStorage
+  // and users can manually save to cloud when needed.
+  // The warning was causing UX issues with internal navigation.
+  /*
   window.addEventListener('beforeunload', (e) => {
     const message = authPrompt.showExitPrompt();
     if (message) {
@@ -189,4 +192,5 @@ if (typeof window !== 'undefined') {
       return message;
     }
   });
+  */
 }
