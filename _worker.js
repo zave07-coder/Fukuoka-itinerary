@@ -495,9 +495,9 @@ const generateTripHandler = async (request, env) => {
 
     console.log('Generating trip with prompt:', prompt);
 
-    // Try Gemini 2.0 Flash first (primary, cheaper)
+    // Try Gemini 1.5 Flash first (primary, cheaper)
     let tripData;
-    let usedModel = 'gemini-2.0-flash';
+    let usedModel = 'gemini-1.5-flash';
     let lastError = null;
 
     try {
@@ -634,7 +634,7 @@ Important:
 - Be specific with place names and addresses`;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${env.GOOGLE_AI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GOOGLE_AI_API_KEY}`,
     {
       method: 'POST',
       headers: {
