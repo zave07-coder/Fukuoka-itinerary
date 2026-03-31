@@ -1,4 +1,4 @@
--- WayWeave Supabase Migration
+-- Wahgola Supabase Migration
 -- Run this in Supabase SQL Editor
 
 -- Enable UUID extension

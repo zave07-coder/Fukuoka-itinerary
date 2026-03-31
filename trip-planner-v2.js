@@ -51,7 +51,7 @@ function renderTrip() {
   // Update header
   document.querySelector('.trip-title').textContent = currentTrip.name || 'Untitled Trip';
   document.querySelector('.trip-meta').textContent = formatTripMeta(currentTrip);
-  document.title = `${currentTrip.name} | WayWeave`;
+  document.title = `${currentTrip.name} | Wahgola`;
 
   // Render days
   const itineraryPanel = document.querySelector('.itinerary-panel');

@@ -15,10 +15,10 @@ class SyncService {
    * Get or create unique device ID
    */
   getOrCreateDeviceId() {
-    let deviceId = localStorage.getItem('wayweave_device_id');
+    let deviceId = localStorage.getItem('wahgola_device_id');
     if (!deviceId) {
       deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('wayweave_device_id', deviceId);
+      localStorage.setItem('wahgola_device_id', deviceId);
     }
     return deviceId;
   }
@@ -174,7 +174,7 @@ class SyncService {
   async migrateLocalTripsToCloud() {
     if (!authService.isAuthenticated()) return;
 
-    const migrationKey = 'wayweave_migration_done';
+    const migrationKey = 'wahgola_migration_done';
     if (localStorage.getItem(migrationKey)) {
       console.log('Migration already completed');
       return;

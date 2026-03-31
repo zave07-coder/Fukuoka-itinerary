@@ -1,4 +1,4 @@
-# WayWeave Development Workflow
+# Wahgola Development Workflow
 
 **Purpose:** Ensure documentation stays in sync with code throughout development
 

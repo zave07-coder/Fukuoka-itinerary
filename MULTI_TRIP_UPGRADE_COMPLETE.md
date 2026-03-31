@@ -2,7 +2,7 @@
 
 **Date:** March 30, 2026
 **Status:** Week 1 MVP Complete - Ready for Testing
-**Transformation:** Single-Trip Viewer → Multi-Trip Manager (WayWeave)
+**Transformation:** Single-Trip Viewer → Multi-Trip Manager (Wahgola)
 
 ---
 
@@ -82,7 +82,7 @@
 
 ## 📦 New Data Structure
 
-### **localStorage: `wayweave_trips`**
+### **localStorage: `wahgola_trips`**
 
 ```javascript
 {
@@ -113,10 +113,10 @@
 ## 🔄 Automatic Migration
 
 **From:** `localStorage.fukuokaItinerary` (single trip)
-**To:** `localStorage.wayweave_trips` (multi-trip)
+**To:** `localStorage.wahgola_trips` (multi-trip)
 
 ### **Migration Flow:**
-1. Check if `wayweave_trips` exists → Skip if yes
+1. Check if `wahgola_trips` exists → Skip if yes
 2. Check for legacy `fukuokaItinerary` key
 3. Transform to new format with ID `legacy-{timestamp}`
 4. Create backup at `fukuokaItinerary_backup`
@@ -314,7 +314,7 @@ None currently! 🎉
 
 ## 🎉 Summary
 
-**WayWeave multi-trip system is ready for beta testing!**
+**Wahgola multi-trip system is ready for beta testing!**
 
 The core foundation is complete:
 - ✅ Data layer with automatic migration

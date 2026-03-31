@@ -1,4 +1,4 @@
--- WayWeave Database Schema
+-- Wahgola Database Schema
 -- For Neon PostgreSQL with Supabase Auth
 
 -- Enable UUID extension

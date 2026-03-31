@@ -7,7 +7,7 @@ class AuthService {
   constructor() {
     this.supabase = null;
     this.currentUser = null;
-    this.sessionKey = 'wayweave_session';
+    this.sessionKey = 'wahgola_session';
     this.initialized = false;
   }
 

@@ -85,7 +85,7 @@ The email includes:
    - Links to app with import parameter
 
 4. **Footer**
-   - Branding ("WayWeave")
+   - Branding ("Wahgola")
 
 ### Example Email:
 

@@ -1,6 +1,6 @@
-# WayWeave Product Documentation
+# Wahgola Product Documentation
 
-**Project:** WayWeave (formerly "Fukuoka Itinerary")
+**Project:** Wahgola (formerly "Fukuoka Itinerary")
 **Status:** Phase 0 Complete → Phase 1A Planning
 **Last Updated:** March 29, 2026
 
@@ -8,7 +8,7 @@
 
 ## 📚 Documentation Index
 
-This directory contains the complete product development documentation for WayWeave, an AI-assisted travel planning application.
+This directory contains the complete product development documentation for Wahgola, an AI-assisted travel planning application.
 
 ### **Core Documents:**
 
@@ -83,7 +83,7 @@ This directory contains the complete product development documentation for WayWe
 
 ## 💎 Key Differentiators
 
-WayWeave is **the only travel planner** that combines:
+Wahgola is **the only travel planner** that combines:
 
 1. **Granular AI Control**
    - Edit individual days (not entire trips)

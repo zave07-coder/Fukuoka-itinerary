@@ -1,4 +1,4 @@
-# WayWeave Product Vision
+# Wahgola Product Vision
 > AI-assisted travel planning with surgical precision and full visual control
 
 **Tagline:** "Your trip. AI's help. Full control."
@@ -40,7 +40,7 @@ Travel planning today is broken. People face two bad options:
 
 ## 💡 Our Solution: Granular AI Control + Visual Feedback
 
-**WayWeave is the only travel planner that combines:**
+**Wahgola is the only travel planner that combines:**
 
 ### **1. Surgical AI Editing**
 Edit individual days OR specific activities - not your entire trip
@@ -316,4 +316,4 @@ Split-screen design: Map + itinerary always visible
 - Best-in-class mobile app (native iOS/Android)
 - Strategic partnership with booking platforms
 
-**Ultimate Goal:** When someone says "I'm planning a trip," their friend replies "Use WayWeave."
+**Ultimate Goal:** When someone says "I'm planning a trip," their friend replies "Use Wahgola."

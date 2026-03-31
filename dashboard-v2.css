@@ -1,5 +1,5 @@
 /* ============================================
-   WAYWEAVE V2 - MODERN VISUAL DESIGN
+   WAHGOLA V2 - MODERN VISUAL DESIGN
    Design Principles:
    - Visual-first with large images
    - Clear space segregation
@@ -121,17 +121,42 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  cursor: pointer;
 }
 
 .logo-icon {
   color: var(--color-primary);
+  transition: transform var(--transition-base);
+}
+
+.logo-area:hover .logo-icon {
+  transform: rotate(-10deg) scale(1.05);
 }
 
 .logo-text {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.logo-accent {
+  color: var(--color-primary);
+  font-weight: 800;
+  position: relative;
+}
+
+.logo-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, #f59e0b 100%);
+  border-radius: 2px;
+  opacity: 0.3;
 }
 
 /* Top Bar Actions */

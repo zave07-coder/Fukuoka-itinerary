@@ -1,4 +1,4 @@
-# WayWeave Technical Architecture
+# Wahgola Technical Architecture
 
 **Last Updated:** March 29, 2026
 **Current State:** Phase 0 (Single-trip viewer)
@@ -8,7 +8,7 @@
 
 ## 🏗️ System Overview
 
-WayWeave is a **local-first, progressively enhanced travel planning application** built on Cloudflare Pages with Neon PostgreSQL for authenticated user data.
+Wahgola is a **local-first, progressively enhanced travel planning application** built on Cloudflare Pages with Neon PostgreSQL for authenticated user data.
 
 **Core Principles:**
 1. **Local-first:** All data stored in localStorage initially (zero network dependency)
@@ -137,7 +137,7 @@ WayWeave is a **local-first, progressively enhanced travel planning application*
 
 ```
 GUEST MODE (No Auth):
-1. User visits wayweave.io
+1. User visits wahgola.io
    ↓
 2. dashboard.html loads → Shows trip grid from localStorage
    ↓
@@ -172,7 +172,7 @@ AUTHENTICATED MODE:
 ### **localStorage Structure (Phase 1A)**
 
 ```javascript
-// Key: "wayweave_trips"
+// Key: "wahgola_trips"
 {
   "version": "1.0", // Schema version for migrations
   "trips": [
@@ -233,7 +233,7 @@ AUTHENTICATED MODE:
   }
 }
 
-// Key: "wayweave_history" (undo/redo stack)
+// Key: "wahgola_history" (undo/redo stack)
 {
   "currentTripId": "1711726800000-abc123",
   "history": [
@@ -249,7 +249,7 @@ AUTHENTICATED MODE:
   "maxHistory": 50 // Limit to prevent localStorage bloat
 }
 
-// Key: "wayweave_auth" (auth state)
+// Key: "wahgola_auth" (auth state)
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
@@ -672,7 +672,7 @@ Request Body:
   }
 Response:
   {
-    "shareUrl": "https://wayweave.io/share/abc123xyz",
+    "shareUrl": "https://wahgola.io/share/abc123xyz",
     "shareToken": "abc123xyz"
   }
 
@@ -710,7 +710,7 @@ Response:
 const { data, error } = await supabase.auth.signInWithOAuth({
   provider: 'google',
   options: {
-    redirectTo: 'https://wayweave.io/auth/callback'
+    redirectTo: 'https://wahgola.io/auth/callback'
   }
 });
 
@@ -721,7 +721,7 @@ const { data: { session }, error } = await supabase.auth.getSession();
 const jwt = session.access_token;
 
 // 4. Store JWT in localStorage
-localStorage.setItem('wayweave_auth', JSON.stringify({
+localStorage.setItem('wahgola_auth', JSON.stringify({
   token: jwt,
   user: session.user,
   expiresAt: session.expires_at
@@ -782,7 +782,7 @@ GET /api/trips → Returns lightweight trip list
 GET /api/trips/:id → Returns complete trip data
 
 // Images: Use Cloudflare Image Resizing
-<img src="https://wayweave.io/cdn-cgi/image/width=400,quality=80/trip-cover.jpg">
+<img src="https://wahgola.io/cdn-cgi/image/width=400,quality=80/trip-cover.jpg">
 ```
 
 ### **Caching Strategy**
@@ -802,8 +802,8 @@ self.addEventListener('fetch', (event) => {
 // localStorage as cache (Phase 1B)
 // Keep synced copy of cloud data for instant access
 localStorage: {
-  "wayweave_trips": [...], // Local copy
-  "wayweave_trips_synced_at": "2026-03-29T16:00:00.000Z"
+  "wahgola_trips": [...], // Local copy
+  "wahgola_trips_synced_at": "2026-03-29T16:00:00.000Z"
 }
 
 // Invalidate cache on sync
@@ -921,10 +921,10 @@ git push origin main
 npm run dev → Runs Cloudflare Wrangler locally
 
 # Staging
-git push origin staging → Deploys to staging.wayweave.io
+git push origin staging → Deploys to staging.wahgola.io
 
 # Production
-git tag v1.0.0 → Deploys to wayweave.io
+git tag v1.0.0 → Deploys to wahgola.io
 
 # Database migrations (Neon)
 npm run migrate → Applies SQL migrations to Neon DB
@@ -957,7 +957,7 @@ npm run migrate → Applies SQL migrations to Neon DB
 ```javascript
 // Quota exceeded
 try {
-  localStorage.setItem('wayweave_trips', JSON.stringify(trips));
+  localStorage.setItem('wahgola_trips', JSON.stringify(trips));
 } catch (e) {
   if (e.name === 'QuotaExceededError') {
     showWarning('Storage full! Authenticate to save to cloud.');
@@ -966,10 +966,10 @@ try {
 
 // Corrupt data recovery
 try {
-  const trips = JSON.parse(localStorage.getItem('wayweave_trips'));
+  const trips = JSON.parse(localStorage.getItem('wahgola_trips'));
 } catch (e) {
   console.error('Corrupt localStorage data, resetting...');
-  localStorage.removeItem('wayweave_trips');
+  localStorage.removeItem('wahgola_trips');
   showError('Your trips data was corrupted. Please re-create your trips.');
 }
 ```
@@ -1037,7 +1037,7 @@ if (!isValidItineraryJSON(data)) {
 ### **localStorage Schema Versioning:**
 ```javascript
 // Detect old schema and migrate
-const data = JSON.parse(localStorage.getItem('wayweave_trips'));
+const data = JSON.parse(localStorage.getItem('wahgola_trips'));
 if (data.version === '0.9') {
   // Migrate from v0.9 to v1.0
   data.trips = data.trips.map(trip => ({
@@ -1049,7 +1049,7 @@ if (data.version === '0.9') {
     }
   }));
   data.version = '1.0';
-  localStorage.setItem('wayweave_trips', JSON.stringify(data));
+  localStorage.setItem('wahgola_trips', JSON.stringify(data));
 }
 ```
 

@@ -1,4 +1,4 @@
-# WayWeave Development Roadmap
+# Wahgola Development Roadmap
 
 **Last Updated:** March 29, 2026
 **Current Phase:** Phase 0 Complete → Starting Phase 1A
@@ -7,7 +7,7 @@
 
 ## 🎯 Overview
 
-This roadmap outlines the phased development of WayWeave from a single-trip itinerary viewer to a full-featured multi-trip AI travel planner.
+This roadmap outlines the phased development of Wahgola from a single-trip itinerary viewer to a full-featured multi-trip AI travel planner.
 
 **Guiding Principles:**
 - Ship fast, iterate based on user feedback
@@ -143,7 +143,7 @@ This roadmap outlines the phased development of WayWeave from a single-trip itin
 **Empty State:**
 ```
 ┌─────────────────────────────────────────┐
-│  WayWeave                    [Login]    │
+│  Wahgola                    [Login]    │
 ├─────────────────────────────────────────┤
 │                                          │
 │              ✈️ 🗺️                      │
@@ -493,7 +493,7 @@ FORMAT: Return JSON with days array...
 ### Week 7-8: Basic Sharing
 
 #### **View-Only Sharing**
-- [ ] Generate shareable link (e.g., `wayweave.io/share/abc123xyz`)
+- [ ] Generate shareable link (e.g., `wahgola.io/share/abc123xyz`)
 - [ ] Public trip viewer (no auth required)
 - [ ] "Duplicate to My Trips" button for logged-in users
 - [ ] Social sharing: Copy link, WhatsApp, Email
@@ -505,7 +505,7 @@ FORMAT: Return JSON with days array...
 ├─────────────────────────────────────────┤
 │  Share Link:                            │
 │  ┌─────────────────────────────────────┐│
-│  │ wayweave.io/share/abc123xyz  [📋]  ││
+│  │ wahgola.io/share/abc123xyz  [📋]  ││
 │  └─────────────────────────────────────┘│
 │                                          │
 │  Anyone with this link can view (not    │

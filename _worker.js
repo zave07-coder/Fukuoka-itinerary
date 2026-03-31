@@ -1045,7 +1045,7 @@ const shareTripHandler = async (request, env) => {
       </a>
     </div>
     <div class="footer">
-      Sent via WayWeave - Your Travel Planning Companion
+      Sent via Wahgola - Your Travel Planning Companion
     </div>
   </div>
 </body>

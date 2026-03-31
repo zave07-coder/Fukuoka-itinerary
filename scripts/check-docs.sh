@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# WayWeave Documentation Health Check
+# Wahgola Documentation Health Check
 # Run this weekly to ensure docs stay in sync with code
 
 set -e
 
-echo "📚 WayWeave Documentation Health Check"
+echo "📚 Wahgola Documentation Health Check"
 echo "========================================"
 echo ""
 

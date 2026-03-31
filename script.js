@@ -62,7 +62,7 @@ function updatePageMetadata() {
     if (!currentTrip) return;
 
     // Update document title
-    document.title = `${currentTrip.name} | WayWeave`;
+    document.title = `${currentTrip.name} | Wahgola`;
 
     // Update hero section if it exists
     const heroTitle = document.querySelector('.hero-title');

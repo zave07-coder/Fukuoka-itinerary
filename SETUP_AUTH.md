@@ -1,6 +1,6 @@
 # 🔐 Authentication & Cloud Sync Setup Guide
 
-This guide will help you set up Supabase authentication and Neon database cloud sync for WayWeave.
+This guide will help you set up Supabase authentication and Neon database cloud sync for Wahgola.
 
 ## 📋 Prerequisites
 
@@ -13,7 +13,7 @@ This guide will help you set up Supabase authentication and Neon database cloud 
 1. **Go to** https://supabase.com/dashboard
 2. **Click** "New Project"
 3. **Configure:**
-   - **Project Name:** `wayweave` (or any name you like)
+   - **Project Name:** `wahgola` (or any name you like)
    - **Database Password:** Generate a strong password (save it)
    - **Region:** `Southeast Asia (Singapore)` (ap-southeast-1, same as your Neon DB)
 4. **Wait** for project creation (~2 minutes)

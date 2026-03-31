@@ -1,11 +1,11 @@
 /**
- * TripManager - Central data layer for WayWeave multi-trip system
+ * TripManager - Central data layer for Wahgola multi-trip system
  * Handles all localStorage CRUD operations and data migration
  */
 
 class TripManager {
   constructor() {
-    this.storageKey = 'wayweave_trips';
+    this.storageKey = 'wahgola_trips';
     this.legacyKey = 'fukuokaItinerary';
     this.version = '1.0';
 
@@ -459,11 +459,11 @@ class TripManager {
    * @private
    */
   _getDeviceId() {
-    let deviceId = localStorage.getItem('wayweave_device_id');
+    let deviceId = localStorage.getItem('wahgola_device_id');
 
     if (!deviceId) {
       deviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('wayweave_device_id', deviceId);
+      localStorage.setItem('wahgola_device_id', deviceId);
     }
 
     return deviceId;
