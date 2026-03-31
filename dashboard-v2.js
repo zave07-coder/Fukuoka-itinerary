@@ -600,3 +600,77 @@ document.addEventListener('click', (e) => {
     dropdown.style.display = 'none';
   }
 });
+
+/**
+ * Save specific trip to cloud
+ */
+async function saveTripToCloud(tripId) {
+  try {
+    const authToken = authService.getToken();
+
+    if (!authToken) {
+      alert('Please sign in to save trips to cloud');
+      return;
+    }
+
+    showToast('Saving to cloud...');
+
+    await tripManager.saveTripToCloud(tripId, authToken);
+
+    showToast('Trip saved to cloud successfully!');
+    loadTrips(); // Refresh to show sync status
+  } catch (error) {
+    console.error('Save to cloud error:', error);
+    alert('Failed to save trip to cloud: ' + error.message);
+  }
+}
+
+/**
+ * Sync all trips with cloud
+ */
+async function syncAllTrips() {
+  try {
+    const authToken = authService.getToken();
+
+    if (!authToken) {
+      alert('Please sign in to sync trips');
+      return;
+    }
+
+    showToast('Syncing trips...');
+
+    const results = await tripManager.syncWithCloud(authToken);
+
+    showToast(`Sync complete! Uploaded: ${results.uploaded}, Downloaded: ${results.downloaded}`);
+    loadTrips(); // Refresh dashboard
+  } catch (error) {
+    console.error('Sync error:', error);
+    alert('Failed to sync trips: ' + error.message);
+  }
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, duration = 3000) {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  // Create toast
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  // Show toast
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}

@@ -318,6 +318,157 @@ class TripManager {
     }
   }
 
+  /**
+   * Save trip to cloud (Supabase)
+   * @param {string} tripId - Trip ID to save
+   * @param {string} authToken - Supabase auth token
+   * @returns {Promise<Object>} Saved trip data
+   */
+  async saveTripToCloud(tripId, authToken) {
+    try {
+      const trip = this.getTrip(tripId);
+
+      if (!trip) {
+        throw new Error('Trip not found');
+      }
+
+      const response = await fetch('/api/trips', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          tripId: trip.id,
+          name: trip.name,
+          destination: trip.destination,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          coverImage: trip.coverImage,
+          data: trip,
+          deviceId: this._getDeviceId()
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save trip to cloud');
+      }
+
+      const savedTrip = await response.json();
+
+      // Update local trip with cloud sync metadata
+      this.updateTrip(tripId, {
+        cloudSynced: true,
+        lastSyncAt: new Date().toISOString()
+      });
+
+      return savedTrip;
+    } catch (error) {
+      console.error('Error saving trip to cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load trips from cloud (Supabase)
+   * @param {string} authToken - Supabase auth token
+   * @returns {Promise<Array>} Array of trips from cloud
+   */
+  async loadTripsFromCloud(authToken) {
+    try {
+      const response = await fetch('/api/trips', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to load trips from cloud');
+      }
+
+      const cloudTrips = await response.json();
+      return cloudTrips;
+    } catch (error) {
+      console.error('Error loading trips from cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sync all trips with cloud (bi-directional)
+   * @param {string} authToken - Supabase auth token
+   * @returns {Promise<Object>} Sync results
+   */
+  async syncWithCloud(authToken) {
+    try {
+      const localTrips = this.getAllTrips();
+      const cloudTrips = await this.loadTripsFromCloud(authToken);
+
+      const results = {
+        uploaded: 0,
+        downloaded: 0,
+        conflicts: 0
+      };
+
+      // Upload local trips that don't exist in cloud or are newer
+      for (const localTrip of localTrips) {
+        const cloudTrip = cloudTrips.find(t => t.id === localTrip.id);
+
+        if (!cloudTrip || new Date(localTrip.updatedAt) > new Date(cloudTrip.updated_at)) {
+          await this.saveTripToCloud(localTrip.id, authToken);
+          results.uploaded++;
+        }
+      }
+
+      // Download cloud trips that don't exist locally or are newer
+      for (const cloudTrip of cloudTrips) {
+        const localTrip = this.getTrip(cloudTrip.id);
+
+        if (!localTrip) {
+          // New trip from cloud
+          this.createTrip({
+            ...cloudTrip.data,
+            id: cloudTrip.id,
+            cloudSynced: true,
+            lastSyncAt: new Date().toISOString()
+          });
+          results.downloaded++;
+        } else if (new Date(cloudTrip.updated_at) > new Date(localTrip.updatedAt)) {
+          // Cloud version is newer
+          this.updateTrip(cloudTrip.id, {
+            ...cloudTrip.data,
+            cloudSynced: true,
+            lastSyncAt: new Date().toISOString()
+          });
+          results.downloaded++;
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error syncing with cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get or generate device ID for sync tracking
+   * @private
+   */
+  _getDeviceId() {
+    let deviceId = localStorage.getItem('wayweave_device_id');
+
+    if (!deviceId) {
+      deviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('wayweave_device_id', deviceId);
+    }
+
+    return deviceId;
+  }
+
   // ========== Private Methods ==========
 
   /**
