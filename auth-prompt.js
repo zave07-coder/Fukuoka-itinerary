@@ -21,11 +21,11 @@ class AuthPrompt {
       this.dismissedAt = new Date(dismissed);
     }
 
-    // Track usage time
+    // Track usage time (check conditions less frequently to avoid lock contention)
     setInterval(() => {
-      this.usageTime += 1000; // Add 1 second
+      this.usageTime += 5000; // Add 5 seconds
       this.checkConditions();
-    }, 1000);
+    }, 5000); // Check every 5 seconds instead of every second
 
     // Check conditions on trip changes
     window.addEventListener('storage', () => {

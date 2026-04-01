@@ -9,6 +9,9 @@ class AuthService {
     this.currentUser = null;
     this.sessionKey = 'wahgola_session';
     this.initialized = false;
+    this.sessionCache = null;
+    this.sessionCacheTime = 0;
+    this.CACHE_DURATION = 3000; // Cache session for 3 seconds
   }
 
   /**
@@ -63,6 +66,10 @@ class AuthService {
       // Listen for auth changes
       this.supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+
+        // Invalidate cache on any auth state change
+        this.sessionCache = null;
+        this.sessionCacheTime = 0;
 
         if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
           this.currentUser = null;
@@ -142,6 +149,8 @@ class AuthService {
     if (error) throw error;
 
     this.currentUser = null;
+    this.sessionCache = null;
+    this.sessionCacheTime = 0;
     await this.clearStaleSession();
   }
 
@@ -180,10 +189,16 @@ class AuthService {
 
   /**
    * Check if user is authenticated
-   * Also verifies the session is still valid
+   * Also verifies the session is still valid (with caching to prevent lock contention)
    */
   async isAuthenticated() {
     if (!this.currentUser || !this.supabase) return false;
+
+    // Use cached session if fresh (within CACHE_DURATION)
+    const now = Date.now();
+    if (this.sessionCache && (now - this.sessionCacheTime) < this.CACHE_DURATION) {
+      return this.sessionCache;
+    }
 
     // Verify session is still valid
     const { data: { session } } = await this.supabase.auth.getSession();
@@ -192,9 +207,14 @@ class AuthService {
       // Session expired or invalid
       this.currentUser = null;
       await this.clearStaleSession();
+      this.sessionCache = false;
+      this.sessionCacheTime = now;
       return false;
     }
 
+    // Cache the result
+    this.sessionCache = true;
+    this.sessionCacheTime = now;
     return true;
   }
 
