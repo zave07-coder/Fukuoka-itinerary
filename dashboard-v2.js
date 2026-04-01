@@ -246,7 +246,7 @@ function hideHero() {
  * Open trip viewer
  */
 function openTrip(tripId) {
-  window.location.href = `trip-planner-v2.html?trip=${tripId}`;
+  window.location.href = `trip-planner.html?trip=${tripId}`;
 }
 
 /**
@@ -336,6 +336,14 @@ async function generateTrip() {
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
+    console.log('[AI Generation] Created trip:', trip.id, trip.name);
+
+    // Ensure trip is saved to localStorage before redirecting
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify trip exists in storage
+    const verifyTrip = tripManager.getTrip(trip.id);
+    console.log('[AI Generation] Verified trip in storage:', !!verifyTrip);
 
     // Close modal and open trip
     closeAIModal();

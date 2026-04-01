@@ -1,20 +1,4 @@
- **browser**. Here's what you need to do:
-
-## **Solution: Clear Browser Cache for wahgola.zavecoder.com**
-
-**For Chrome/Edge:**
-1. Go to `https://wahgola.zavecoder.com`
-2. Press `F12` to open DevTools
-3. Right-click on the **Refresh button** (next to the address bar)
-4. Select **"Empty Cache and Hard Reload"**
-
-**Or clear site-specific data:**
-1. Go to `chrome://settings/siteData`
-2. Search for
-
-[2026-04-01] Perfect! Everything is working now. Let me create a summary for you:
-
-## ✅ All Fixed! Here's How We Handle Caching
+dle Caching
 
 ### **Industry-Standard Approaches We Implemented:**
 
@@ -114,3 +98,15 @@ for (let i = localStorage.length - 1; i >= 0; i--) {
 3. **✅ Cache Busting**
    - All assets bumped to `?v=5`
    - Old cached version
+
+[2026-04-01] ## ✅ OAuth Redirect Loop Fixed!
+
+**The Problem:**
+1. After Google login, Supabase redirected to `/dashboard.html`
+2. The dashboard checked auth status **before** the OAuth callback was fully processed
+3. This caused a race condition where the session appeared invalid
+4. The dashboard showed "Sign In" button, which redirected back to login
+5. Login page didn't check if user was already logged in → infinite loop
+
+**The Fix:**
+1. **Login page** now checks if user is already authenticated and redire

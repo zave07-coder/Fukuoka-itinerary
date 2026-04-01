@@ -221,7 +221,7 @@
     <!-- Top Bar -->
     <header class="top-bar">
         <div class="top-bar-content">
-            <div class="logo-area" onclick="window.location.href='dashboard-v2.html'" style="cursor: pointer;">
+            <div class="logo-area" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
                 <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <!-- Globe with route path -->
                     <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2" opacity="0.3"/>
@@ -235,7 +235,7 @@
                 <span class="logo-text">Wah<span class="logo-accent">go</span>la</span>
             </div>
             <div class="top-bar-actions">
-                <button class="btn-secondary" onclick="window.location.href='dashboard-v2.html'">
+                <button class="btn-secondary" onclick="window.location.href='dashboard.html'">
                     ← Back to Dashboard
                 </button>
             </div>
@@ -363,7 +363,7 @@
             const savedTrip = tripManager.createTrip(trip);
 
             // Redirect to trip planner
-            window.location.href = `trip-planner-v2.html?trip=${savedTrip.id}`;
+            window.location.href = `trip-planner.html?trip=${savedTrip.id}`;
         }
 
         // Initialize

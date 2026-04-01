@@ -33,7 +33,7 @@ function loadTripFromURL() {
 
   if (!currentTripId) {
     alert('No trip ID provided');
-    window.location.href = 'dashboard-v2.html';
+    window.location.href = 'dashboard.html';
     return;
   }
 
@@ -63,7 +63,7 @@ function loadTripFromURL() {
       : `Trip "${currentTripId}" not found. Available trips: ${allTrips.map(t => t.name).join(', ')}`;
 
     alert(errorMsg);
-    window.location.href = 'dashboard-v2.html';
+    window.location.href = 'dashboard.html';
     return;
   }
 
@@ -106,7 +106,7 @@ async function loadTripFromCloud(tripId) {
   } catch (error) {
     console.error('[Cloud Loader] Failed to load trip from cloud:', error);
     alert('Trip not found. Redirecting to dashboard...');
-    window.location.href = 'dashboard-v2.html';
+    window.location.href = 'dashboard.html';
   }
 }
 

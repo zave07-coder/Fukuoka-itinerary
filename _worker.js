@@ -545,6 +545,11 @@ const generateTripHandler = async (request, env) => {
       throw new Error('Invalid trip data structure received from AI');
     }
 
+    // Ensure cover image is present
+    if (!tripData.coverImage || tripData.coverImage === '') {
+      tripData.coverImage = getCoverImageForDestination(tripData.destination);
+    }
+
     // Add metadata
     tripData.aiGenerated = true;
     tripData.generatedBy = usedModel;
@@ -590,6 +595,73 @@ const generateTripHandler = async (request, env) => {
 /**
  * Generate trip using Gemini 2.0 Flash (primary, cheaper)
  */
+/**
+ * Get a destination-appropriate cover image from Unsplash
+ */
+function getCoverImageForDestination(destination) {
+  if (!destination) {
+    return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'; // Generic travel
+  }
+
+  const dest = destination.toLowerCase();
+
+  // Destination-specific images
+  const imageMap = {
+    // Japan
+    'tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80',
+    'kyoto': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',
+    'osaka': 'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800&q=80',
+    'fukuoka': 'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800&q=80',
+    'japan': 'https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=800&q=80',
+
+    // Malaysia
+    'malaysia': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80',
+    'kuala lumpur': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80',
+    'penang': 'https://images.unsplash.com/photo-1570547823781-4582c4cfd7e1?w=800&q=80',
+
+    // Southeast Asia
+    'singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
+    'bangkok': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80',
+    'thailand': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80',
+    'vietnam': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&q=80',
+    'hanoi': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800&q=80',
+
+    // South Korea
+    'seoul': 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&q=80',
+    'korea': 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&q=80',
+
+    // Europe
+    'paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
+    'london': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80',
+    'rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80',
+    'barcelona': 'https://images.unsplash.com/photo-1520986606214-8b456906c813?w=800&q=80',
+
+    // USA
+    'new york': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
+    'san francisco': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80',
+    'los angeles': 'https://images.unsplash.com/photo-1534190239940-9ba8944ea261?w=800&q=80',
+
+    // Australia
+    'sydney': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80',
+    'melbourne': 'https://images.unsplash.com/photo-1514395462725-fb4566210144?w=800&q=80',
+
+    // Middle East
+    'dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
+
+    // Default fallback
+    'default': 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'
+  };
+
+  // Try to find a match
+  for (const [key, url] of Object.entries(imageMap)) {
+    if (dest.includes(key)) {
+      return url;
+    }
+  }
+
+  return imageMap.default;
+}
+
 async function generateWithGemini(prompt, env) {
   if (!env.GOOGLE_AI_API_KEY) {
     throw new Error('Google AI API key not configured');
