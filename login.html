@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - Wahgola</title>
-    <link rel="stylesheet" href="dashboard-v2.css?v=4">
+    <link rel="stylesheet" href="dashboard-v2.css?v=5">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth-service.js"></script>
+    <script src="auth-service.js?v=5"></script>
     <style>
         .login-container {
             min-height: 100vh;
@@ -348,6 +348,27 @@
                 messageDiv.innerHTML = '<div class="error-message">❌ Failed to send magic link. Please try again.</div>';
             }
         }
+
+        // Force clear any corrupted session data on login page
+        (function clearCorruptedSession() {
+            try {
+                // Check for corrupted Supabase session
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('sb-')) {
+                        try {
+                            const value = localStorage.getItem(key);
+                            JSON.parse(value); // Test if valid JSON
+                        } catch (e) {
+                            console.log('Clearing corrupted session key:', key);
+                            localStorage.removeItem(key);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Session cleanup error:', err);
+            }
+        })();
 
         // Check if already authenticated
         authService.init().then(async () => {
