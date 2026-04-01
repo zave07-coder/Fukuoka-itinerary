@@ -341,8 +341,8 @@
         }
 
         // Check if already authenticated
-        authService.init().then(() => {
-            if (authService.isAuthenticated()) {
+        authService.init().then(async () => {
+            if (await authService.isAuthenticated()) {
                 window.location.href = 'dashboard-v2.html';
             }
         });

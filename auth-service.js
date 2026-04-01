@@ -30,21 +30,51 @@ class AuthService {
         return;
       }
 
-      // Initialize Supabase client
-      this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Initialize Supabase client with session persistence
+      this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true, // Automatically refresh expired tokens
+          detectSessionInUrl: true // Handle OAuth redirects
+        }
+      });
 
-      // Check for existing session
-      const { data: { session } } = await this.supabase.auth.getSession();
-      if (session) {
-        this.currentUser = session.user;
-        await this.syncUserToDatabase();
+      // Check for existing session and validate it
+      const { data: { session }, error } = await this.supabase.auth.getSession();
+
+      if (error) {
+        console.error('Session validation error:', error);
+        // Clear stale session data
+        await this.clearStaleSession();
+      } else if (session) {
+        // Validate session hasn't expired
+        const expiresAt = session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (expiresAt && expiresAt < now) {
+          console.log('Session expired, clearing...');
+          await this.clearStaleSession();
+        } else {
+          this.currentUser = session.user;
+          await this.syncUserToDatabase();
+        }
       }
 
       // Listen for auth changes
       this.supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event);
+        console.log('Auth state changed:', event, session?.user?.email);
 
-        if (session) {
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          this.currentUser = null;
+          await this.clearStaleSession();
+          this.onAuthChange?.(null);
+        } else if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          if (session) {
+            this.currentUser = session.user;
+            await this.syncUserToDatabase();
+            this.onAuthChange?.(this.currentUser);
+          }
+        } else if (session) {
           this.currentUser = session.user;
           await this.syncUserToDatabase();
           this.onAuthChange?.(this.currentUser);
@@ -112,7 +142,33 @@ class AuthService {
     if (error) throw error;
 
     this.currentUser = null;
+    await this.clearStaleSession();
+  }
+
+  /**
+   * Clear stale session data from localStorage
+   */
+  async clearStaleSession() {
+    // Clear custom session key
     localStorage.removeItem(this.sessionKey);
+
+    // Clear Supabase session keys (they use specific prefixes)
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    // Also clear from sessionStorage
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+        sessionStorage.removeItem(key);
+      }
+    }
   }
 
   /**
@@ -124,8 +180,29 @@ class AuthService {
 
   /**
    * Check if user is authenticated
+   * Also verifies the session is still valid
    */
-  isAuthenticated() {
+  async isAuthenticated() {
+    if (!this.currentUser || !this.supabase) return false;
+
+    // Verify session is still valid
+    const { data: { session } } = await this.supabase.auth.getSession();
+
+    if (!session) {
+      // Session expired or invalid
+      this.currentUser = null;
+      await this.clearStaleSession();
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Synchronous check (without validation)
+   * Use this only when you can't await
+   */
+  isAuthenticatedSync() {
     return !!this.currentUser;
   }
 

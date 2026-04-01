@@ -522,7 +522,12 @@ function initializeAuth() {
     return;
   }
 
-  authService.init().then(() => {
+  authService.init().then(async () => {
+    // Verify session is still valid
+    const isAuth = await authService.isAuthenticated();
+    if (!isAuth) {
+      console.log('No valid session found, user needs to log in again');
+    }
     updateAuthUI();
 
     // Listen for auth changes
