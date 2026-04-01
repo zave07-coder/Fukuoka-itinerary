@@ -320,11 +320,14 @@ async function generateTrip() {
   loadingMessageEl.textContent = 'Starting AI generation...';
 
   try {
+    console.log('🚀 Starting AI trip generation with streaming...');
     const response = await fetch('/api/generate-trip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, stream: true })
     });
+
+    console.log('📡 Response received:', response.status, response.headers.get('Content-Type'));
 
     if (!response.ok) {
       const error = await response.json();
@@ -336,10 +339,16 @@ async function generateTrip() {
     const decoder = new TextDecoder();
     let buffer = '';
     let tripData = null;
+    let eventCount = 0;
+
+    console.log('📖 Starting to read stream...');
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        console.log(`✅ Stream complete. Received ${eventCount} events`);
+        break;
+      }
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
@@ -349,6 +358,7 @@ async function generateTrip() {
         if (line.startsWith('data: ')) {
           try {
             const event = JSON.parse(line.slice(6));
+            eventCount++;
 
             if (event.type === 'progress') {
               // Show preview of content being generated
@@ -356,21 +366,30 @@ async function generateTrip() {
               const lines = preview.split('\n').filter(l => l.trim());
               const firstLine = lines[0] || 'Generating...';
               loadingMessageEl.textContent = `✨ ${firstLine.substring(0, 80)}...`;
+
+              if (eventCount % 10 === 0) {
+                console.log(`📝 Progress event ${eventCount}: ${event.content.length} chars`);
+              }
             } else if (event.type === 'complete') {
+              console.log('✅ Received completion event');
               tripData = event.data;
             } else if (event.type === 'error') {
+              console.error('❌ Received error event:', event.error);
               throw new Error(event.error);
             }
           } catch (e) {
-            console.warn('Failed to parse SSE event:', e);
+            console.warn('⚠️ Failed to parse SSE event:', e, 'Line:', line);
           }
         }
       }
     }
 
     if (!tripData) {
+      console.error('❌ No trip data received after stream completed');
       throw new Error('No trip data received');
     }
+
+    console.log('✅ Trip data received:', tripData.name);
 
     // Create trip
     const trip = tripManager.createTrip(tripData);

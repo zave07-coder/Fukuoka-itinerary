@@ -574,7 +574,9 @@ const generateTripHandler = async (request, env) => {
 
     // If streaming is requested, use GPT streaming (Gemini doesn't support streaming easily)
     if (stream) {
+      console.log('🔄 Starting streaming generation with GPT-5.4...');
       const streamResponse = await generateWithGPT(prompt, env);
+      console.log('✅ Got streaming response from GPT');
 
       // Create a ReadableStream to send Server-Sent Events to the client
       const { readable, writable } = new TransformStream();
@@ -587,11 +589,18 @@ const generateTripHandler = async (request, env) => {
           const decoder = new TextDecoder();
           let buffer = '';
           let fullContent = '';
+          let chunkCount = 0;
+
+          console.log('📖 Starting to read streaming chunks...');
 
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+              console.log(`✅ Stream complete. Received ${chunkCount} chunks, ${fullContent.length} chars`);
+              break;
+            }
 
+            chunkCount++;
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
             buffer = lines.pop() || '';
@@ -608,9 +617,13 @@ const generateTripHandler = async (request, env) => {
                     fullContent += content;
                     // Send progress update to client
                     await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'progress', content: fullContent })}\n\n`));
+
+                    if (chunkCount % 10 === 0) {
+                      console.log(`📝 Progress: ${fullContent.length} chars generated`);
+                    }
                   }
                 } catch (e) {
-                  // Skip invalid JSON
+                  console.warn('⚠️ Failed to parse SSE line:', e.message);
                 }
               }
             }
@@ -618,7 +631,9 @@ const generateTripHandler = async (request, env) => {
 
           // Parse final JSON and send completion
           try {
+            console.log('🔍 Parsing final JSON response...');
             const tripData = JSON.parse(fullContent);
+            console.log('✅ JSON parsed successfully:', tripData.name);
 
             // Validate and fix data
             if (!tripData.coverImage) {
@@ -637,13 +652,18 @@ const generateTripHandler = async (request, env) => {
               return day;
             });
 
+            console.log('✅ Sending completion event to client');
             await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', data: tripData })}\n\n`));
           } catch (parseError) {
+            console.error('❌ Failed to parse JSON:', parseError.message);
+            console.error('Content received:', fullContent.substring(0, 500));
             await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: 'Failed to parse response' })}\n\n`));
           }
 
           await writer.close();
+          console.log('🏁 Stream closed');
         } catch (error) {
+          console.error('❌ Streaming error:', error);
           await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`));
           await writer.close();
         }
