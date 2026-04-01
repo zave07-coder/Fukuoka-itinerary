@@ -14,6 +14,10 @@ let markers = [];
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('[Init] DOMContentLoaded fired');
+  console.log('[Init] TripManager available:', !!tripManager);
+  console.log('[Init] Storage key:', tripManager?.storageKey);
+
   loadTripFromURL();
   initializeMap();
 });
@@ -25,16 +29,33 @@ function loadTripFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
   currentTripId = urlParams.get('trip');
 
+  console.log('[Trip Loader] Trip ID from URL:', currentTripId);
+
   if (!currentTripId) {
     alert('No trip ID provided');
     window.location.href = 'dashboard-v2.html';
     return;
   }
 
+  // Debug: Check all trips in storage
+  const allTrips = tripManager.getAllTrips();
+  console.log('[Trip Loader] All trips in localStorage:', allTrips);
+  console.log('[Trip Loader] Number of trips:', allTrips.length);
+  console.log('[Trip Loader] Trip IDs:', allTrips.map(t => t.id));
+
   currentTrip = tripManager.getTrip(currentTripId);
+  console.log('[Trip Loader] Found trip:', currentTrip);
 
   if (!currentTrip) {
-    alert('Trip not found');
+    console.error('[Trip Loader] Trip not found! ID:', currentTripId);
+    console.error('[Trip Loader] Available IDs:', allTrips.map(t => t.id));
+
+    // Show more helpful error
+    const errorMsg = allTrips.length === 0
+      ? 'No trips found in storage. Please create a trip first.'
+      : `Trip "${currentTripId}" not found. Available trips: ${allTrips.map(t => t.name).join(', ')}`;
+
+    alert(errorMsg);
     window.location.href = 'dashboard-v2.html';
     return;
   }
