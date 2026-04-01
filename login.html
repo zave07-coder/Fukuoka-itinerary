@@ -285,7 +285,7 @@
             </div>
 
             <div class="skip-login">
-                <p>Just browsing? <a href="dashboard-v2.html">Continue without signing in</a></p>
+                <p>Just browsing? <a href="dashboard.html">Continue without signing in</a></p>
             </div>
         </div>
     </div>
@@ -349,33 +349,8 @@
             }
         }
 
-        // Force clear any corrupted session data on login page
-        (function clearCorruptedSession() {
-            try {
-                // Check for corrupted Supabase session
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('sb-')) {
-                        try {
-                            const value = localStorage.getItem(key);
-                            JSON.parse(value); // Test if valid JSON
-                        } catch (e) {
-                            console.log('Clearing corrupted session key:', key);
-                            localStorage.removeItem(key);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Session cleanup error:', err);
-            }
-        })();
-
-        // Check if already authenticated
-        authService.init().then(async () => {
-            if (await authService.isAuthenticated()) {
-                window.location.href = 'dashboard-v2.html';
-            }
-        });
+        // Initialize auth service (without auto-redirect on login page)
+        authService.init().catch(console.error);
     </script>
 </body>
 </html>

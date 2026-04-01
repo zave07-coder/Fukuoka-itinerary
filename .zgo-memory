@@ -1,150 +1,106 @@
-reated!
+'t being injected** by Cloudflare Pages worker
+2. **The config.js file was being cached** for 1 hour, so even after fixes, old cached versions were being served
 
-I've created **4 comprehensive guides** to help you set up Google authentication:
+### **What I Fixed:**
+1. ✅ **Added fallback Supabase credentials** directly in the worker (since anon key is public anyway)
+2. ✅ **Added cache-busting** to the config.js fetch in auth-service.js
+3. ✅ **Fixed login page CSS version** fro
 
-### 1. **QUICK_START_AUTH.md** ⚡
-- 5-minute quick start guide
-- Essential steps only
-- Perfect for getting it working fast
+[2026-04-01] Both show DYNAMIC which means they're not being cached by Cloudflare's edge. The cache must be in your **browser**. Here's what you need to do:
 
-### 2. **GOOGLE_AUTH_SETUP.md** 📖
-- Complete step-by-step guide
-- Detailed instructions for each platform
-- Troubleshooting section
-- Security best practices
+## **Solution: Clear Browser Cache for wahgola.zavecoder.com**
 
-### 3. **SETUP_CHEC
+**For Chrome/Edge:**
+1. Go to `https://wahgola.zavecoder.com`
+2. Press `F12` to open DevTools
+3. Right-click on the **Refresh button** (next to the address bar)
+4. Select **"Empty Cache and Hard Reload"**
 
-[2026-03-31] Perfect! For **Authorized redirect URIs**, you only need **ONE URL** - the Supabase callback:
+**Or clear site-specific data:**
+1. Go to `chrome://settings/siteData`
+2. Search for
 
-## Authorized Redirect URIs
+[2026-04-01] Perfect! Everything is working now. Let me create a summary for you:
 
-```
-https://gdhyukplodnvokrmxvba.supabase.co/auth/v1/callback
-```
+## ✅ All Fixed! Here's How We Handle Caching
 
----
+### **Industry-Standard Approaches We Implemented:**
 
-## Important: DO NOT Add Your Domain!
+1. **Short Cache TTL for Dynamic Files**
+   - `config.js`: 5 minutes (`max-age=300, must-revalidate`)
+   - Non-versioned CSS/JS: 5 minutes
+   - This ensures users get updates within 5 minutes max
 
-❌ **Don't add:**
-- `https://wahgola.zavecoder.com` 
-- `https://wahgola.zavecoder.com/dashboard-v2.html`
-- `https://wahgola.zavecoder.com/auth/callback`
+2. **Long Cache for Immutable Assets**
+   - Versioned files (`?v=4`): 1 year cache (`max-age=31536000, immutable`)
+   - Images: 1 wee
 
-✅ **Only add:**
-- `https://gdhyukplodnvokrmxvba.supabase.co/auth/v1/callback`
+[2026-04-01] ## ✅ Session Management Fixed!
 
----
+### **What Was Wrong:**
 
-## Why Only Supabase?
+1. **Supabase sessions expire** after a set time (default: 1 hour)
+2. **No automatic token refresh** was enabled
+3. **Stale data in localStorage** made it look like you were logged in
+4. **No session validation** - app trusted localStorage blindly
 
-Here'
+### **What I Fixed:**
 
-[2026-03-31] Excellent! 🎉 Everything is committed and pushed!
+1. **✅ Enabled `autoRefreshToken`** - Supabase now automatically refreshes tokens before they expire
+2. **✅ Session validation on init** - Checks if session has expired an
 
-## ✅ Deployment Complete!
+[2026-04-01] Perfect! The changes are pushed. Wait about 1 minute for deployment, then the login page should look much better:
 
-### What Was Done:
+## ✅ Fixed Login Page Layout!
 
-**1. Git Commit Created:**
-- Commit ID: `74b3611`
-- 37 files changed (29 modified, 7 new files)
-- 1,613 insertions, 187 deletions
+**What I Fixed:**
 
-**2. Changes Pushed to GitHub:**
-- Repository: `zave07-coder/Fukuoka-itinerary`
-- Branch: `main`
-- Status: Successfully pushed ✅
+1. **✅ Reduced padding** - Card now has 40px instead of 48px padding (more compact)
+2. **✅ Logo visibility** - Added explicit `fill: white` and `stroke: white` to SVG
+3. **✅ Better spacing** - Reduced gaps between elements
+4. **✅ "Continue with Email" button** - Should now be visible (it was always there, just might have been cut off
 
-**3. Cloudflare Pages Auto-Deploy:**
-If you have Cloudflare Pages connected to your GitHub repo, it will automatically deploy within 1-2 minu
+[2026-04-01] Perfect! Now wait ~1 minute for deployment and try the trip link again. The fix should:
 
-[2026-03-31] **Found the issue!** Your `config.js` has `SUPABASE_CONFIG = null`. This is why login is failing.
+1. **Check localStorage first** (fast path)
+2. **If not found and user is logged in** → Fetch from cloud API
+3. **Save to localStorage** → So future loads are instant
+4. **Render the trip**
 
-## 🔴 Problem: Supabase Not Configured
+This fixes the issue where trips get synced to the cloud but aren't in localStorage (which can happen if you log in on a different device or after clearing cache).
 
-Your `config.js` needs to be updated with your Supabase credentials.
+## ✅ Summary of All Fixes
 
-## ✅ Solution:
+**Session Management:**
+- ✅
 
-### Step 1: Get Your Supabase Anon Key
+[2026-04-01] ## ✅ Critical Fixes Deployed!
 
-1. Go to: https://supabase.com/dashboard/project/gdhyukplodnvokrmxvba
-2. Click **"Project Settings"** (gear icon in sidebar)
-3. Click **"API"** tab
-4. Copy the **`anon public`** key (looks like: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+All 3 **Priority 1 (Critical)** fixes are now live:
 
-[2026-03-31] Excellent! Now let me create a summary:
+### **What I Fixed:**
 
-## ✅ Fixed! Here's What I Did:
+1. **✅ Added Missing Scripts** (trip-planner-v2.html)
+   - Added `auth-service.js` and `sync-service.js` 
+   - Bumped JS version to v4 for cache busting
+   - **Fixes**: `authService is not defined` errors
 
-### 1. **Updated config.js** ✅
-- Added your Supabase credentials from .env file
-- Local development will now work
+2. **✅ Added GET /api/trips/:id Endpoint** (_worker.js)
+   - New endpoint to fetch individual trips from cloud
+   - Validates user authentication
+   - **Fixes**: Cloud fallback when trip
 
-### 2. **Created Diagnostic Tool** 🔍
-- Added `test-auth.html` to help troubleshoot issues
-- Shows detailed error messages
-- Tests Supabase connection
+[2026-04-01] Perfect! Now, **while waiting for deployment**, you can manually fix this in your browser right now:
 
-### 3. **Created Setup Guide** 📖
-- `CLOUDFLARE_ENV_SETUP.md` with exact values to copy
+## Quick Fix (Do This Now):
 
-### 4. **Pushed to GitHub** 🚀
-- Cloudflare will auto-deploy in ~2 minu
+1. **Open Browser Console** (F12 or right-click → Inspect → Console)
+2. **Paste this code and press Enter:**
 
-[2026-03-31] ## 🎉 SUCCESS! Everything is Working!
-
-### ✅ What I Did:
-
-1. **Updated local config.js** with Supabase credentials
-2. **Added Cloudflare Pages secrets** using wrangler CLI:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-3. **Triggered new deployment** with secrets applied
-4. **Verified config.js** is now serving Supabase credentials
-
----
-
-## 🧪 Test Your Google Login NOW!
-
-### Visit these URLs:
-
-1. **Diagnostic Tool:**
-   ```
-   https://wahgola.zavecoder.com/test-a
-
-[2026-03-31] The code looks correct - it's using `window.location.origin + '/dashboard-v2.html'` which should be `https://wahgola.zavecoder.com/dashboard-v2.html`. 
-
-The problem is in your **Supabase Dashboard settings**. You need to update the **Site URL** and **Redirect URLs** in Supabase:
-
-## 🔧 Fix: Update Supabase Redirect URLs
-
-### Step 1: Go to Supabase Dashboard
-1. Visit: https://supabase.com/dashboard/project/gdhyukplodnvokrmxvba
-2. Click **"Authentication"** in the left sidebar
-3. Click **"URL Conf
-
-[2026-03-31] ## 🎉 SUCCESS! Supabase Configuration Updated!
-
-### ✅ What Was Changed:
-
-**Site URL:** 
-- ❌ Old: `http://localhost:3000`
-- ✅ New: `https://wahgola.zavecoder.com`
-
-**Redirect URLs:**
-- ✅ `https://wahgola.zavecoder.com/*`
-- ✅ `https://wahgola.zavecoder.com/dashboard-v2.html`
-- ✅ `http://localhost:8788/*` (for local dev)
-- ✅ `http://localhost:8788/dashboard-v2.html`
-- ✅ `http://127.0.0.1:8788/*`
-
----
-
-## 🧪 Test Google Login Now!
-
-### Try it:
-1. Open an **incognito/private window** (to clear cache)
+```javascript
+// Clear all Supabase session data
+for (let i = localStorage.length - 1; i >= 0; i--) {
+  const key = localStorage.key(i);
+  if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+    console.log('Removing:', key);
+    localStorage.re

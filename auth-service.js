@@ -101,7 +101,7 @@ class AuthService {
     const { data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/dashboard-v2.html',
+        redirectTo: window.location.origin + '/dashboard.html',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -124,7 +124,7 @@ class AuthService {
     const { data, error } = await this.supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin + '/dashboard-v2.html',
+        emailRedirectTo: window.location.origin + '/dashboard.html',
       }
     });
 
