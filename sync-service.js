@@ -143,24 +143,37 @@ class SyncService {
       const tripManager = new TripManager();
 
       // Merge cloud trips into localStorage
+      const data = tripManager._loadData();
+
       for (const cloudTrip of cloudTrips) {
         const localTrip = tripManager.getTrip(cloudTrip.id);
 
         if (!localTrip) {
           // New trip from cloud - add it
-          tripManager.trips.set(cloudTrip.id, cloudTrip.data);
+          const tripData = {
+            ...cloudTrip.data,
+            id: cloudTrip.id,
+            cloudSynced: true,
+            lastSyncAt: new Date().toISOString()
+          };
+          data.trips.push(tripData);
         } else {
           // Conflict resolution: cloud wins if newer
           const cloudUpdated = new Date(cloudTrip.updated_at);
           const localUpdated = new Date(localTrip.updatedAt);
 
           if (cloudUpdated > localUpdated) {
-            tripManager.trips.set(cloudTrip.id, cloudTrip.data);
+            tripManager.updateTrip(cloudTrip.id, {
+              ...cloudTrip.data,
+              cloudSynced: true,
+              lastSyncAt: new Date().toISOString()
+            });
           }
         }
       }
 
-      tripManager.saveToLocalStorage();
+      // Save new trips to localStorage
+      tripManager._saveData(data);
 
     } catch (error) {
       console.error('Failed to pull trips:', error);
