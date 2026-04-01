@@ -1,17 +1,4 @@
-ch better:
-
-## ✅ Fixed Login Page Layout!
-
-**What I Fixed:**
-
-1. **✅ Reduced padding** - Card now has 40px instead of 48px padding (more compact)
-2. **✅ Logo visibility** - Added explicit `fill: white` and `stroke: white` to SVG
-3. **✅ Better spacing** - Reduced gaps between elements
-4. **✅ "Continue with Email" button** - Should now be visible (it was always there, just might have been cut off
-
-[2026-04-01] Perfect! Now wait ~1 minute for deployment and try the trip link again. The fix should:
-
-1. **Check localStorage first** (fast path)
+alStorage first** (fast path)
 2. **If not found and user is logged in** → Fetch from cloud API
 3. **Save to localStorage** → So future loads are instant
 4. **Render the trip**
@@ -111,3 +98,17 @@ I've added detailed console logging to help diagnose the issue. **Wait ~1 minute
 The console will now show:
 - `[AI Generation] Received trip data:` - Raw data from API
 - `[AI Generation] Created trip:` - Trip ID, name, destination, cover image, days cou
+
+[2026-04-01] ## ✅ All Fixes Deployed!
+
+### **What I Fixed:**
+
+1. **✅ Fixed `isAuthenticatedSync is not a function` error**
+   - Changed to use `getCurrentUser()` instead
+
+2. **✅ Fixed `/api/sync-user` 500 error**
+   - Replaced non-existent `upsert()` method with proper check/update/insert logic
+
+3. **✅ Added automatic cloud sync for AI-generated trips**
+   - When you create a trip while logged in, it's now immediately saved to the cloud
+   - This ensures the trip is accessible even if you're on different dom
