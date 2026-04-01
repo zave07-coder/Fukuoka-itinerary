@@ -1110,7 +1110,10 @@ export default {
         {
           headers: {
             'Content-Type': 'application/javascript',
-            'Cache-Control': 'public, max-age=3600'
+            // Short cache for config (5 minutes) since it can change
+            'Cache-Control': 'public, max-age=300, must-revalidate',
+            // Add Vary header for better cache control
+            'Vary': 'Accept-Encoding'
           }
         }
       );
@@ -1144,6 +1147,30 @@ export default {
     }
 
     // For non-API routes, return the static file (handled by Pages)
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+
+    // Clone the response so we can modify headers
+    const newResponse = new Response(response.body, response);
+
+    // Set appropriate cache headers based on file type
+    const contentType = newResponse.headers.get('Content-Type') || '';
+
+    if (contentType.includes('text/html')) {
+      // HTML files: no cache (always fetch fresh)
+      newResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      newResponse.headers.set('Pragma', 'no-cache');
+      newResponse.headers.set('Expires', '0');
+    } else if (url.pathname.match(/\.(css|js)/) && url.search.includes('v=')) {
+      // Versioned CSS/JS: cache for 1 year (immutable)
+      newResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (contentType.includes('javascript') || contentType.includes('css')) {
+      // Non-versioned CSS/JS: short cache with revalidation
+      newResponse.headers.set('Cache-Control', 'public, max-age=300, must-revalidate');
+    } else if (contentType.includes('image/')) {
+      // Images: cache for 1 week
+      newResponse.headers.set('Cache-Control', 'public, max-age=604800, immutable');
+    }
+
+    return newResponse;
   }
 };
