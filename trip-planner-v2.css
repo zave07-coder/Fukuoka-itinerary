@@ -363,6 +363,95 @@ body {
   border-color: var(--color-primary);
 }
 
+/* Day Toggle Container */
+.day-toggle-container {
+  padding: var(--space-3) var(--space-4);
+  background: white;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.day-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.day-toggle-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day-toggle-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.day-toggle-all-btn {
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: white;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.day-toggle-all-btn:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.day-toggle-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-toggle-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.day-toggle-chip:hover {
+  border-color: var(--day-color);
+  background: rgba(var(--day-color-rgb), 0.05);
+}
+
+.day-toggle-chip.active {
+  border-color: var(--day-color);
+  background: var(--day-color);
+  color: white;
+}
+
+.day-chip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-toggle-chip.active .day-chip-dot {
+  background: white !important;
+}
+
 .map-container {
   flex: 1;
   background: var(--color-bg);
@@ -1283,6 +1372,22 @@ body {
   }
 
   .filter-chip {
+    flex-shrink: 0;
+  }
+
+  .day-toggle-chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .day-toggle-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .day-toggle-chip {
     flex-shrink: 0;
   }
 }

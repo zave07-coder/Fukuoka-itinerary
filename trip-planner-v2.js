@@ -11,6 +11,31 @@ let currentTrip = null;
 let currentTripId = null;
 let map = null;
 let markers = [];
+let routeLayers = []; // Track route layers for toggling
+let visibleDays = new Set(); // Track which days are visible on map
+
+/**
+ * Day colors for multi-day route display
+ */
+const DAY_COLORS = [
+  '#3b82f6', // Blue - Day 1
+  '#ef4444', // Red - Day 2
+  '#10b981', // Green - Day 3
+  '#f59e0b', // Orange - Day 4
+  '#8b5cf6', // Purple - Day 5
+  '#ec4899', // Pink - Day 6
+  '#14b8a6', // Teal - Day 7
+  '#f97316', // Deep Orange - Day 8
+  '#6366f1', // Indigo - Day 9
+  '#84cc16'  // Lime - Day 10
+];
+
+/**
+ * Get color for a specific day
+ */
+function getDayColor(dayNumber) {
+  return DAY_COLORS[(dayNumber - 1) % DAY_COLORS.length];
+}
 
 /**
  * Toast notification system
@@ -625,60 +650,211 @@ function showMapError(errorMessage) {
 function updateMapMarkers() {
   if (!map || !currentTrip || !currentTrip.days) return;
 
+  // Initialize all days as visible if not set
+  if (visibleDays.size === 0) {
+    currentTrip.days.forEach((_, index) => {
+      visibleDays.add(index + 1);
+    });
+  }
+
   // Clear existing markers
   markers.forEach(marker => marker.remove());
   markers = [];
 
-  const locations = [];
+  // Clear existing route layers
+  routeLayers.forEach(layerId => {
+    if (map.getLayer(layerId)) {
+      map.removeLayer(layerId);
+    }
+    if (map.getSource(layerId)) {
+      map.removeSource(layerId);
+    }
+  });
+  routeLayers = [];
 
-  // Collect all locations
+  const allLocations = [];
+
+  // Process each day
   currentTrip.days.forEach((day, dayIndex) => {
+    const dayNumber = dayIndex + 1;
+    const dayColor = getDayColor(dayNumber);
+    const isDayVisible = visibleDays.has(dayNumber);
+
     if (!day.activities) return;
 
-    day.activities.forEach(activity => {
+    const dayLocations = [];
+
+    // Collect locations for this day
+    day.activities.forEach((activity, actIndex) => {
       if (activity.location && activity.location.lat && activity.location.lng) {
-        locations.push({
+        const loc = {
           ...activity.location,
           activityName: activity.name,
-          dayNumber: dayIndex + 1
-        });
+          dayNumber: dayNumber,
+          activityIndex: actIndex
+        };
+        dayLocations.push(loc);
+        allLocations.push(loc);
       }
     });
-  });
 
-  // Add markers
-  locations.forEach(loc => {
-    const el = document.createElement('div');
-    el.className = 'map-marker';
-    el.innerHTML = getMarkerIcon(loc.type);
-    el.style.cssText = `
-      width: 32px;
-      height: 32px;
-      background: var(--color-primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    `;
+    // Add markers for this day
+    if (isDayVisible) {
+      dayLocations.forEach((loc, index) => {
+        const el = document.createElement('div');
+        el.className = 'map-marker';
+        el.innerHTML = `<div class="marker-number">${index + 1}</div>`;
+        el.style.cssText = `
+          width: 36px;
+          height: 36px;
+          background: ${dayColor};
+          border: 3px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          font-weight: 700;
+          font-size: 13px;
+        `;
 
-    const marker = new mapboxgl.Marker(el)
-      .setLngLat([loc.lng, loc.lat])
-      .setPopup(new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`<strong>${loc.activityName}</strong><br>${loc.address || ''}`))
-      .addTo(map);
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([loc.lng, loc.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+              <div style="padding: 4px;">
+                <div style="color: ${dayColor}; font-weight: 600; margin-bottom: 4px;">Day ${dayNumber}</div>
+                <strong>${loc.activityName}</strong>
+                ${loc.address ? `<br><small style="color: #666;">${loc.address}</small>` : ''}
+              </div>
+            `))
+          .addTo(map);
 
-    markers.push(marker);
+        markers.push(marker);
+      });
+
+      // Add route line for this day
+      if (dayLocations.length > 1) {
+        const coordinates = dayLocations.map(loc => [loc.lng, loc.lat]);
+        const routeId = `route-day-${dayNumber}`;
+
+        // Add route source
+        map.addSource(routeId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: coordinates
+            }
+          }
+        });
+
+        // Add route layer
+        map.addLayer({
+          id: routeId,
+          type: 'line',
+          source: routeId,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': dayColor,
+            'line-width': 3,
+            'line-opacity': 0.8
+          }
+        });
+
+        routeLayers.push(routeId);
+      }
+    }
   });
 
   // Fit bounds if locations exist
-  if (locations.length > 0) {
-    const bounds = new mapboxgl.LngLatBounds();
-    locations.forEach(loc => bounds.extend([loc.lng, loc.lat]));
-    map.fitBounds(bounds, { padding: 50 });
+  if (allLocations.length > 0) {
+    const visibleLocations = allLocations.filter(loc => visibleDays.has(loc.dayNumber));
+    if (visibleLocations.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      visibleLocations.forEach(loc => bounds.extend([loc.lng, loc.lat]));
+      map.fitBounds(bounds, { padding: 80, maxZoom: 14 });
+    }
   }
+
+  // Update day toggle UI
+  updateDayToggleUI();
+}
+
+/**
+ * Toggle day visibility on map
+ */
+function toggleDayOnMap(dayNumber) {
+  if (visibleDays.has(dayNumber)) {
+    visibleDays.delete(dayNumber);
+  } else {
+    visibleDays.add(dayNumber);
+  }
+
+  updateMapMarkers();
+}
+
+/**
+ * Show all days on map
+ */
+function showAllDays() {
+  visibleDays.clear();
+  currentTrip.days.forEach((_, index) => {
+    visibleDays.add(index + 1);
+  });
+  updateMapMarkers();
+}
+
+/**
+ * Hide all days on map
+ */
+function hideAllDays() {
+  visibleDays.clear();
+  updateMapMarkers();
+}
+
+/**
+ * Update day toggle UI
+ */
+function updateDayToggleUI() {
+  const container = document.getElementById('dayToggleContainer');
+  if (!container || !currentTrip || !currentTrip.days) return;
+
+  const html = `
+    <div class="day-toggle-header">
+      <span class="day-toggle-title">Routes</span>
+      <div class="day-toggle-actions">
+        <button class="day-toggle-all-btn" onclick="showAllDays()" title="Show all">All</button>
+        <button class="day-toggle-all-btn" onclick="hideAllDays()" title="Hide all">None</button>
+      </div>
+    </div>
+    <div class="day-toggle-chips">
+      ${currentTrip.days.map((day, index) => {
+        const dayNumber = index + 1;
+        const dayColor = getDayColor(dayNumber);
+        const isVisible = visibleDays.has(dayNumber);
+        return `
+          <button
+            class="day-toggle-chip ${isVisible ? 'active' : ''}"
+            onclick="toggleDayOnMap(${dayNumber})"
+            style="--day-color: ${dayColor};"
+          >
+            <span class="day-chip-dot" style="background: ${dayColor};"></span>
+            <span>Day ${dayNumber}</span>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  container.innerHTML = html;
 }
 
 /**
