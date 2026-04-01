@@ -585,13 +585,13 @@ function initMap() {
 
     mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
 
-    // Initialize Mapbox map with satellite streets for better POI visibility
+    // Initialize Mapbox map with simple streets style
     map = new mapboxgl.Map({
         container: 'interactiveMap',
-        style: 'mapbox://styles/mapbox/streets-v12', // Streets with POIs
+        style: 'mapbox://styles/mapbox/light-v11', // Light style for better performance
         center: [130.4017, 33.5904], // Fukuoka center [lng, lat]
         zoom: 10,
-        pitch: 45, // 3D tilt
+        pitch: 0, // No 3D tilt to reduce tile requests
         bearing: 0
     });
 
@@ -612,9 +612,6 @@ function initMap() {
 
     // Wait for map to load
     map.on('load', () => {
-        // Enable POI labels
-        map.setLayoutProperty('poi-label', 'visibility', 'visible');
-
         // Add markers for all locations
         addMarkersToMap();
 
@@ -819,6 +816,15 @@ async function drawRoute(locations) {
         console.error('Error drawing route:', error);
     }
 }
+
+// Expose functions for external use (split-screen-sync.js)
+window.updateMapForDay = function(dayNumber) {
+    showRouteForDay(dayNumber.toString());
+};
+
+window.showAllMarkers = function() {
+    showRouteForDay('all');
+};
 
 // Initialize map when page loads
 if (document.getElementById('interactiveMap')) {
