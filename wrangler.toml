@@ -1,7 +1,8 @@
-name = "fukuoka-family-itinerary"
+name = "fukuoka-itinerary-git"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
 [vars]
-NEON_DATABASE_URL = "postgresql://neondb_owner:npg_YLCX4AxTf6aG@ep-flat-night-a1awtolr.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+# Public environment variables (non-sensitive)
+# Note: Secrets like SUPABASE_URL, SUPABASE_ANON_KEY are set via `wrangler pages secret put`
+# and are available in the `env` parameter of the fetch handler
