@@ -183,7 +183,7 @@ const chatHandler = async (request, env) => {
     const { message } = await request.json();
 
     const requestBody = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.4-nano', // Fast, cheap for conversational Q&A
       messages: [
         {
           role: 'system',
@@ -349,7 +349,7 @@ Important: Return the ENTIRE day with ALL activities, not just changes. Modify b
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-5.4-mini', // Cost-effective for both single day and whole trip edits
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
@@ -987,7 +987,7 @@ Important:
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.4', // Flagship model for initial itinerary generation - best quality
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
