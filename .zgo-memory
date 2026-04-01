@@ -1,12 +1,4 @@
-'t being injected** by Cloudflare Pages worker
-2. **The config.js file was being cached** for 1 hour, so even after fixes, old cached versions were being served
-
-### **What I Fixed:**
-1. ✅ **Added fallback Supabase credentials** directly in the worker (since anon key is public anyway)
-2. ✅ **Added cache-busting** to the config.js fetch in auth-service.js
-3. ✅ **Fixed login page CSS version** fro
-
-[2026-04-01] Both show DYNAMIC which means they're not being cached by Cloudflare's edge. The cache must be in your **browser**. Here's what you need to do:
+ **browser**. Here's what you need to do:
 
 ## **Solution: Clear Browser Cache for wahgola.zavecoder.com**
 
@@ -104,3 +96,21 @@ for (let i = localStorage.length - 1; i >= 0; i--) {
   if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
     console.log('Removing:', key);
     localStorage.re
+
+[2026-04-01] ## ✅ All Fixed and Deployed!
+
+### **What I Fixed:**
+
+1. **✅ Removed "v2" from URLs**
+   - `dashboard-v2.html` → `dashboard.html`
+   - `trip-planner-v2.html` → `trip-planner.html`
+   - All internal links updated
+
+2. **✅ Fixed Login Redirect Loop**
+   - Removed automatic redirect check on login page
+   - Login page no longer sends you back to dashboard immediately
+   - You can now actually click "Sign in with Google"!
+
+3. **✅ Cache Busting**
+   - All assets bumped to `?v=5`
+   - Old cached version

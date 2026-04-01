@@ -349,8 +349,19 @@
             }
         }
 
-        // Initialize auth service (without auto-redirect on login page)
-        authService.init().catch(console.error);
+        // Initialize auth service and check if user is already logged in
+        async function initLoginPage() {
+            await authService.init();
+
+            // Check if user is already authenticated
+            const isAuth = await authService.isAuthenticated();
+            if (isAuth) {
+                console.log('User already logged in, redirecting to dashboard...');
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        initLoginPage().catch(console.error);
     </script>
 </body>
 </html>

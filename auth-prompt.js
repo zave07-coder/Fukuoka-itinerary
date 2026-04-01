@@ -36,10 +36,13 @@ class AuthPrompt {
   /**
    * Check if prompt should be shown
    */
-  checkConditions() {
-    // Don't show if already authenticated
-    if (typeof authService !== 'undefined' && authService.isAuthenticated()) {
-      return;
+  async checkConditions() {
+    // Don't show if already authenticated (use async check)
+    if (typeof authService !== 'undefined') {
+      const isAuth = await authService.isAuthenticated();
+      if (isAuth) {
+        return;
+      }
     }
 
     // Don't show if recently dismissed (within 24 hours)
@@ -152,7 +155,7 @@ class AuthPrompt {
    * Show before user leaves (beforeunload)
    */
   showExitPrompt() {
-    if (this.tripCount > 0 && !authService?.isAuthenticated()) {
+    if (this.tripCount > 0 && !authService?.isAuthenticatedSync()) {
       return '⚠️ Your trips are only saved locally. Sign in to save them to the cloud?';
     }
   }

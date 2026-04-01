@@ -514,7 +514,7 @@ function showToast(message) {
 /**
  * Authentication and Sync Integration
  */
-function initializeAuth() {
+async function initializeAuth() {
   // Wait for auth service to initialize
   if (typeof authService === 'undefined') {
     console.log('Auth service not available - running in offline mode');
@@ -522,20 +522,32 @@ function initializeAuth() {
     return;
   }
 
-  authService.init().then(async () => {
+  try {
+    // Wait for auth to fully initialize
+    await authService.init();
+
+    // Give OAuth callback time to process (if redirected from login)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Verify session is still valid
     const isAuth = await authService.isAuthenticated();
     if (!isAuth) {
       console.log('No valid session found, user needs to log in again');
+    } else {
+      console.log('User is authenticated:', authService.getCurrentUser()?.email);
     }
+
     updateAuthUI();
 
     // Listen for auth changes
     authService.onAuthStateChange((user) => {
+      console.log('Auth state changed in dashboard:', user?.email);
       updateAuthUI();
       if (user) {
         // User just logged in - sync trips
-        syncService.migrateLocalTripsToCloud();
+        if (typeof syncService !== 'undefined') {
+          syncService.migrateLocalTripsToCloud();
+        }
       }
     });
 
@@ -550,7 +562,10 @@ function initializeAuth() {
         }
       };
     }
-  });
+  } catch (error) {
+    console.error('Auth initialization error:', error);
+    document.getElementById('signInBtn').style.display = 'block';
+  }
 }
 
 /**
