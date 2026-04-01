@@ -30,7 +30,7 @@ class SyncService {
     if (this.autoSyncInterval) return;
 
     this.autoSyncInterval = setInterval(async () => {
-      if (authService.isAuthenticated()) {
+      if (authService.isAuthenticatedSync()) {
         await this.syncAll();
       }
     }, 5 * 60 * 1000); // 5 minutes
@@ -55,7 +55,7 @@ class SyncService {
       return;
     }
 
-    if (!authService.isAuthenticated()) {
+    if (!authService.isAuthenticatedSync()) {
       console.log('Cannot sync - user not authenticated');
       return;
     }
@@ -172,7 +172,7 @@ class SyncService {
    * Migrate localStorage trips to cloud on first login
    */
   async migrateLocalTripsToCloud() {
-    if (!authService.isAuthenticated()) return;
+    if (!authService.isAuthenticatedSync()) return;
 
     const migrationKey = 'wahgola_migration_done';
     if (localStorage.getItem(migrationKey)) {
@@ -198,7 +198,7 @@ class SyncService {
       syncing: this.syncInProgress,
       lastSync: this.lastSyncTime,
       deviceId: this.deviceId,
-      authenticated: authService.isAuthenticated()
+      authenticated: authService.isAuthenticatedSync()
     };
   }
 
