@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoto Cherry Blossom Adventure | Wahgola</title>
-    <link rel="stylesheet" href="trip-planner-v2.css?v=15">
+    <link rel="stylesheet" href="trip-planner-v2.css?v=16">
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth-service.js?v=15"></script>
-    <script src="sync-service.js?v=15"></script>
-    <script src="trip-manager.js?v=15"></script>
-    <script src="trip-planner-v2.js?v=15" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="auth-service.js?v=16"></script>
+    <script src="sync-service.js?v=16"></script>
+    <script src="trip-manager.js?v=16"></script>
+    <script src="trip-planner-v2.js?v=16" defer></script>
 </head>
 <body>
 
@@ -35,6 +36,13 @@
 
             <!-- Right: Actions -->
             <div class="trip-header-actions">
+                <button class="action-btn" onclick="exportToPDF()" title="Export to PDF">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </button>
                 <button class="action-btn" title="Share trip">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="18" cy="5" r="3"></circle>

@@ -1928,3 +1928,240 @@ document.addEventListener('DOMContentLoaded', () => {
     displayTripSummary();
   }, 500);
 });
+
+/**
+ * ============================================
+ * PDF EXPORT FUNCTIONALITY
+ * ============================================
+ */
+
+/**
+ * Export trip to PDF
+ */
+async function exportToPDF() {
+  if (!currentTrip) {
+    showToast('No trip data to export', 2000, 'error');
+    return;
+  }
+
+  showToast('Generating PDF...', 2000, 'info');
+
+  try {
+    // Load jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
+    let yPos = margin;
+
+    // Helper function to add new page if needed
+    const checkPageBreak = (requiredSpace) => {
+      if (yPos + requiredSpace > pageHeight - margin) {
+        doc.addPage();
+        yPos = margin;
+        return true;
+      }
+      return false;
+    };
+
+    // Helper function for wrapped text
+    const addWrappedText = (text, x, y, maxWidth, fontSize = 10) => {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return lines.length * (fontSize * 0.35); // Return height
+    };
+
+    // Header - Trip Title
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235); // Primary blue
+    doc.text(currentTrip.name || 'Trip Itinerary', margin, yPos);
+    yPos += 12;
+
+    // Trip metadata
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139); // Gray
+    const metaText = formatTripMeta(currentTrip);
+    doc.text(metaText, margin, yPos);
+    yPos += 10;
+
+    // Budget (if available)
+    const totalBudget = calculateTripBudget(currentTrip);
+    if (totalBudget > 0) {
+      const currency = currentTrip?.currency || 'USD';
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129); // Green
+      doc.text(`Total Budget: ${formatCurrency(totalBudget, currency)}`, margin, yPos);
+      yPos += 10;
+    }
+
+    // Divider line
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 10;
+
+    // Trip Summary (if available)
+    if (currentTrip.summary) {
+      checkPageBreak(20);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text('Trip Overview', margin, yPos);
+      yPos += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      const summaryHeight = addWrappedText(currentTrip.summary, margin, yPos, contentWidth);
+      yPos += summaryHeight + 5;
+
+      // Highlights
+      if (currentTrip.highlights && currentTrip.highlights.length > 0) {
+        yPos += 3;
+        currentTrip.highlights.forEach(highlight => {
+          checkPageBreak(8);
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`• ${highlight}`, margin + 5, yPos);
+          yPos += 6;
+        });
+      }
+
+      yPos += 8;
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+    }
+
+    // Days and Activities
+    currentTrip.days.forEach((day, dayIndex) => {
+      const dayNumber = dayIndex + 1;
+      const dayColor = getDayColor(dayNumber);
+
+      checkPageBreak(30);
+
+      // Day header
+      doc.setFillColor(...hexToRgb(dayColor));
+      doc.roundedRect(margin, yPos - 6, contentWidth, 12, 3, 3, 'F');
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`Day ${dayNumber}: ${day.title || `Day ${dayNumber}`}`, margin + 5, yPos);
+      yPos += 10;
+
+      // Day date
+      const date = calculateDayDate(currentTrip.startDate, dayIndex);
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(formatDate(date), margin + 5, yPos);
+      yPos += 5;
+
+      // Day budget
+      const dayBudget = calculateDayBudget(day);
+      if (dayBudget > 0) {
+        const currency = currentTrip?.currency || 'USD';
+        doc.setFontSize(9);
+        doc.text(`Budget: ${formatCurrency(dayBudget, currency)}`, pageWidth - margin - 40, yPos);
+      }
+
+      yPos += 10;
+
+      // Activities
+      if (day.activities && day.activities.length > 0) {
+        day.activities.forEach((activity, actIndex) => {
+          checkPageBreak(25);
+
+          // Activity number and time
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text(`${actIndex + 1}. ${activity.time || ''} - ${activity.name}`, margin + 5, yPos);
+          yPos += 7;
+
+          // Activity details
+          if (activity.details || activity.description) {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(71, 85, 105);
+            const detailsHeight = addWrappedText(
+              activity.details || activity.description,
+              margin + 10,
+              yPos,
+              contentWidth - 15,
+              9
+            );
+            yPos += detailsHeight + 3;
+          }
+
+          // Activity metadata
+          const metadata = [];
+          if (activity.duration) metadata.push(`Duration: ${activity.duration}`);
+          if (activity.location && activity.location.address) metadata.push(`Address: ${activity.location.address}`);
+          if (activity.cost) {
+            const currency = currentTrip?.currency || 'USD';
+            metadata.push(`Cost: ${formatCurrency(activity.cost, currency)}`);
+          }
+
+          if (metadata.length > 0) {
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            metadata.forEach(meta => {
+              checkPageBreak(6);
+              doc.text(`  ${meta}`, margin + 10, yPos);
+              yPos += 5;
+            });
+          }
+
+          yPos += 5;
+        });
+      }
+
+      yPos += 5;
+    });
+
+    // Footer on last page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Generated by Wahgola • Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    // Save PDF
+    const filename = `${currentTrip.name || 'Trip'} - Itinerary.pdf`.replace(/[^a-z0-9 -]/gi, '');
+    doc.save(filename);
+
+    showToast('PDF exported successfully!', 2000, 'success');
+
+  } catch (error) {
+    console.error('[PDF Export] Error:', error);
+    showToast('Failed to export PDF', 3000, 'error');
+  }
+}
+
+/**
+ * Convert hex color to RGB array
+ */
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [37, 99, 235]; // Default blue
+}

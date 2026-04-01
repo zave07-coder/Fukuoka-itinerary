@@ -1043,6 +1043,212 @@ body {
     margin-left: 0;
     margin-bottom: var(--space-3);
   }
+
+  /* Larger touch targets for mobile */
+  .activity-action-btn,
+  .day-action-btn,
+  .action-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  /* Better activity card spacing on mobile */
+  .activity-card {
+    padding: var(--space-4);
+  }
+
+  .activity-meta {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .activity-actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .activity-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Day toggle improvements */
+  .day-toggle-container {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .day-toggle-chip {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Budget display on mobile */
+  .budget-display {
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+
+  .trip-budget-overview {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  /* Modal improvements */
+  .modal-modern {
+    max-width: 95vw;
+    max-height: 85vh;
+    margin: 20px;
+  }
+
+  .modal-content-modern {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  /* Map controls on mobile */
+  .map-controls-bar {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .view-toggle {
+    width: 100%;
+  }
+
+  /* Search bar on mobile */
+  .search-filter-bar {
+    position: relative;
+    top: 0;
+  }
+
+  /* Toast notifications on mobile */
+  .toast-notification {
+    bottom: 80px;
+    right: 16px;
+    left: 16px;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* Extra small devices (phones in portrait, less than 480px) */
+@media (max-width: 480px) {
+  .trip-header {
+    height: auto;
+    min-height: var(--header-height);
+  }
+
+  .trip-header-content {
+    flex-wrap: wrap;
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .trip-title {
+    font-size: 14px;
+  }
+
+  .trip-meta {
+    font-size: 11px;
+  }
+
+  .trip-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  .action-btn {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .btn-ai-edit {
+    padding: 8px 12px;
+  }
+
+  .day-card {
+    margin-bottom: var(--space-3);
+  }
+
+  .day-card-header {
+    padding: var(--space-3);
+  }
+
+  .day-number-badge {
+    width: 40px;
+    height: 40px;
+    font-size: 12px;
+  }
+
+  .day-title {
+    font-size: 16px;
+  }
+
+  .day-date {
+    font-size: 12px;
+  }
+
+  .activities-list {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .activity-title {
+    font-size: 15px;
+  }
+
+  .activity-description {
+    font-size: 13px;
+  }
+
+  .filter-chip {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* Stack day budget badge */
+  .day-budget-badge {
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+}
+
+/* Landscape mode improvements for tablets and small laptops */
+@media (max-height: 600px) and (min-width: 768px) {
+  .trip-header {
+    height: 60px;
+  }
+
+  .modal-modern {
+    max-height: 90vh;
+  }
+
+  .map-panel {
+    height: calc(100vh - 60px);
+  }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .activity-image {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ============================================
