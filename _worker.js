@@ -914,6 +914,55 @@ const tripsHandler = async (request, env) => {
 };
 
 /**
+ * Get single trip by ID handler
+ */
+const getTripByIdHandler = async (request, env, tripId) => {
+  try {
+    const auth = await verifySupabaseToken(request, env);
+    const db = new SupabaseClient(env);
+
+    // Get user ID
+    const users = await db.query('users', {
+      select: 'id',
+      eq: { supabase_user_id: auth.userId }
+    });
+
+    if (!users || users.length === 0) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const userId = users[0].id;
+
+    // Get specific trip
+    const trips = await db.query('trips', {
+      select: '*',
+      eq: { id: tripId, user_id: userId }
+    });
+
+    if (!trips || trips.length === 0) {
+      return new Response(JSON.stringify({ error: 'Trip not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify(trips[0]), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Get trip by ID error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+/**
  * ZMailer helper - Send email via ZMailer API
  */
 async function sendEmail(env, { from, to, subject, html, text }) {
@@ -1140,6 +1189,10 @@ export default {
       return getHistoryHandler(request, env);
     } else if (url.pathname === '/api/sync-user') {
       return syncUserHandler(request, env);
+    } else if (url.pathname.startsWith('/api/trips/')) {
+      // Extract trip ID from path (e.g., /api/trips/123-abc)
+      const tripId = url.pathname.split('/api/trips/')[1];
+      return getTripByIdHandler(request, env, tripId);
     } else if (url.pathname === '/api/trips') {
       return tripsHandler(request, env);
     } else if (url.pathname === '/api/share-trip') {
