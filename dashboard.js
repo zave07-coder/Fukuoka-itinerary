@@ -373,6 +373,9 @@ async function generateTrip() {
             } else if (event.type === 'complete') {
               console.log('✅ Received completion event');
               tripData = event.data;
+              // Break out immediately - we have the data
+              reader.cancel();
+              break;
             } else if (event.type === 'error') {
               console.error('❌ Received error event:', event.error);
               throw new Error(event.error);
@@ -381,6 +384,12 @@ async function generateTrip() {
             console.warn('⚠️ Failed to parse SSE event:', e, 'Line:', line);
           }
         }
+      }
+
+      // If we got the complete event, exit the outer loop too
+      if (tripData) {
+        console.log('🎉 Breaking out of stream loop with trip data');
+        break;
       }
     }
 
