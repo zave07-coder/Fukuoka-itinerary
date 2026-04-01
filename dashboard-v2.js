@@ -360,6 +360,21 @@ async function generateTrip() {
       return;
     }
 
+    // If user is authenticated, save trip to cloud immediately
+    if (authService && authService.getCurrentUser()) {
+      try {
+        console.log('[AI Generation] User is authenticated, saving trip to cloud...');
+        const token = await authService.getAccessToken();
+        if (token) {
+          await tripManager.saveTripToCloud(trip.id, token);
+          console.log('[AI Generation] Trip saved to cloud successfully');
+        }
+      } catch (cloudError) {
+        console.error('[AI Generation] Failed to save to cloud:', cloudError);
+        // Don't block the user, continue anyway
+      }
+    }
+
     // Close modal and open trip
     closeAIModal();
     document.querySelector('.ai-form').style.display = 'block';
