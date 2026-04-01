@@ -16,8 +16,9 @@
   ],
   "author": "Your Name",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
+    "@playwright/test": "^1.59.0",
+    "playwright": "^1.59.0",
     "wrangler": "^4.76.0"
   }
 }

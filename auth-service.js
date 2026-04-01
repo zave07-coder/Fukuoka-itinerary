@@ -228,10 +228,15 @@ class AuthService {
       });
 
       if (!response.ok) {
-        console.error('Failed to sync user to database');
+        const errorData = await response.json().catch(() => ({}));
+        // Only log if it's not a "service unavailable" error (offline mode)
+        if (response.status !== 503) {
+          console.warn('Failed to sync user to database:', errorData.error || response.statusText);
+        }
       }
     } catch (error) {
-      console.error('User sync error:', error);
+      // Silently fail - user sync is optional
+      console.debug('User sync skipped:', error.message);
     }
   }
 
