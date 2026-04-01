@@ -1,14 +1,4 @@
-** - it's a special file that defines the Pages Functions worker. The deployed version must be in a different format or location.
-
-Actually, wait - I realize the real issue now. In **Cloudflare Pages Advanced Mode**, the `_worker.js` file is compiled/bundled during deployment and doesn't get served as a static file. That's why we're seeing HTML - it's being routed through the worker.
-
-The wor
-
-[2026-04-01] ## ✅ **ALL FIXED! Cloudflare Deployment Complete!**
-
-### 🎉 **What's Working Now:**
-
-1. **✅ sync-user endpoint** - No more 500 errors! Returns proper error messages
+point** - No more 500 errors! Returns proper error messages
 2. **✅ Cover images** - AI generates destination-specific images (Singapore image for test)
 3. **✅ All JavaScript fixes** - getCurrentUser(), cloud sync, etc.
 4. **✅ Worker deployed** - All backend fixes are live
@@ -101,3 +91,18 @@ Would you like me to:
 
 | Model Strategy | Cost/Itinerary | Reliability | Quality |
 |-
+
+[2026-04-01] Perfect! I've updated the map style from **`light-v11`** to **`streets-v12`**. 
+
+## What Changed:
+
+✅ **More detailed streets and labels**  
+✅ **Better road hierarchy** (highways, main roads, local streets)  
+✅ **POI labels** (restaurants, shops, landmarks)  
+✅ **Parks and green spaces** clearly marked  
+✅ **Better color contrast** for easier navigation  
+✅ **Transit information** included  
+
+The new `streets-v12` style is much better for travel planning as it shows:
+- Restaurant and shop names
+-

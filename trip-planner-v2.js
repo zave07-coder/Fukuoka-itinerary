@@ -167,7 +167,7 @@ function renderDayCard(day, dayNumber) {
   const date = calculateDayDate(currentTrip.startDate, dayNumber - 1);
 
   return `
-    <section class="day-card">
+    <section class="day-card" data-day="${dayNumber}">
       <div class="day-card-header">
         <div class="day-number-badge">Day ${dayNumber}</div>
         <div class="day-info">
@@ -213,15 +213,15 @@ function renderActivity(activity, activityIndex, dayNumber) {
   ` : '';
 
   return `
-    <div class="activity-item ${hasImage ? 'activity-with-image' : ''}" data-day="${dayNumber}" data-activity="${activityIndex}">
-      <div class="activity-time">
-        <span class="time-badge">${escapeHtml(activity.time || '')}</span>
+    <div class="activity-item activity-card ${hasImage ? 'activity-with-image' : ''}" data-day="${dayNumber}" data-activity="${activityIndex}">
+      <div class="activity-time-wrapper">
+        <span class="time-badge activity-time">${escapeHtml(activity.time || '')}</span>
       </div>
       <div class="activity-content">
         ${imageHtml}
 
         <div class="activity-header">
-          <h3 class="activity-name">${escapeHtml(activity.name)}</h3>
+          <h3 class="activity-name activity-title">${escapeHtml(activity.name)}</h3>
           ${getActivityTypeBadge(activity.location?.type)}
         </div>
         <p class="activity-description">
@@ -492,26 +492,115 @@ function focusOnMap(lat, lng, name) {
 }
 
 /**
- * Modal functions
+ * Current editing state
  */
-function openAIEditModal() {
-  document.getElementById('aiEditModal').style.display = 'flex';
-  document.getElementById('aiEditPrompt').focus();
-}
+let currentEditDayIndex = null;
+let isManualEditMode = false;
 
-function closeAIEditModal() {
-  document.getElementById('aiEditModal').style.display = 'none';
-}
-
+/**
+ * Manual editing function - makes day content editable
+ */
 function editDay(dayNum) {
-  alert('Manual editing coming soon! Use AI Edit for now.');
+  const dayIndex = dayNum - 1;
+  currentEditDayIndex = dayIndex;
+  isManualEditMode = true;
+
+  // Find the day card
+  const dayCard = document.querySelector(`[data-day="${dayNum}"]`);
+  if (!dayCard) {
+    alert('Day not found');
+    return;
+  }
+
+  // Make all activities editable
+  const activities = dayCard.querySelectorAll('.activity-title, .activity-description, .activity-time');
+  activities.forEach(el => {
+    el.contentEditable = 'true';
+    el.style.outline = '2px dashed #007bff';
+    el.style.padding = '4px';
+  });
+
+  // Show save/cancel buttons
+  const dayActions = dayCard.querySelector('.day-actions');
+  dayActions.innerHTML = `
+    <button class="btn-primary" onclick="saveDayEdits(${dayNum})">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>Save Changes</span>
+    </button>
+    <button class="btn-secondary" onclick="cancelDayEdits(${dayNum})">Cancel</button>
+  `;
 }
 
+/**
+ * Save manual edits to a day
+ */
+function saveDayEdits(dayNum) {
+  const dayIndex = dayNum - 1;
+  const dayCard = document.querySelector(`[data-day="${dayNum}"]`);
+
+  if (!dayCard || !currentTrip || !currentTrip.days[dayIndex]) {
+    alert('Error saving changes');
+    return;
+  }
+
+  // Collect edited data
+  const activities = dayCard.querySelectorAll('.activity-card');
+  const updatedActivities = [];
+
+  activities.forEach(activityEl => {
+    const title = activityEl.querySelector('.activity-title')?.textContent?.trim();
+    const description = activityEl.querySelector('.activity-description')?.textContent?.trim();
+    const time = activityEl.querySelector('.activity-time')?.textContent?.trim();
+
+    if (title) {
+      updatedActivities.push({
+        time: time || '9:00 AM',
+        title: title,
+        description: description || '',
+        location: currentTrip.days[dayIndex].activities[updatedActivities.length]?.location || null
+      });
+    }
+  });
+
+  // Update trip data
+  currentTrip.days[dayIndex].activities = updatedActivities;
+  tripManager.updateTrip(currentTripId, currentTrip);
+
+  console.log('[Manual Edit] Saved changes to day', dayNum);
+
+  // Reload page to show changes
+  alert('Changes saved! Refreshing...');
+  window.location.reload();
+}
+
+/**
+ * Cancel manual edits
+ */
+function cancelDayEdits(dayNum) {
+  window.location.reload();
+}
+
+/**
+ * AI Edit Day function
+ */
 function editDayWithAI(dayNum) {
+  currentEditDayIndex = dayNum - 1;
+  isManualEditMode = false;
+
   document.getElementById('aiEditPrompt').value = '';
   document.getElementById('aiEditPrompt').placeholder = `E.g., "Add a traditional tea ceremony in the afternoon" or "Replace the first activity with something kid-friendly"`;
-  document.getElementById('aiEditModal').querySelector('.modal-header-modern h2').textContent = `Edit Day ${dayNum} with AI`;
-  openAIEditModal();
+
+  const modal = document.getElementById('aiEditModal');
+  if (modal) {
+    const header = modal.querySelector('h2');
+    if (header) {
+      header.textContent = `Edit Day ${dayNum} with AI`;
+    }
+    modal.style.display = 'flex';
+    document.getElementById('aiEditPrompt')?.focus();
+  }
 }
 
 /**
@@ -762,10 +851,8 @@ async function drawRoute(locations) {
 /**
  * AI Edit Modal Functions
  */
-let currentEditDayIndex = null;
-
 function openAIEditModal() {
-  const modal = document.getElementById('aiEditModalOverlay');
+  const modal = document.getElementById('aiEditModal');
   if (modal) {
     modal.style.display = 'flex';
     document.getElementById('aiEditPrompt')?.focus();
@@ -773,7 +860,7 @@ function openAIEditModal() {
 }
 
 function closeAIEditModal() {
-  const modal = document.getElementById('aiEditModalOverlay');
+  const modal = document.getElementById('aiEditModal');
   if (modal) {
     modal.style.display = 'none';
     document.getElementById('aiEditPrompt').value = '';
@@ -846,11 +933,4 @@ async function submitAIEdit() {
   }
 }
 
-// Set up edit button click handlers
-document.addEventListener('DOMContentLoaded', () => {
-  // Handle Generate Changes button click
-  const generateBtn = document.querySelector('#aiEditModalOverlay .btn-primary');
-  if (generateBtn && !generateBtn.onclick) {
-    generateBtn.onclick = submitAIEdit;
-  }
-});
+// Generate Changes button now has onclick="submitAIEdit()" in HTML
