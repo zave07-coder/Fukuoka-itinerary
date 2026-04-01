@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoto Cherry Blossom Adventure | Wahgola</title>
-    <link rel="stylesheet" href="trip-planner-v2.css?v=12">
+    <link rel="stylesheet" href="trip-planner-v2.css?v=13">
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth-service.js?v=12"></script>
-    <script src="sync-service.js?v=12"></script>
-    <script src="trip-manager.js?v=12"></script>
-    <script src="trip-planner-v2.js?v=12" defer></script>
+    <script src="auth-service.js?v=13"></script>
+    <script src="sync-service.js?v=13"></script>
+    <script src="trip-manager.js?v=13"></script>
+    <script src="trip-planner-v2.js?v=13" defer></script>
 </head>
 <body>
 
@@ -178,6 +178,25 @@
 
         <!-- RIGHT: ITINERARY PANEL (SCROLLABLE) -->
         <article class="itinerary-panel">
+
+            <!-- Trip Summary Card -->
+            <section class="trip-summary-card" id="tripSummaryCard" style="display: none;">
+                <div class="summary-header">
+                    <h3>Trip Overview</h3>
+                    <button class="summary-refresh-btn" onclick="regenerateSummary()" title="Regenerate summary with AI">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="summary-content" id="tripSummaryContent">
+                    <div class="summary-skeleton">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Day 1 Card -->
             <section class="day-card">

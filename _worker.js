@@ -602,6 +602,16 @@ const generateTripHandler = async (request, env) => {
       return day;
     });
 
+    // Generate trip summary
+    try {
+      const summaryData = await generateTripSummary(tripData, env);
+      tripData.summary = summaryData.summary;
+      tripData.highlights = summaryData.highlights;
+    } catch (summaryError) {
+      console.warn('Failed to generate summary:', summaryError);
+      // Continue without summary - not critical
+    }
+
     // Add metadata
     tripData.aiGenerated = true;
     tripData.generatedBy = usedModel;
@@ -1345,6 +1355,96 @@ const shareTripHandler = async (request, env) => {
   }
 };
 
+/**
+ * Generate trip summary with AI
+ */
+async function generateTripSummary(trip, env) {
+  if (!env.OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const dayCount = trip.days?.length || 0;
+  const activityCount = trip.days?.reduce((sum, day) => sum + (day.activities?.length || 0), 0) || 0;
+
+  const prompt = `Analyze this ${dayCount}-day trip to ${trip.destination} and provide a concise, engaging summary (2-3 sentences) highlighting the main themes, experiences, and unique aspects. Also extract 3-5 key highlights as short phrases.
+
+Trip Details:
+- Destination: ${trip.destination}
+- Duration: ${dayCount} days
+- Total Activities: ${activityCount}
+- Days: ${trip.days.map((day, i) => `Day ${i + 1}: ${day.activities?.map(a => a.name || a.title).join(', ')}`).join('; ')}
+
+Return JSON: {"summary": "...", "highlights": ["highlight1", "highlight2", ...]}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a travel expert. Create engaging, concise trip summaries that capture the essence and highlights of the itinerary.'
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_completion_tokens: 300,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const result = JSON.parse(data.choices[0].message.content);
+
+  return {
+    summary: result.summary || 'Explore the best of ' + trip.destination,
+    highlights: result.highlights || []
+  };
+}
+
+/**
+ * Handle generate summary API endpoint
+ */
+const generateSummaryHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const { trip } = await request.json();
+
+    if (!trip) {
+      return new Response(JSON.stringify({ error: 'Trip data required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const summaryData = await generateTripSummary(trip, env);
+
+    return new Response(JSON.stringify(summaryData), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Summary generation error:', error);
+    return new Response(JSON.stringify({
+      error: error.message || 'Failed to generate summary'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -1413,6 +1513,8 @@ export default {
       return tripsHandler(request, env);
     } else if (url.pathname === '/api/share-trip') {
       return shareTripHandler(request, env);
+    } else if (url.pathname === '/api/generate-summary') {
+      return generateSummaryHandler(request, env);
     }
 
     // For non-API routes, return the static file (handled by Pages)

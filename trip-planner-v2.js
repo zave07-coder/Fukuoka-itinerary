@@ -1375,3 +1375,96 @@ function executeDuplicateDay() {
   closeDuplicateDayModal();
   setTimeout(() => window.location.reload(), 1500);
 }
+
+/**
+ * ============================================
+ * TRIP SUMMARY FUNCTIONALITY
+ * ============================================
+ */
+
+/**
+ * Display trip summary if it exists
+ */
+function displayTripSummary() {
+  if (!currentTrip || !currentTrip.summary) return;
+  
+  const summaryCard = document.getElementById('tripSummaryCard');
+  const summaryContent = document.getElementById('tripSummaryContent');
+  
+  if (!summaryCard || !summaryContent) return;
+  
+  summaryContent.innerHTML = `
+    <p>${currentTrip.summary}</p>
+    ${currentTrip.highlights ? `
+      <div class="summary-highlights">
+        ${currentTrip.highlights.map(h => `<span class="summary-highlight">${h}</span>`).join('')}
+      </div>
+    ` : ''}
+  `;
+  
+  summaryCard.style.display = 'block';
+}
+
+/**
+ * Regenerate trip summary with AI
+ */
+async function regenerateSummary() {
+  if (!currentTrip) {
+    showToast('No trip loaded', 2000, 'error');
+    return;
+  }
+  
+  const summaryContent = document.getElementById('tripSummaryContent');
+  if (!summaryContent) return;
+  
+  // Show loading skeleton
+  summaryContent.innerHTML = `
+    <div class="summary-skeleton">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  `;
+  
+  showToast('Generating trip summary...', 2000, 'info');
+  
+  try {
+    const response = await fetch('/api/generate-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trip: currentTrip
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to generate summary');
+    }
+    
+    const data = await response.json();
+    
+    // Update trip with new summary
+    currentTrip.summary = data.summary;
+    currentTrip.highlights = data.highlights;
+    
+    // Save to localStorage
+    tripManager.updateTrip(currentTripId, currentTrip);
+    
+    // Display updated summary
+    displayTripSummary();
+    
+    showToast('Summary updated!', 2000, 'success');
+    
+  } catch (error) {
+    console.error('[Summary] Error:', error);
+    showToast('Failed to generate summary', 3000, 'error');
+    summaryContent.innerHTML = '<p>Failed to generate summary. Please try again.</p>';
+  }
+}
+
+// Display summary on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    displayTripSummary();
+  }, 500);
+});
