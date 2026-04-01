@@ -302,7 +302,7 @@ function startBlankTrip() {
 }
 
 /**
- * Generate trip with AI
+ * Generate trip with AI (with streaming support)
  */
 async function generateTrip() {
   const prompt = document.getElementById('aiPrompt').value.trim();
@@ -316,24 +316,14 @@ async function generateTrip() {
   document.querySelector('.ai-form').style.display = 'none';
   document.getElementById('loadingState').style.display = 'block';
 
-  const loadingMessages = [
-    'Analyzing destinations and activities...',
-    'Finding the best places to visit...',
-    'Creating day-by-day itinerary...',
-    'Adding GPS locations and details...'
-  ];
-
-  let messageIndex = 0;
-  const messageInterval = setInterval(() => {
-    document.getElementById('loadingMessage').textContent = loadingMessages[messageIndex];
-    messageIndex = (messageIndex + 1) % loadingMessages.length;
-  }, 2000);
+  const loadingMessageEl = document.getElementById('loadingMessage');
+  loadingMessageEl.textContent = 'Starting AI generation...';
 
   try {
     const response = await fetch('/api/generate-trip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, stream: true })
     });
 
     if (!response.ok) {
@@ -341,9 +331,46 @@ async function generateTrip() {
       throw new Error(error.userMessage || error.error || 'Failed to generate trip');
     }
 
-    const tripData = await response.json();
+    // Read streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let tripData = null;
 
-    clearInterval(messageInterval);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const event = JSON.parse(line.slice(6));
+
+            if (event.type === 'progress') {
+              // Show preview of content being generated
+              const preview = event.content.substring(0, 200);
+              const lines = preview.split('\n').filter(l => l.trim());
+              const firstLine = lines[0] || 'Generating...';
+              loadingMessageEl.textContent = `✨ ${firstLine.substring(0, 80)}...`;
+            } else if (event.type === 'complete') {
+              tripData = event.data;
+            } else if (event.type === 'error') {
+              throw new Error(event.error);
+            }
+          } catch (e) {
+            console.warn('Failed to parse SSE event:', e);
+          }
+        }
+      }
+    }
+
+    if (!tripData) {
+      throw new Error('No trip data received');
+    }
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
@@ -358,7 +385,6 @@ async function generateTrip() {
     openTrip(trip.id);
 
   } catch (error) {
-    clearInterval(messageInterval);
     console.error('AI generation error:', error);
 
     document.querySelector('.ai-form').style.display = 'block';

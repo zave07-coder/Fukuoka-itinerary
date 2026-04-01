@@ -547,7 +547,7 @@ const generateTripHandler = async (request, env) => {
   }
 
   try {
-    const { prompt } = await request.json();
+    const { prompt, stream } = await request.json();
 
     // Validation
     if (!prompt || prompt.trim() === '') {
@@ -570,8 +570,95 @@ const generateTripHandler = async (request, env) => {
       });
     }
 
-    console.log('Generating trip with prompt:', prompt);
+    console.log('Generating trip with prompt:', prompt, 'Stream:', stream);
 
+    // If streaming is requested, use GPT streaming (Gemini doesn't support streaming easily)
+    if (stream) {
+      const streamResponse = await generateWithGPT(prompt, env);
+
+      // Create a ReadableStream to send Server-Sent Events to the client
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+      const encoder = new TextEncoder();
+
+      (async () => {
+        try {
+          const reader = streamResponse.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let fullContent = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices[0]?.delta?.content || '';
+                  if (content) {
+                    fullContent += content;
+                    // Send progress update to client
+                    await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'progress', content: fullContent })}\n\n`));
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
+              }
+            }
+          }
+
+          // Parse final JSON and send completion
+          try {
+            const tripData = JSON.parse(fullContent);
+
+            // Validate and fix data
+            if (!tripData.coverImage) {
+              tripData.coverImage = getCoverImageForDestination(tripData.destination);
+            }
+
+            tripData.days = tripData.days.map(day => {
+              if (day.activities && Array.isArray(day.activities)) {
+                day.activities = day.activities.map(activity => {
+                  if (activity.location) {
+                    activity.location = validateLocationCoordinates(activity.location, tripData.destination);
+                  }
+                  return activity;
+                });
+              }
+              return day;
+            });
+
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', data: tripData })}\n\n`));
+          } catch (parseError) {
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: 'Failed to parse response' })}\n\n`));
+          }
+
+          await writer.close();
+        } catch (error) {
+          await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`));
+          await writer.close();
+        }
+      })();
+
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
+        }
+      });
+    }
+
+    // Non-streaming mode (original behavior)
     // Try Gemini 2.0 Flash first (primary, cheaper)
     let tripData;
     let usedModel = 'gemini-2.0-flash';
@@ -584,17 +671,49 @@ const generateTripHandler = async (request, env) => {
       console.warn('Gemini failed:', geminiError.message);
       lastError = geminiError;
 
-      // Fallback to GPT-4o-mini
+      // Fallback to GPT (non-streaming)
       try {
         if (!env.OPENAI_API_KEY) {
           throw new Error('OpenAI API key not configured');
         }
 
-        console.log('Attempting GPT-4o-mini fallback...');
-        usedModel = 'gpt-4o-mini';
-        tripData = await generateWithGPT(prompt, env);
-        console.log('Successfully generated with GPT-4o-mini fallback');
-        lastError = null; // Clear error on success
+        console.log('Attempting GPT-5.4 fallback...');
+        usedModel = 'gpt-5.4';
+
+        // Get streaming response but collect all data
+        const streamResponse = await generateWithGPT(prompt, env);
+        const reader = streamResponse.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullContent = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0]?.delta?.content || '';
+                fullContent += content;
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+
+        tripData = JSON.parse(fullContent);
+        console.log('Successfully generated with GPT fallback');
+        lastError = null;
       } catch (gptError) {
         console.error('GPT fallback also failed:', gptError.message);
 
@@ -994,7 +1113,8 @@ Important:
       ],
       temperature: 0.7,
       max_completion_tokens: 8000,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      stream: true // Enable streaming
     })
   });
 
@@ -1021,20 +1141,61 @@ Important:
     throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
   }
 
-  const data = await response.json();
+  // Return the streaming response directly for the handler to process
+  return response;
+}
 
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw new Error('Invalid response from OpenAI');
-  }
+/**
+ * Generate trip using GPT with streaming support (returns ReadableStream)
+ */
+async function generateWithGPTStreaming(prompt, env) {
+  const streamResponse = await generateWithGPT(prompt, env);
 
-  const content = data.choices[0].message.content;
+  // Create a TransformStream to parse SSE and extract content
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+  const encoder = new TextEncoder();
 
-  try {
-    return JSON.parse(content);
-  } catch (parseError) {
-    console.error('Failed to parse GPT JSON:', content);
-    throw new Error('Failed to parse GPT response as JSON');
-  }
+  (async () => {
+    try {
+      const reader = streamResponse.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || '';
+              if (content) {
+                // Send progress update to client
+                await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'content', data: content })}\n\n`));
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      await writer.close();
+    } catch (error) {
+      await writer.abort(error);
+    }
+  })();
+
+  return readable;
 }
 
 /**
