@@ -57,6 +57,9 @@ function renderTrip() {
   const itineraryPanel = document.querySelector('.itinerary-panel');
   itineraryPanel.innerHTML = renderDays(currentTrip.days || []);
 
+  // Update day selector dropdown
+  updateDaySelector();
+
   // Update map
   if (currentTrip.days && currentTrip.days.length > 0) {
     updateMapMarkers();
@@ -258,10 +261,13 @@ function initializeMap() {
     console.log('Mapbox token set, creating map...');
     console.log('mapboxgl.accessToken:', mapboxgl.accessToken);
 
+    // Get initial center from trip data
+    const initialCenter = getInitialMapCenter();
+
     map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [135.7681, 35.0116], // Default to Kyoto
+      style: 'mapbox://styles/mapbox/light-v11', // Use light-v11 to avoid vector tile errors
+      center: initialCenter,
       zoom: 11,
       attributionControl: true
     });
@@ -269,6 +275,7 @@ function initializeMap() {
     map.on('load', () => {
       console.log('Map loaded successfully ✅');
       updateMapMarkers();
+      setupDaySelector();
     });
 
     map.on('error', (e) => {
@@ -285,6 +292,28 @@ function initializeMap() {
     console.error('Map initialization error:', err);
     showMapError(err.message);
   }
+}
+
+/**
+ * Get initial map center from trip's first location
+ */
+function getInitialMapCenter() {
+  if (!currentTrip || !currentTrip.days || currentTrip.days.length === 0) {
+    return [135.7681, 35.0116]; // Default to Kyoto
+  }
+
+  // Try to find first activity with location
+  for (const day of currentTrip.days) {
+    if (day.activities && day.activities.length > 0) {
+      for (const activity of day.activities) {
+        if (activity.location && activity.location.lat && activity.location.lng) {
+          return [activity.location.lng, activity.location.lat];
+        }
+      }
+    }
+  }
+
+  return [135.7681, 35.0116]; // Fallback to Kyoto
 }
 
 /**
@@ -514,4 +543,150 @@ function escapeHtml(text) {
 function expandDay(dayNum) {
   // Future: Handle collapsed days
   alert('Day expansion coming soon!');
+}
+
+/**
+ * Update day selector dropdown to match trip length
+ */
+function updateDaySelector() {
+  const daySelect = document.getElementById('daySelect');
+  if (!daySelect || !currentTrip || !currentTrip.days) return;
+
+  const numDays = currentTrip.days.length;
+
+  // Build options
+  let options = '<option value="all">All Locations</option>';
+  for (let i = 1; i <= numDays; i++) {
+    const dayTitle = currentTrip.days[i - 1]?.title || `Day ${i}`;
+    options += `<option value="${i}">Day ${i}</option>`;
+  }
+
+  daySelect.innerHTML = options;
+}
+
+/**
+ * Setup day selector event listener
+ */
+function setupDaySelector() {
+  const daySelect = document.getElementById('daySelect');
+  if (!daySelect) return;
+
+  daySelect.addEventListener('change', (e) => {
+    const selectedDay = e.target.value;
+    filterMapByDay(selectedDay);
+  });
+}
+
+/**
+ * Filter map markers and draw routes by day
+ */
+function filterMapByDay(day) {
+  if (!map || !currentTrip || !currentTrip.days) return;
+
+  // Remove existing route
+  if (map.getLayer('route')) {
+    map.removeLayer('route');
+  }
+  if (map.getSource('route')) {
+    map.removeSource('route');
+  }
+
+  if (day === 'all') {
+    // Show all markers
+    markers.forEach(marker => marker.getElement().style.opacity = '1');
+
+    // Fit all markers
+    if (markers.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      markers.forEach(marker => bounds.extend(marker.getLngLat()));
+      map.fitBounds(bounds, { padding: 50 });
+    }
+  } else {
+    const dayNum = parseInt(day);
+    const dayLocations = [];
+
+    // Collect locations for selected day
+    const selectedDay = currentTrip.days[dayNum - 1];
+    if (selectedDay && selectedDay.activities) {
+      selectedDay.activities.forEach(activity => {
+        if (activity.location && activity.location.lat && activity.location.lng) {
+          dayLocations.push({
+            lng: activity.location.lng,
+            lat: activity.location.lat,
+            name: activity.name
+          });
+        }
+      });
+    }
+
+    // Update marker opacity
+    markers.forEach(marker => {
+      const markerPos = marker.getLngLat();
+      const isInDay = dayLocations.some(loc =>
+        Math.abs(loc.lng - markerPos.lng) < 0.0001 &&
+        Math.abs(loc.lat - markerPos.lat) < 0.0001
+      );
+      marker.getElement().style.opacity = isInDay ? '1' : '0.3';
+    });
+
+    // Draw route for the day
+    if (dayLocations.length > 1) {
+      drawRoute(dayLocations);
+    }
+
+    // Fit bounds to day locations
+    if (dayLocations.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      dayLocations.forEach(loc => bounds.extend([loc.lng, loc.lat]));
+      map.fitBounds(bounds, { padding: 80 });
+    }
+  }
+}
+
+/**
+ * Draw route between locations using Mapbox Directions API
+ */
+async function drawRoute(locations) {
+  if (!map || locations.length < 2) return;
+
+  const coordinates = locations.map(l => `${l.lng},${l.lat}`).join(';');
+
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&overview=full&access_token=${mapboxgl.accessToken}`
+    );
+
+    const data = await response.json();
+
+    if (data.routes && data.routes[0]) {
+      const route = data.routes[0].geometry;
+
+      // Add route to map
+      map.addSource('route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: route
+        }
+      });
+
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#3887be',
+          'line-width': 4,
+          'line-opacity': 0.75
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error drawing route:', error);
+  }
 }
