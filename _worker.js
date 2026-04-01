@@ -1095,17 +1095,15 @@ export default {
       }
 
       // Supabase config (optional - for auth features)
-      // Debug: log env keys
-      console.log('Available env keys:', Object.keys(env || {}));
-      console.log('SUPABASE_URL exists:', !!env.SUPABASE_URL);
-      console.log('SUPABASE_ANON_KEY exists:', !!env.SUPABASE_ANON_KEY);
+      // Fallback to hardcoded values if env vars not available
+      // Note: These are public values (anon key is safe to expose)
+      const supabaseUrl = env.SUPABASE_URL || 'https://gdhyukplodnvokrmxvba.supabase.co';
+      const supabaseAnonKey = env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkaHl1a3Bsb2Rudm9rcm14dmJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTI4NjQsImV4cCI6MjA5MDQ2ODg2NH0.Ygoi5WlRHbfxdNx7dQzvlPnXkRElTWbOac1LZQZAkm4';
 
-      const supabaseConfig = env.SUPABASE_URL && env.SUPABASE_ANON_KEY
-        ? `window.SUPABASE_CONFIG = {
-             SUPABASE_URL: '${env.SUPABASE_URL}',
-             SUPABASE_ANON_KEY: '${env.SUPABASE_ANON_KEY}'
-           };`
-        : 'window.SUPABASE_CONFIG = null;';
+      const supabaseConfig = `window.SUPABASE_CONFIG = {
+           SUPABASE_URL: '${supabaseUrl}',
+           SUPABASE_ANON_KEY: '${supabaseAnonKey}'
+         };`;
 
       return new Response(
         `window.MAPBOX_CONFIG = { token: '${mapboxToken}' };\n${supabaseConfig}`,
