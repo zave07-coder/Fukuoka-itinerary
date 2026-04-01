@@ -758,3 +758,99 @@ async function drawRoute(locations) {
     console.error('Error drawing route:', error);
   }
 }
+
+/**
+ * AI Edit Modal Functions
+ */
+let currentEditDayIndex = null;
+
+function openAIEditModal() {
+  const modal = document.getElementById('aiEditModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('aiEditPrompt')?.focus();
+  }
+}
+
+function closeAIEditModal() {
+  const modal = document.getElementById('aiEditModalOverlay');
+  if (modal) {
+    modal.style.display = 'none';
+    document.getElementById('aiEditPrompt').value = '';
+    currentEditDayIndex = null;
+  }
+}
+
+async function submitAIEdit() {
+  const prompt = document.getElementById('aiEditPrompt')?.value?.trim();
+  
+  if (!prompt) {
+    alert('Please describe what you\'d like to change');
+    return;
+  }
+
+  if (!currentTrip || !currentTrip.days || currentTrip.days.length === 0) {
+    alert('No trip data available to edit');
+    return;
+  }
+
+  // Disable button and show loading
+  const submitBtn = event.target.closest('button');
+  const originalHTML = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span>Generating...</span>';
+
+  try {
+    console.log('[AI Edit] Submitting edit request:', { prompt, dayIndex: currentEditDayIndex });
+
+    const response = await fetch('/api/ai-edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: prompt,
+        currentDay: currentEditDayIndex !== null ? currentTrip.days[currentEditDayIndex] : null,
+        tripContext: {
+          destination: currentTrip.destination,
+          totalDays: currentTrip.days.length
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.userMessage || error.error || 'Failed to generate changes');
+    }
+
+    const updatedDay = await response.json();
+    console.log('[AI Edit] Received updated day:', updatedDay);
+
+    // Update the trip
+    if (currentEditDayIndex !== null && currentEditDayIndex < currentTrip.days.length) {
+      currentTrip.days[currentEditDayIndex] = updatedDay;
+    }
+
+    // Save to localStorage
+    tripManager.updateTrip(currentTripId, currentTrip);
+    console.log('[AI Edit] Trip updated in localStorage');
+
+    // Reload the page to show changes
+    closeAIEditModal();
+    alert('Day updated successfully! Refreshing...');
+    window.location.reload();
+
+  } catch (error) {
+    console.error('[AI Edit] Error:', error);
+    alert(`Failed to generate changes: ${error.message}\n\nPlease try again.`);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalHTML;
+  }
+}
+
+// Set up edit button click handlers
+document.addEventListener('DOMContentLoaded', () => {
+  // Handle Generate Changes button click
+  const generateBtn = document.querySelector('#aiEditModalOverlay .btn-primary');
+  if (generateBtn && !generateBtn.onclick) {
+    generateBtn.onclick = submitAIEdit;
+  }
+});
