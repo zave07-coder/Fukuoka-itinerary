@@ -23,20 +23,20 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 420px;
             width: 100%;
-            padding: 48px;
+            padding: 40px;
             text-align: center;
         }
 
         .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary-600) 0%, #f59e0b 100%);
-            border-radius: 20px;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #2563eb 0%, #f59e0b 100%);
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -58,23 +58,25 @@
         }
 
         .login-logo svg {
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             position: relative;
             z-index: 1;
+            fill: white;
+            stroke: white;
         }
 
         .login-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
-            color: var(--neutral-900);
+            color: #1f2937;
             margin-bottom: 8px;
         }
 
         .login-subtitle {
-            font-size: 16px;
-            color: var(--neutral-600);
-            margin-bottom: 32px;
+            font-size: 15px;
+            color: #6b7280;
+            margin-bottom: 28px;
         }
 
         .login-buttons {
@@ -87,33 +89,38 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            padding: 14px 24px;
+            gap: 10px;
+            padding: 12px 20px;
             background: white;
-            border: 2px solid var(--neutral-300);
-            border-radius: 12px;
-            font-size: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
-            color: var(--neutral-900);
+            color: #1f2937;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .btn-google:hover {
-            border-color: var(--neutral-400);
-            background: var(--neutral-50);
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .btn-google:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-email {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            padding: 14px 24px;
-            background: var(--primary-600);
+            gap: 10px;
+            padding: 12px 20px;
+            background: #2563eb;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             color: white;
             cursor: pointer;
@@ -121,16 +128,16 @@
         }
 
         .btn-email:hover {
-            background: var(--primary-700);
+            background: #1d4ed8;
         }
 
         .divider {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin: 24px 0;
-            color: var(--neutral-500);
-            font-size: 14px;
+            gap: 12px;
+            margin: 20px 0;
+            color: #9ca3af;
+            font-size: 13px;
         }
 
         .divider::before,
@@ -138,17 +145,19 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: var(--neutral-300);
+            background: #e5e7eb;
         }
 
         .skip-login {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--neutral-200);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
         }
 
         .skip-login a {
-            color: var(--primary-600);
+            color: #2563eb;
             text-decoration: none;
             font-weight: 600;
         }
