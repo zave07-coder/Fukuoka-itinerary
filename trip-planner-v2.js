@@ -1260,7 +1260,7 @@ function closeAIEditModal() {
 
 async function submitAIEdit() {
   const prompt = document.getElementById('aiEditPrompt')?.value?.trim();
-  
+
   if (!prompt) {
     showToast('Please describe what you\'d like to change', 2000, 'warning');
     return;
@@ -1278,7 +1278,17 @@ async function submitAIEdit() {
   submitBtn.innerHTML = '<span>Generating...</span>';
 
   try {
-    console.log('[AI Edit] Submitting edit request:', { prompt, dayIndex: currentEditDayIndex });
+    const isWholeTrip = currentEditDayIndex === null;
+    console.log('[AI Edit] Submitting edit request:', {
+      prompt,
+      dayIndex: currentEditDayIndex,
+      isWholeTrip
+    });
+
+    // If editing whole trip, show note to user
+    if (isWholeTrip) {
+      showToast('Editing entire trip may take a moment...', 3000, 'info');
+    }
 
     const response = await fetch('/api/ai-edit', {
       method: 'POST',
@@ -1286,9 +1296,11 @@ async function submitAIEdit() {
       body: JSON.stringify({
         prompt: prompt,
         currentDay: currentEditDayIndex !== null ? currentTrip.days[currentEditDayIndex] : null,
+        allDays: isWholeTrip ? currentTrip.days : null,
         tripContext: {
           destination: currentTrip.destination,
-          totalDays: currentTrip.days.length
+          totalDays: currentTrip.days.length,
+          isWholeTrip: isWholeTrip
         }
       })
     });
@@ -1298,23 +1310,57 @@ async function submitAIEdit() {
       throw new Error(error.userMessage || error.error || 'Failed to generate changes');
     }
 
-    const updatedDay = await response.json();
-    console.log('[AI Edit] Received updated day:', updatedDay);
+    const result = await response.json();
+    console.log('[AI Edit] Received result:', result);
 
-    // Validate and fix coordinates
-    updatedDay.activities = updatedDay.activities.map(activity => {
-      if (activity.location) {
-        activity.location = validateCoordinates(activity.location, currentTrip.destination);
+    if (isWholeTrip) {
+      // For whole trip edits, we get an array of days
+      const updatedDays = result.days || result;
+
+      if (!Array.isArray(updatedDays)) {
+        throw new Error('Invalid response format for whole trip edit');
       }
-      return activity;
-    });
 
-    // Store pending changes
-    pendingAIChanges = updatedDay;
+      // Validate coordinates for all days
+      updatedDays.forEach(day => {
+        if (day.activities) {
+          day.activities = day.activities.map(activity => {
+            if (activity.location) {
+              activity.location = validateCoordinates(activity.location, currentTrip.destination);
+            }
+            return activity;
+          });
+        }
+      });
 
-    // Show preview modal
-    closeAIEditModal();
-    showAIPreview(updatedDay);
+      // Apply changes directly (whole trip edits are auto-applied)
+      currentTrip.days = updatedDays;
+      tripManager.updateTrip(currentTripId, currentTrip);
+
+      closeAIEditModal();
+      renderTrip();
+
+      showToast('Trip updated successfully!', 2000, 'success');
+
+    } else {
+      // For single day edits, show preview
+      const updatedDay = result;
+
+      // Validate and fix coordinates
+      updatedDay.activities = updatedDay.activities.map(activity => {
+        if (activity.location) {
+          activity.location = validateCoordinates(activity.location, currentTrip.destination);
+        }
+        return activity;
+      });
+
+      // Store pending changes
+      pendingAIChanges = updatedDay;
+
+      // Show preview modal
+      closeAIEditModal();
+      showAIPreview(updatedDay);
+    }
 
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalHTML;

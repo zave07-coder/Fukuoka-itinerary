@@ -256,7 +256,7 @@ const aiEditHandler = async (request, env) => {
   }
 
   try {
-    const { prompt, currentDay, tripContext } = await request.json();
+    const { prompt, currentDay, allDays, tripContext } = await request.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -264,6 +264,8 @@ const aiEditHandler = async (request, env) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    const isWholeTrip = tripContext?.isWholeTrip || allDays !== null;
 
     // Build context from trip data
     const contextParts = [];
@@ -273,13 +275,46 @@ const aiEditHandler = async (request, env) => {
     if (tripContext?.totalDays) {
       contextParts.push(`Total trip duration: ${tripContext.totalDays} days`);
     }
-    if (currentDay) {
-      contextParts.push(`Editing Day: ${JSON.stringify(currentDay)}`);
+
+    if (isWholeTrip && allDays) {
+      contextParts.push(`Editing entire trip with ${allDays.length} days`);
+      contextParts.push(`Current trip data: ${JSON.stringify(allDays)}`);
+    } else if (currentDay) {
+      contextParts.push(`Editing single day: ${JSON.stringify(currentDay)}`);
     }
+
     const context = contextParts.join('. ');
 
-    // System prompt for day editing
-    const systemPrompt = `You are editing a travel itinerary day. ${context}
+    // System prompt - different for whole trip vs single day
+    const systemPrompt = isWholeTrip ?
+      `You are editing an entire multi-day travel itinerary. ${context}
+
+Return a complete updated trip as an array of day objects in JSON format:
+{
+  "days": [
+    {
+      "title": "Day 1: Arrival",
+      "activities": [
+        {
+          "time": "9:00 AM",
+          "name": "Activity name",
+          "details": "Activity description",
+          "duration": "1 hour",
+          "location": {
+            "name": "Location name",
+            "lat": 33.5904,
+            "lng": 130.4017,
+            "type": "restaurant|attraction|hotel|cafe|park",
+            "address": "Full address"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+Important: Return ALL days with ALL their activities. Apply the user's requested changes across the appropriate days.`
+      : `You are editing a single day in a travel itinerary. ${context}
 
 Return a complete updated day object in JSON format with this structure:
 {
@@ -302,7 +337,8 @@ Return a complete updated day object in JSON format with this structure:
 
 Important: Return the ENTIRE day with ALL activities, not just changes. Modify based on the user's request.`;
 
-    const maxTokens = 8000;
+    // Whole trip edits need more tokens
+    const maxTokens = isWholeTrip ? 16000 : 8000;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
