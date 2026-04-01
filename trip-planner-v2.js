@@ -51,7 +51,7 @@ function loadTripFromURL() {
     console.error('[Trip Loader] Available IDs:', allTrips.map(t => t.id));
 
     // Try to load from cloud if user is authenticated
-    if (typeof authService !== 'undefined' && authService.isAuthenticatedSync()) {
+    if (typeof authService !== 'undefined' && authService.getCurrentUser()) {
       console.log('[Trip Loader] Attempting to load trip from cloud...');
       loadTripFromCloud(currentTripId);
       return;

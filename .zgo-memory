@@ -1,14 +1,4 @@
-me (default: 1 hour)
-2. **No automatic token refresh** was enabled
-3. **Stale data in localStorage** made it look like you were logged in
-4. **No session validation** - app trusted localStorage blindly
-
-### **What I Fixed:**
-
-1. **✅ Enabled `autoRefreshToken`** - Supabase now automatically refreshes tokens before they expire
-2. **✅ Session validation on init** - Checks if session has expired an
-
-[2026-04-01] Perfect! The changes are pushed. Wait about 1 minute for deployment, then the login page should look much better:
+ch better:
 
 ## ✅ Fixed Login Page Layout!
 
@@ -106,3 +96,18 @@ for (let i = localStorage.length - 1; i >= 0; i--) {
 - Fallback to generic travel image if destination not matched
 
 ### **2. Trip Creation
+
+[2026-04-01] ## 🔍 Debugging Improvements Deployed!
+
+I've added detailed console logging to help diagnose the issue. **Wait ~1 minute for deployment**, then:
+
+### **To Debug:**
+1. Open the browser console (F12 → Console tab)
+2. Clear the console
+3. Try generating a Malaysia trip again
+4. Watch the console output
+
+### **What to look for:**
+The console will now show:
+- `[AI Generation] Received trip data:` - Raw data from API
+- `[AI Generation] Created trip:` - Trip ID, name, destination, cover image, days cou

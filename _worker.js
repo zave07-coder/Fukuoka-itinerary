@@ -886,16 +886,35 @@ const syncUserHandler = async (request, env) => {
 
   try {
     const auth = await verifySupabaseToken(request, env);
-    const { supabaseUserId, email, displayName, avatarUrl } = await request.json();
+    const { supabaseUserId, email, displayName, avatarUrl} = await request.json();
     const db = new SupabaseClient(env);
 
-    // Insert or update user using upsert
-    const user = await db.upsert('users', {
-      supabase_user_id: supabaseUserId,
-      email: email,
-      display_name: displayName,
-      avatar_url: avatarUrl
+    // Check if user exists
+    const existingUsers = await db.query('users', {
+      select: '*',
+      eq: { supabase_user_id: supabaseUserId }
     });
+
+    let user;
+    if (existingUsers && existingUsers.length > 0) {
+      // Update existing user
+      const updated = await db.update('users', {
+        email: email,
+        display_name: displayName,
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString()
+      }, { supabase_user_id: supabaseUserId });
+      user = updated[0];
+    } else {
+      // Insert new user
+      const inserted = await db.insert('users', {
+        supabase_user_id: supabaseUserId,
+        email: email,
+        display_name: displayName,
+        avatar_url: avatarUrl
+      });
+      user = inserted[0];
+    }
 
     return new Response(JSON.stringify({ success: true, user }), {
       headers: { 'Content-Type': 'application/json' }
