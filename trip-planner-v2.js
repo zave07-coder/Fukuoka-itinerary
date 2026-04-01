@@ -334,7 +334,7 @@ function initializeMap() {
 
     map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/light-v11', // Use light-v11 to avoid vector tile errors
+      style: 'mapbox://styles/mapbox/streets-v12', // Detailed street map for travel planning
       center: initialCenter,
       zoom: 11,
       attributionControl: true

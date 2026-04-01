@@ -585,10 +585,10 @@ function initMap() {
 
     mapboxgl.accessToken = window.MAPBOX_CONFIG.token;
 
-    // Initialize Mapbox map with simple streets style
+    // Initialize Mapbox map with detailed streets style
     map = new mapboxgl.Map({
         container: 'interactiveMap',
-        style: 'mapbox://styles/mapbox/light-v11', // Light style for better performance
+        style: 'mapbox://styles/mapbox/streets-v12', // Detailed street map for travel planning
         center: [130.4017, 33.5904], // Fukuoka center [lng, lat]
         zoom: 10,
         pitch: 0, // No 3D tilt to reduce tile requests
