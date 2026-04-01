@@ -2275,3 +2275,153 @@ function hexToRgb(hex) {
     parseInt(result[3], 16)
   ] : [37, 99, 235]; // Default blue
 }
+
+/**
+ * ============================================
+ * DROPDOWN MENU FUNCTIONALITY
+ * ============================================
+ */
+
+/**
+ * Toggle the trip menu dropdown
+ */
+function toggleTripMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('tripMenu');
+
+  if (!menu) return;
+
+  const isVisible = menu.style.display === 'block';
+
+  // Close menu if open, open if closed
+  if (isVisible) {
+    menu.style.display = 'none';
+  } else {
+    menu.style.display = 'block';
+  }
+}
+
+/**
+ * Close menu when clicking outside
+ */
+document.addEventListener('click', (event) => {
+  const menu = document.getElementById('tripMenu');
+  const menuBtn = document.getElementById('tripMenuBtn');
+
+  if (!menu || !menuBtn) return;
+
+  // Close if clicking outside menu and button
+  if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+/**
+ * Share trip (copy URL to clipboard)
+ */
+function shareTrip() {
+  const url = window.location.href;
+
+  // Try to use the modern Clipboard API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Trip link copied to clipboard!', 2000, 'success');
+    }).catch(() => {
+      fallbackCopyToClipboard(url);
+    });
+  } else {
+    fallbackCopyToClipboard(url);
+  }
+}
+
+/**
+ * Fallback copy to clipboard method
+ */
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.select();
+
+  try {
+    document.execCommand('copy');
+    showToast('Trip link copied to clipboard!', 2000, 'success');
+  } catch (err) {
+    showToast('Failed to copy link', 2000, 'error');
+  }
+
+  document.body.removeChild(textArea);
+}
+
+/**
+ * Duplicate the current trip
+ */
+function duplicateTrip() {
+  const menu = document.getElementById('tripMenu');
+  if (menu) menu.style.display = 'none';
+
+  if (!currentTrip || !currentTripId) {
+    showToast('No trip to duplicate', 2000, 'error');
+    return;
+  }
+
+  // Create a copy with new ID and modified name
+  const duplicatedTrip = {
+    ...currentTrip,
+    id: crypto.randomUUID(),
+    name: `${currentTrip.name} (Copy)`,
+    created: new Date().toISOString(),
+    updated: new Date().toISOString()
+  };
+
+  // Save the duplicated trip
+  tripManager.saveTrip(duplicatedTrip);
+
+  showToast('Trip duplicated successfully!', 2000, 'success');
+
+  // Redirect to dashboard after a short delay
+  setTimeout(() => {
+    window.location.href = 'dashboard.html';
+  }, 1500);
+}
+
+/**
+ * Delete the current trip
+ */
+function deleteTrip() {
+  const menu = document.getElementById('tripMenu');
+  if (menu) menu.style.display = 'none';
+
+  if (!currentTripId) {
+    showToast('No trip to delete', 2000, 'error');
+    return;
+  }
+
+  // Confirm deletion
+  const tripName = currentTrip?.name || 'this trip';
+  const confirmed = confirm(`Are you sure you want to delete "${tripName}"? This action cannot be undone.`);
+
+  if (!confirmed) return;
+
+  // Delete trip
+  tripManager.deleteTrip(currentTripId);
+
+  showToast('Trip deleted', 2000, 'success');
+
+  // Redirect to dashboard
+  setTimeout(() => {
+    window.location.href = 'dashboard.html';
+  }, 1000);
+}
+
+/**
+ * Print the trip itinerary
+ */
+function printTrip() {
+  const menu = document.getElementById('tripMenu');
+  if (menu) menu.style.display = 'none';
+
+  window.print();
+}

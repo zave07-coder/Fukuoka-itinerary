@@ -313,6 +313,7 @@ Return a complete updated trip as an array of day objects in JSON format:
   ]
 }
 
+CRITICAL: Use REAL, ACCURATE GPS coordinates for actual locations. Look up the true latitude and longitude for each specific place/POI. Do not use placeholder or approximate coordinates.
 Important: Return ALL days with ALL their activities. Apply the user's requested changes across the appropriate days.`
       : `You are editing a single day in a travel itinerary. ${context}
 
@@ -335,6 +336,7 @@ Return a complete updated day object in JSON format with this structure:
   ]
 }
 
+CRITICAL: Use REAL, ACCURATE GPS coordinates for actual locations. Look up the true latitude and longitude for each specific place/POI. Do not use placeholder or approximate coordinates.
 Important: Return the ENTIRE day with ALL activities, not just changes. Modify based on the user's request.`;
 
     // Whole trip edits need more tokens
@@ -347,7 +349,7 @@ Important: Return the ENTIRE day with ALL activities, not just changes. Modify b
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
