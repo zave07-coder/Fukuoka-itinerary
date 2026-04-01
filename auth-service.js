@@ -18,8 +18,8 @@ class AuthService {
     if (this.initialized) return;
 
     try {
-      // Load Supabase config
-      const response = await fetch('/config.js');
+      // Load Supabase config (with cache busting to ensure fresh config)
+      const response = await fetch(`/config.js?v=${Date.now()}`);
       const configText = await response.text();
       eval(configText);
 
