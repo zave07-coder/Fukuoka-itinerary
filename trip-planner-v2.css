@@ -148,6 +148,84 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Trip Budget Overview */
+.trip-budget-overview {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.budget-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+}
+
+.budget-label {
+  opacity: 0.9;
+}
+
+.budget-amount {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.currency-selector {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.currency-selector:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.currency-selector option {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* Day Budget Badge */
+.day-budget-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.day-budget-badge svg {
+  flex-shrink: 0;
+}
+
+/* Activity Cost Meta Item */
+.meta-item-cost {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.meta-item-cost .cost-value {
+  font-weight: 600;
+}
+
 .trip-header-actions {
   display: flex;
   align-items: center;
@@ -740,6 +818,58 @@ body {
 
 .btn-secondary:hover {
   background: var(--color-border-light);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================

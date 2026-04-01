@@ -137,6 +137,83 @@ async function loadTripFromCloud(tripId) {
 }
 
 /**
+ * Render trip budget overview in header
+ */
+function renderTripBudgetOverview() {
+  const totalBudget = calculateTripBudget(currentTrip);
+  const currency = currentTrip?.currency || 'USD';
+
+  // Find or create budget display element
+  let budgetDisplay = document.querySelector('.trip-budget-overview');
+
+  if (!budgetDisplay && totalBudget > 0) {
+    // Create budget display if it doesn't exist
+    budgetDisplay = document.createElement('div');
+    budgetDisplay.className = 'trip-budget-overview';
+
+    const tripTitleArea = document.querySelector('.trip-title-area');
+    if (tripTitleArea) {
+      tripTitleArea.appendChild(budgetDisplay);
+    }
+  }
+
+  if (budgetDisplay) {
+    if (totalBudget > 0) {
+      budgetDisplay.innerHTML = `
+        <div class="budget-display">
+          <div class="budget-label">Total Budget:</div>
+          <div class="budget-amount">${formatCurrency(totalBudget, currency)}</div>
+          <select class="currency-selector" onchange="updateTripCurrency(this.value)">
+            ${renderCurrencyOptions(currency)}
+          </select>
+        </div>
+      `;
+      budgetDisplay.style.display = 'flex';
+    } else {
+      budgetDisplay.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * Render currency selector options
+ */
+function renderCurrencyOptions(selectedCurrency = 'USD') {
+  const currencies = [
+    { code: 'USD', name: 'US Dollar ($)' },
+    { code: 'EUR', name: 'Euro (€)' },
+    { code: 'GBP', name: 'British Pound (£)' },
+    { code: 'JPY', name: 'Japanese Yen (¥)' },
+    { code: 'CNY', name: 'Chinese Yuan (¥)' },
+    { code: 'KRW', name: 'Korean Won (₩)' },
+    { code: 'THB', name: 'Thai Baht (฿)' },
+    { code: 'SGD', name: 'Singapore Dollar (S$)' },
+    { code: 'MYR', name: 'Malaysian Ringgit (RM)' },
+    { code: 'INR', name: 'Indian Rupee (₹)' },
+    { code: 'AUD', name: 'Australian Dollar (A$)' }
+  ];
+
+  return currencies.map(curr =>
+    `<option value="${curr.code}" ${curr.code === selectedCurrency ? 'selected' : ''}>${curr.name}</option>`
+  ).join('');
+}
+
+/**
+ * Update trip currency
+ */
+function updateTripCurrency(newCurrency) {
+  if (!currentTrip) return;
+
+  currentTrip.currency = newCurrency;
+  tripManager.updateTrip(currentTripId, currentTrip);
+
+  // Re-render to update all currency displays
+  renderTrip();
+
+  showToast(`Currency updated to ${newCurrency}`, 2000, 'success');
+}
+
+/**
  * Render trip data to the page
  */
 function renderTrip() {
@@ -146,6 +223,9 @@ function renderTrip() {
   document.querySelector('.trip-title').textContent = currentTrip.name || 'Untitled Trip';
   document.querySelector('.trip-meta').textContent = formatTripMeta(currentTrip);
   document.title = `${currentTrip.name} | Wahgola`;
+
+  // Add or update budget overview in header
+  renderTripBudgetOverview();
 
   // Render days
   const itineraryPanel = document.querySelector('.itinerary-panel');
@@ -186,6 +266,27 @@ function renderDays(days) {
 }
 
 /**
+ * Render day budget total
+ */
+function renderDayBudget(day) {
+  const dayBudget = calculateDayBudget(day);
+  if (dayBudget <= 0) return '';
+
+  const currency = currentTrip?.currency || 'USD';
+  const formatted = formatCurrency(dayBudget, currency);
+
+  return `
+    <div class="day-budget-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 6v12M15 9H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H9"></path>
+      </svg>
+      <span>${formatted}</span>
+    </div>
+  `;
+}
+
+/**
  * Render a single day card
  */
 function renderDayCard(day, dayNumber) {
@@ -199,6 +300,7 @@ function renderDayCard(day, dayNumber) {
         <div class="day-info">
           <h2 class="day-title">${escapeHtml(day.title || `Day ${dayNumber}`)}</h2>
           <p class="day-date">${formatDate(date)}</p>
+          ${renderDayBudget(day)}
         </div>
         <div class="day-actions">
           <button class="btn-ai-day" onclick="editDayWithAI(${dayNumber})" title="Edit Day ${dayNumber} with AI">
@@ -296,6 +398,20 @@ function renderActivityMeta(activity) {
     `);
   }
 
+  if (activity.cost !== undefined && activity.cost !== null && activity.cost !== '') {
+    const currency = currentTrip?.currency || 'USD';
+    const formattedCost = formatCurrency(activity.cost, currency);
+    items.push(`
+      <div class="meta-item meta-item-cost">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v12M15 9H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H9"></path>
+        </svg>
+        <span class="cost-value">${formattedCost}</span>
+      </div>
+    `);
+  }
+
   return items.length > 0 ? `<div class="activity-meta">${items.join('')}</div>` : '';
 }
 
@@ -329,7 +445,72 @@ function renderActivityActions(activity, dayNumber, activityIndex) {
     `);
   }
 
+  // Add edit button
+  actions.push(`
+    <button class="activity-action-btn" onclick="openEditActivityModal(${dayNumber}, ${activityIndex})">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+      Edit
+    </button>
+  `);
+
   return actions.length > 0 ? `<div class="activity-actions">${actions.join('')}</div>` : '';
+}
+
+/**
+ * Format currency with symbol
+ */
+function formatCurrency(amount, currency = 'USD') {
+  const symbols = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CNY': '¥',
+    'KRW': '₩',
+    'THB': '฿',
+    'SGD': 'S$',
+    'MYR': 'RM',
+    'INR': '₹',
+    'AUD': 'A$'
+  };
+
+  const symbol = symbols[currency] || currency;
+  const num = parseFloat(amount);
+
+  if (isNaN(num)) return symbol + '0';
+
+  // For JPY and KRW, no decimals
+  if (currency === 'JPY' || currency === 'KRW') {
+    return symbol + Math.round(num).toLocaleString();
+  }
+
+  return symbol + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Calculate daily budget total
+ */
+function calculateDayBudget(day) {
+  if (!day || !day.activities) return 0;
+
+  return day.activities.reduce((total, activity) => {
+    const cost = parseFloat(activity.cost) || 0;
+    return total + cost;
+  }, 0);
+}
+
+/**
+ * Calculate trip total budget
+ */
+function calculateTripBudget(trip) {
+  if (!trip || !trip.days) return 0;
+
+  return trip.days.reduce((total, day) => {
+    return total + calculateDayBudget(day);
+  }, 0);
 }
 
 /**
@@ -1374,6 +1555,109 @@ function executeDuplicateDay() {
   // Close modal and reload
   closeDuplicateDayModal();
   setTimeout(() => window.location.reload(), 1500);
+}
+
+/**
+ * ============================================
+ * EDIT ACTIVITY FUNCTIONALITY
+ * ============================================
+ */
+
+let currentEditActivity = null;
+let currentEditDay = null;
+let currentEditActivityIndex = null;
+
+/**
+ * Open edit activity modal
+ */
+function openEditActivityModal(dayNumber, activityIndex) {
+  if (!currentTrip || !currentTrip.days[dayNumber - 1]) {
+    showToast('Activity not found', 2000, 'error');
+    return;
+  }
+
+  const day = currentTrip.days[dayNumber - 1];
+  const activity = day.activities[activityIndex];
+
+  if (!activity) {
+    showToast('Activity not found', 2000, 'error');
+    return;
+  }
+
+  currentEditDay = dayNumber;
+  currentEditActivityIndex = activityIndex;
+  currentEditActivity = activity;
+
+  // Populate form fields
+  document.getElementById('editActivityTime').value = activity.time || '';
+  document.getElementById('editActivityName').value = activity.name || '';
+  document.getElementById('editActivityDescription').value = activity.details || activity.description || '';
+  document.getElementById('editActivityDuration').value = activity.duration || '';
+  document.getElementById('editActivityCost').value = activity.cost || '';
+
+  // Show modal
+  const modal = document.getElementById('editActivityModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+/**
+ * Close edit activity modal
+ */
+function closeEditActivityModal() {
+  const modal = document.getElementById('editActivityModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+
+  currentEditActivity = null;
+  currentEditDay = null;
+  currentEditActivityIndex = null;
+}
+
+/**
+ * Save activity edits
+ */
+function saveActivityEdits() {
+  if (!currentTrip || !currentEditDay || currentEditActivityIndex === null) {
+    showToast('Error saving activity', 2000, 'error');
+    return;
+  }
+
+  const dayIndex = currentEditDay - 1;
+  const activity = currentTrip.days[dayIndex].activities[currentEditActivityIndex];
+
+  // Get form values
+  const time = document.getElementById('editActivityTime').value.trim();
+  const name = document.getElementById('editActivityName').value.trim();
+  const description = document.getElementById('editActivityDescription').value.trim();
+  const duration = document.getElementById('editActivityDuration').value.trim();
+  const cost = parseFloat(document.getElementById('editActivityCost').value) || 0;
+
+  if (!name) {
+    showToast('Activity name is required', 2000, 'warning');
+    return;
+  }
+
+  // Update activity
+  activity.time = time;
+  activity.name = name;
+  activity.details = description;
+  activity.description = description;
+  activity.duration = duration;
+  activity.cost = cost;
+
+  // Save to localStorage
+  tripManager.updateTrip(currentTripId, currentTrip);
+
+  // Close modal
+  closeEditActivityModal();
+
+  // Re-render trip to show changes
+  renderTrip();
+
+  showToast('Activity updated successfully!', 2000, 'success');
 }
 
 /**

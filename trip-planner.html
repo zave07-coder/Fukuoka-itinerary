@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoto Cherry Blossom Adventure | Wahgola</title>
-    <link rel="stylesheet" href="trip-planner-v2.css?v=13">
+    <link rel="stylesheet" href="trip-planner-v2.css?v=14">
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth-service.js?v=13"></script>
-    <script src="sync-service.js?v=13"></script>
-    <script src="trip-manager.js?v=13"></script>
-    <script src="trip-planner-v2.js?v=13" defer></script>
+    <script src="auth-service.js?v=14"></script>
+    <script src="sync-service.js?v=14"></script>
+    <script src="trip-manager.js?v=14"></script>
+    <script src="trip-planner-v2.js?v=14" defer></script>
 </head>
 <body>
 
@@ -580,6 +580,62 @@
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                     <span>Accept & Apply</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Activity Modal -->
+    <div class="modal-overlay" id="editActivityModal" style="display: none;">
+        <div class="modal-modern">
+            <button class="modal-close-modern" onclick="closeEditActivityModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <div class="modal-header-modern">
+                <h2>Edit Activity</h2>
+                <p class="modal-subtitle">Update activity details and budget</p>
+            </div>
+
+            <div class="modal-content-modern">
+                <div class="form-group">
+                    <label for="editActivityTime">Time</label>
+                    <input type="text" id="editActivityTime" placeholder="9:00 AM" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="editActivityName">Activity Name</label>
+                    <input type="text" id="editActivityName" placeholder="Temple Visit" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="editActivityDescription">Description</label>
+                    <textarea id="editActivityDescription" placeholder="Details about this activity..." class="form-textarea" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editActivityDuration">Duration</label>
+                        <input type="text" id="editActivityDuration" placeholder="1 hour" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editActivityCost">Cost</label>
+                        <input type="number" id="editActivityCost" placeholder="0.00" step="0.01" min="0" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeEditActivityModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveActivityEdits()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Save Changes</span>
                 </button>
             </div>
         </div>

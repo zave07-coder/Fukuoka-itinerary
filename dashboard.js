@@ -59,6 +59,8 @@ function renderTrips() {
 function createTripCard(trip) {
   const duration = calculateDuration(trip.startDate, trip.endDate);
   const coverImage = trip.coverImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
+  const totalBudget = calculateTripBudget(trip);
+  const currency = trip.currency || 'USD';
 
   return `
     <div class="trip-card" onclick="openTrip('${trip.id}')">
@@ -113,6 +115,15 @@ function createTripCard(trip) {
             </svg>
             ${duration}
           </div>
+          ${totalBudget > 0 ? `
+            <div class="trip-card-meta-item trip-card-budget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v12M15 9H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H9"></path>
+              </svg>
+              ${formatCurrency(totalBudget, currency)}
+            </div>
+          ` : ''}
         </div>
       </div>
     </div>
@@ -718,4 +729,53 @@ function showToast(message, duration = 3000) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, duration);
+}
+
+/**
+ * Format currency with symbol
+ */
+function formatCurrency(amount, currency = 'USD') {
+  const symbols = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CNY': '¥',
+    'KRW': '₩',
+    'THB': '฿',
+    'SGD': 'S$',
+    'MYR': 'RM',
+    'INR': '₹',
+    'AUD': 'A$'
+  };
+
+  const symbol = symbols[currency] || currency;
+  const num = parseFloat(amount);
+
+  if (isNaN(num)) return symbol + '0';
+
+  // For JPY and KRW, no decimals
+  if (currency === 'JPY' || currency === 'KRW') {
+    return symbol + Math.round(num).toLocaleString();
+  }
+
+  return symbol + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Calculate trip total budget
+ */
+function calculateTripBudget(trip) {
+  if (!trip || !trip.days) return 0;
+
+  return trip.days.reduce((total, day) => {
+    if (!day || !day.activities) return total;
+
+    const dayTotal = day.activities.reduce((daySum, activity) => {
+      const cost = parseFloat(activity.cost) || 0;
+      return daySum + cost;
+    }, 0);
+
+    return total + dayTotal;
+  }, 0);
 }
