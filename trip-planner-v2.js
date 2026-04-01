@@ -1509,6 +1509,34 @@ function handleActivitySearch(query) {
 }
 
 /**
+ * Open search panel
+ */
+function openSearchPanel() {
+  const panel = document.getElementById('searchPanel');
+  const overlay = document.getElementById('searchPanelOverlay');
+
+  if (panel) panel.classList.add('active');
+  if (overlay) overlay.classList.add('active');
+
+  // Focus search input
+  setTimeout(() => {
+    const searchInput = document.getElementById('activitySearch');
+    if (searchInput) searchInput.focus();
+  }, 300);
+}
+
+/**
+ * Close search panel
+ */
+function closeSearchPanel() {
+  const panel = document.getElementById('searchPanel');
+  const overlay = document.getElementById('searchPanelOverlay');
+
+  if (panel) panel.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+}
+
+/**
  * Clear search
  */
 function clearSearch() {
@@ -1517,12 +1545,12 @@ function clearSearch() {
     searchInput.value = '';
   }
   currentSearchQuery = '';
-  
+
   const clearBtn = document.getElementById('searchClear');
   if (clearBtn) {
     clearBtn.style.display = 'none';
   }
-  
+
   applyFilters();
 }
 
@@ -1605,16 +1633,30 @@ function applyFilters() {
  * Update results counter display
  */
 function updateResultsCounter(visible, total) {
+  // Legacy counter
   const counter = document.getElementById('resultsCounter');
   const text = document.getElementById('resultsText');
-  
-  if (!counter || !text) return;
-  
-  if (visible === total) {
-    counter.style.display = 'none';
-  } else {
-    counter.style.display = 'block';
-    text.textContent = `Showing ${visible} of ${total} activities`;
+
+  if (counter && text) {
+    if (visible === total) {
+      counter.style.display = 'none';
+    } else {
+      counter.style.display = 'block';
+      text.textContent = `Showing ${visible} of ${total} activities`;
+    }
+  }
+
+  // Search panel counter
+  const panelCounter = document.getElementById('searchResultsCounter');
+  const panelText = document.getElementById('searchResultsText');
+
+  if (panelCounter && panelText) {
+    if (visible === total && !currentSearchQuery && currentFilterType === 'all') {
+      panelCounter.style.display = 'none';
+    } else {
+      panelCounter.style.display = 'block';
+      panelText.textContent = `${visible} of ${total} activities match`;
+    }
   }
 }
 
@@ -1793,6 +1835,17 @@ function closeEditActivityModal() {
 }
 
 /**
+ * Validate time format (e.g., "10:00 AM", "2:30 PM", "14:00")
+ */
+function validateTimeFormat(timeStr) {
+  if (!timeStr) return true; // Empty is OK
+
+  // Match formats like: 10:00 AM, 2:30 PM, 14:00, 9 AM, etc.
+  const timeRegex = /^(0?[1-9]|1[0-2]):?([0-5][0-9])?\s?(AM|PM|am|pm)?$|^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+  return timeRegex.test(timeStr.trim());
+}
+
+/**
  * Save activity edits
  */
 function saveActivityEdits() {
@@ -1811,13 +1864,24 @@ function saveActivityEdits() {
   const duration = document.getElementById('editActivityDuration').value.trim();
   const cost = parseFloat(document.getElementById('editActivityCost').value) || 0;
 
+  // Validation
   if (!name) {
     showToast('Activity name is required', 2000, 'warning');
     return;
   }
 
+  if (time && !validateTimeFormat(time)) {
+    showToast('Invalid time format. Use formats like "10:00 AM" or "14:00"', 3000, 'warning');
+    return;
+  }
+
+  if (cost < 0) {
+    showToast('Cost cannot be negative', 2000, 'warning');
+    return;
+  }
+
   // Update activity
-  activity.time = time;
+  activity.time = time || '9:00 AM'; // Default time if empty
   activity.name = name;
   activity.details = description;
   activity.description = description;
