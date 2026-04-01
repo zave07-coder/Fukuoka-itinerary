@@ -1,4 +1,4 @@
-// Supabase REST API helper
+// Supabase REST API helper (updated with env vars)
 class SupabaseClient {
   constructor(env) {
     this.url = env.SUPABASE_URL;
