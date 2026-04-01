@@ -12,6 +12,32 @@ let currentTripId = null;
 let map = null;
 let markers = [];
 
+/**
+ * Toast notification system
+ */
+function showToast(message, duration = 3000, type = 'info') {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  // Create toast
+  const toast = document.createElement('div');
+  toast.className = `toast-notification toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  // Show toast
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[Init] DOMContentLoaded fired');
@@ -32,8 +58,8 @@ function loadTripFromURL() {
   console.log('[Trip Loader] Trip ID from URL:', currentTripId);
 
   if (!currentTripId) {
-    alert('No trip ID provided');
-    window.location.href = 'dashboard.html';
+    showToast('No trip ID provided. Redirecting...', 2000, 'error');
+    setTimeout(() => window.location.href = 'dashboard.html', 2000);
     return;
   }
 
@@ -62,7 +88,7 @@ function loadTripFromURL() {
       ? 'No trips found in storage. Please create a trip first.'
       : `Trip "${currentTripId}" not found. Available trips: ${allTrips.map(t => t.name).join(', ')}`;
 
-    alert(errorMsg);
+    showToast(errorMsg, 3000, 'error');
     window.location.href = 'dashboard.html';
     return;
   }
@@ -105,7 +131,7 @@ async function loadTripFromCloud(tripId) {
     renderTrip();
   } catch (error) {
     console.error('[Cloud Loader] Failed to load trip from cloud:', error);
-    alert('Trip not found. Redirecting to dashboard...');
+    showToast('Trip not found. Redirecting to dashboard...', 2000, 'error');
     window.location.href = 'dashboard.html';
   }
 }
@@ -508,7 +534,7 @@ function editDay(dayNum) {
   // Find the day card
   const dayCard = document.querySelector(`[data-day="${dayNum}"]`);
   if (!dayCard) {
-    alert('Day not found');
+    showToast('Day not found', 2000, 'error');
     return;
   }
 
@@ -541,7 +567,7 @@ function saveDayEdits(dayNum) {
   const dayCard = document.querySelector(`[data-day="${dayNum}"]`);
 
   if (!dayCard || !currentTrip || !currentTrip.days[dayIndex]) {
-    alert('Error saving changes');
+    showToast('Error saving changes', 2000, 'error');
     return;
   }
 
@@ -571,8 +597,8 @@ function saveDayEdits(dayNum) {
   console.log('[Manual Edit] Saved changes to day', dayNum);
 
   // Reload page to show changes
-  alert('Changes saved! Refreshing...');
-  window.location.reload();
+  showToast('Changes saved! Refreshing...', 1500, 'success');
+  setTimeout(() => window.location.reload(), 1500);
 }
 
 /**
@@ -699,7 +725,7 @@ function escapeHtml(text) {
 
 function expandDay(dayNum) {
   // Future: Handle collapsed days
-  alert('Day expansion coming soon!');
+  showToast('Day expansion coming soon!', 2000, 'info');
 }
 
 /**
@@ -872,12 +898,12 @@ async function submitAIEdit() {
   const prompt = document.getElementById('aiEditPrompt')?.value?.trim();
   
   if (!prompt) {
-    alert('Please describe what you\'d like to change');
+    showToast('Please describe what you\'d like to change', 2000, 'warning');
     return;
   }
 
   if (!currentTrip || !currentTrip.days || currentTrip.days.length === 0) {
-    alert('No trip data available to edit');
+    showToast('No trip data available to edit', 2000, 'error');
     return;
   }
 
@@ -922,12 +948,12 @@ async function submitAIEdit() {
 
     // Reload the page to show changes
     closeAIEditModal();
-    alert('Day updated successfully! Refreshing...');
-    window.location.reload();
+    showToast('Day updated successfully! Refreshing...', 1500, 'success');
+    setTimeout(() => window.location.reload(), 1500);
 
   } catch (error) {
     console.error('[AI Edit] Error:', error);
-    alert(`Failed to generate changes: ${error.message}\n\nPlease try again.`);
+    showToast(`Failed to generate changes: ${error.message}`, 4000, 'error');
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalHTML;
   }

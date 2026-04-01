@@ -256,14 +256,53 @@ const aiEditHandler = async (request, env) => {
   }
 
   try {
-    const { message, context, currentContent } = await request.json();
+    const { prompt, currentDay, tripContext } = await request.json();
 
-    // More concise prompt for entire trip to reduce reasoning tokens
-    const systemPrompt = `Return JSON with max 5 edits: {"explanation":"...","edits":[{"type":"add","dayNumber":1,"timeSlot":"9:00 AM","content":"...","location":{"name":"...","lat":33.59,"lng":130.40,"type":"restaurant"}}]}. Location optional. ${context}`;
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-    // Detect if editing entire trip (needs more tokens) vs single day
-    const isEntireTrip = context.toLowerCase().includes('entire') || context.toLowerCase().includes('10-day');
-    const maxTokens = isEntireTrip ? 16000 : 8000;
+    // Build context from trip data
+    const contextParts = [];
+    if (tripContext?.destination) {
+      contextParts.push(`Destination: ${tripContext.destination}`);
+    }
+    if (tripContext?.totalDays) {
+      contextParts.push(`Total trip duration: ${tripContext.totalDays} days`);
+    }
+    if (currentDay) {
+      contextParts.push(`Editing Day: ${JSON.stringify(currentDay)}`);
+    }
+    const context = contextParts.join('. ');
+
+    // System prompt for day editing
+    const systemPrompt = `You are editing a travel itinerary day. ${context}
+
+Return a complete updated day object in JSON format with this structure:
+{
+  "title": "Day title",
+  "activities": [
+    {
+      "time": "9:00 AM",
+      "name": "Activity name",
+      "details": "Activity description",
+      "location": {
+        "name": "Location name",
+        "lat": 33.5904,
+        "lng": 130.4017,
+        "type": "restaurant|attraction|hotel|cafe|park",
+        "address": "Full address"
+      }
+    }
+  ]
+}
+
+Important: Return the ENTIRE day with ALL activities, not just changes. Modify based on the user's request.`;
+
+    const maxTokens = 8000;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -275,9 +314,9 @@ const aiEditHandler = async (request, env) => {
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
+          { role: 'user', content: prompt }
         ],
-        temperature: 0.5,
+        temperature: 0.7,
         max_completion_tokens: maxTokens,
         response_format: { type: "json_object" }
       })

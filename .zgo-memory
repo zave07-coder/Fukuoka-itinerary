@@ -1,16 +1,4 @@
-point** - No more 500 errors! Returns proper error messages
-2. **✅ Cover images** - AI generates destination-specific images (Singapore image for test)
-3. **✅ All JavaScript fixes** - getCurrentUser(), cloud sync, etc.
-4. **✅ Worker deployed** - All backend fixes are live
-
-### 📊 **Deployment Details:**
-- **Deployment ID:** `ef2e78e6`
-- **Status:** ✅ Success
-- **Time:** ~1 minute (very fast!)
-
-[2026-04-01] Perfect! Now let me answer your question directly:
-
-## 🔍 **Is the sync-user 500 Error Something to Worry About?**
+ About?**
 
 ### **Short Answer: NO** ✅
 
@@ -106,3 +94,19 @@ Would you like me to:
 The new `streets-v12` style is much better for travel planning as it shows:
 - Restaurant and shop names
 -
+
+[2026-04-01] Perfect! I've fixed both issues:
+
+## ✅ Manual Editing Now Working
+
+Click the **pencil icon** on any day to enable manual editing:
+- Activity titles, descriptions, and times become **editable inline**
+- Highlighted with blue dashed outline while editing
+- **Save/Cancel buttons** appear
+- Changes saved to localStorage and synced to cloud if logged in
+
+## ✅ AI Day Editor Fixed
+
+The "Generate Changes" button now works:
+- Fixed modal ID mismatch (`aiEditModal` vs `aiEditModalOverlay`)
+- Added `onclic
