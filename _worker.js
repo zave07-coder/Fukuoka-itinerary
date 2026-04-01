@@ -1095,6 +1095,11 @@ export default {
       }
 
       // Supabase config (optional - for auth features)
+      // Debug: log env keys
+      console.log('Available env keys:', Object.keys(env || {}));
+      console.log('SUPABASE_URL exists:', !!env.SUPABASE_URL);
+      console.log('SUPABASE_ANON_KEY exists:', !!env.SUPABASE_ANON_KEY);
+
       const supabaseConfig = env.SUPABASE_URL && env.SUPABASE_ANON_KEY
         ? `window.SUPABASE_CONFIG = {
              SUPABASE_URL: '${env.SUPABASE_URL}',
