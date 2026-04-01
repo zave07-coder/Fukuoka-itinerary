@@ -183,7 +183,7 @@ const chatHandler = async (request, env) => {
     const { message } = await request.json();
 
     const requestBody = {
-      model: 'gpt-5.4-nano',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -272,7 +272,7 @@ const aiEditHandler = async (request, env) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-5.4-nano',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
