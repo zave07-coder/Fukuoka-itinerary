@@ -1,21 +1,4 @@
-dle Caching
-
-### **Industry-Standard Approaches We Implemented:**
-
-1. **Short Cache TTL for Dynamic Files**
-   - `config.js`: 5 minutes (`max-age=300, must-revalidate`)
-   - Non-versioned CSS/JS: 5 minutes
-   - This ensures users get updates within 5 minutes max
-
-2. **Long Cache for Immutable Assets**
-   - Versioned files (`?v=4`): 1 year cache (`max-age=31536000, immutable`)
-   - Images: 1 wee
-
-[2026-04-01] ## ✅ Session Management Fixed!
-
-### **What Was Wrong:**
-
-1. **Supabase sessions expire** after a set time (default: 1 hour)
+me (default: 1 hour)
 2. **No automatic token refresh** was enabled
 3. **Stale data in localStorage** made it look like you were logged in
 4. **No session validation** - app trusted localStorage blindly
@@ -110,3 +93,16 @@ for (let i = localStorage.length - 1; i >= 0; i--) {
 
 **The Fix:**
 1. **Login page** now checks if user is already authenticated and redire
+
+[2026-04-01] ## ✅ Both Issues Fixed!
+
+### **1. Cover Images for AI-Generated Trips**
+- Added `getCoverImageForDestination()` function with **25+ destination-specific images**
+- Automatically assigns beautiful Unsplash images based on destination:
+  - **Malaysia**: Kuala Lumpur skyline
+  - **Japan**: Tokyo, Kyoto, Osaka, Fukuoka
+  - **Southeast Asia**: Singapore, Bangkok, Vietnam, etc.
+  - **Europe, USA, Australia** and more
+- Fallback to generic travel image if destination not matched
+
+### **2. Trip Creation

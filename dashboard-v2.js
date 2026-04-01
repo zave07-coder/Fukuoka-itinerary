@@ -331,12 +331,19 @@ async function generateTrip() {
     }
 
     const tripData = await response.json();
+    console.log('[AI Generation] Received trip data:', tripData);
 
     clearInterval(messageInterval);
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
-    console.log('[AI Generation] Created trip:', trip.id, trip.name);
+    console.log('[AI Generation] Created trip:', {
+      id: trip.id,
+      name: trip.name,
+      destination: trip.destination,
+      coverImage: trip.coverImage,
+      daysCount: trip.days?.length
+    });
 
     // Ensure trip is saved to localStorage before redirecting
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -345,23 +352,36 @@ async function generateTrip() {
     const verifyTrip = tripManager.getTrip(trip.id);
     console.log('[AI Generation] Verified trip in storage:', !!verifyTrip);
 
+    if (!verifyTrip) {
+      console.error('[AI Generation] CRITICAL: Trip not found in storage after creation!');
+      const allTrips = tripManager.getAllTrips();
+      console.error('[AI Generation] All trips in storage:', allTrips.map(t => ({ id: t.id, name: t.name })));
+      alert('Error: Trip was created but could not be saved. Please try again.');
+      return;
+    }
+
     // Close modal and open trip
     closeAIModal();
     document.querySelector('.ai-form').style.display = 'block';
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('aiPrompt').value = '';
 
+    console.log('[AI Generation] Redirecting to trip:', trip.id);
+
     // Redirect to trip
     openTrip(trip.id);
 
   } catch (error) {
     clearInterval(messageInterval);
-    console.error('AI generation error:', error);
+    console.error('[AI Generation] Error:', error);
+    console.error('[AI Generation] Error stack:', error.stack);
 
     document.querySelector('.ai-form').style.display = 'block';
     document.getElementById('loadingState').style.display = 'none';
 
-    alert(error.message || 'Failed to generate trip. Please try again.');
+    // Show detailed error message
+    const errorMsg = error.message || 'Failed to generate trip. Please try again.';
+    alert(`Error: ${errorMsg}\n\nPlease check the browser console (F12) for details.`);
   }
 }
 
