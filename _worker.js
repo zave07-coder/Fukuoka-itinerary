@@ -589,6 +589,19 @@ const generateTripHandler = async (request, env) => {
       tripData.coverImage = getCoverImageForDestination(tripData.destination);
     }
 
+    // Validate and fix GPS coordinates
+    tripData.days = tripData.days.map(day => {
+      if (day.activities && Array.isArray(day.activities)) {
+        day.activities = day.activities.map(activity => {
+          if (activity.location) {
+            activity.location = validateLocationCoordinates(activity.location, tripData.destination);
+          }
+          return activity;
+        });
+      }
+      return day;
+    });
+
     // Add metadata
     tripData.aiGenerated = true;
     tripData.generatedBy = usedModel;
@@ -630,6 +643,67 @@ const generateTripHandler = async (request, env) => {
     });
   }
 };
+
+/**
+ * Validate and fix GPS coordinates for a location
+ */
+function validateLocationCoordinates(location, destination) {
+  if (!location || !location.lat || !location.lng) {
+    return location;
+  }
+
+  // Define valid coordinate ranges for common destinations
+  const coordinateRanges = {
+    // Japan
+    'tokyo': { minLat: 35.5, maxLat: 35.9, minLng: 139.5, maxLng: 140.0, centerLat: 35.6762, centerLng: 139.6503 },
+    'kyoto': { minLat: 34.9, maxLat: 35.2, minLng: 135.6, maxLng: 135.9, centerLat: 35.0116, centerLng: 135.7681 },
+    'osaka': { minLat: 34.5, maxLat: 34.9, minLng: 135.3, maxLng: 135.7, centerLat: 34.6937, centerLng: 135.5023 },
+    'fukuoka': { minLat: 33.5, maxLat: 33.7, minLng: 130.3, maxLng: 130.5, centerLat: 33.5904, centerLng: 130.4017 },
+
+    // Southeast Asia
+    'singapore': { minLat: 1.2, maxLat: 1.5, minLng: 103.6, maxLng: 104.0, centerLat: 1.3521, centerLng: 103.8198 },
+    'bangkok': { minLat: 13.6, maxLat: 13.9, minLng: 100.4, maxLng: 100.7, centerLat: 13.7563, centerLng: 100.5018 },
+    'kuala lumpur': { minLat: 3.0, maxLat: 3.3, minLng: 101.5, maxLng: 101.8, centerLat: 3.1390, centerLng: 101.6869 },
+
+    // Default: world coordinates
+    'default': { minLat: -90, maxLat: 90, minLng: -180, maxLng: 180, centerLat: 0, centerLng: 0 }
+  };
+
+  // Find matching range
+  const destLower = (destination || '').toLowerCase();
+  let range = coordinateRanges.default;
+
+  for (const [key, value] of Object.entries(coordinateRanges)) {
+    if (destLower.includes(key)) {
+      range = value;
+      break;
+    }
+  }
+
+  // Check if coordinates are within valid range
+  const lat = parseFloat(location.lat);
+  const lng = parseFloat(location.lng);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    console.warn(`Invalid coordinates for ${location.name}:`, location.lat, location.lng);
+    // Set to center of range
+    location.lat = range.centerLat;
+    location.lng = range.centerLng;
+    return location;
+  }
+
+  // Check if out of range (in the ocean or wrong country)
+  if (lat < range.minLat || lat > range.maxLat || lng < range.minLng || lng > range.maxLng) {
+    console.warn(`Coordinates out of range for ${location.name} in ${destination}:`, { lat, lng, range });
+
+    // Set to center of range as fallback
+    location.lat = range.centerLat;
+    location.lng = range.centerLng;
+    location.coordinatesFixed = true;
+  }
+
+  return location;
+}
 
 /**
  * Generate trip using Gemini 2.0 Flash (primary, cheaper)

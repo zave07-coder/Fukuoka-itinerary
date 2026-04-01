@@ -877,3 +877,131 @@ body {
   background: #eff6ff;
   color: #1e40af;
 }
+
+/* ============================================
+   AI PREVIEW MODAL
+   ============================================ */
+
+.modal-large {
+  max-width: 900px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.preview-content {
+  padding: var(--space-4) 0;
+}
+
+.preview-header {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.preview-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.preview-note {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.preview-sections {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.preview-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-primary);
+}
+
+.preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.preview-activity {
+  padding: var(--space-3);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.preview-activity.preview-old {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.preview-activity.preview-new {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.preview-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+
+.preview-details strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.preview-details p {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+  line-height: 1.5;
+}
+
+.preview-details small {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  display: block;
+}
+
+.preview-divider {
+  font-size: 24px;
+  color: var(--color-primary);
+  align-self: center;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .modal-large {
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+
+  .preview-sections {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .preview-divider {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}

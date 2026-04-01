@@ -1,20 +1,3 @@
- About?**
-
-### **Short Answer: NO** ✅
-
-The error is **cosmetic and non-critical**. Here's why:
-
-### **What's Happening:**
-- The app tries to sync your user profile to a database
-- The database environment variables aren't configured on Cloudflare
-- It fails with a 500 error, but everything else works fine
-
-### **What Still Works:**
-✅ **Authentication** - You're logged in successfully  
-✅ **Tr
-
-[2026-04-01] Perfect! The cover images ARE configured for Malaysia, Singapore, Bangkok, Tokyo, and many more cities.
-
 ## ✅ **What to Do:**
 
 **For Cover Images:**
@@ -110,3 +93,19 @@ Click the **pencil icon** on any day to enable manual editing:
 The "Generate Changes" button now works:
 - Fixed modal ID mismatch (`aiEditModal` vs `aiEditModalOverlay`)
 - Added `onclic
+
+[2026-04-01] Perfect! I've fixed both issues:
+
+## ✅ Replaced All Alerts with Toast Notifications
+
+**Before:** Invasive JavaScript `alert()` popups that block the entire page
+
+**Now:** Modern, non-invasive toast notifications that:
+- Appear in bottom-right corner
+- Auto-dismiss after a few seconds
+- Don't block user interaction
+- Are color-coded by type:
+  - 🟢 **Green** = Success (saved, updated)
+  - 🔴 **Red** = Error (not found, failed)
+  - 🟡 **Orange** = Warning (please fill in field)
+  - 🔵 **Blue** = I

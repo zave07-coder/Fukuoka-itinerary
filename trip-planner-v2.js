@@ -522,6 +522,7 @@ function focusOnMap(lat, lng, name) {
  */
 let currentEditDayIndex = null;
 let isManualEditMode = false;
+let pendingAIChanges = null;
 
 /**
  * Manual editing function - makes day content editable
@@ -937,19 +938,23 @@ async function submitAIEdit() {
     const updatedDay = await response.json();
     console.log('[AI Edit] Received updated day:', updatedDay);
 
-    // Update the trip
-    if (currentEditDayIndex !== null && currentEditDayIndex < currentTrip.days.length) {
-      currentTrip.days[currentEditDayIndex] = updatedDay;
-    }
+    // Validate and fix coordinates
+    updatedDay.activities = updatedDay.activities.map(activity => {
+      if (activity.location) {
+        activity.location = validateCoordinates(activity.location, currentTrip.destination);
+      }
+      return activity;
+    });
 
-    // Save to localStorage
-    tripManager.updateTrip(currentTripId, currentTrip);
-    console.log('[AI Edit] Trip updated in localStorage');
+    // Store pending changes
+    pendingAIChanges = updatedDay;
 
-    // Reload the page to show changes
+    // Show preview modal
     closeAIEditModal();
-    showToast('Day updated successfully! Refreshing...', 1500, 'success');
-    setTimeout(() => window.location.reload(), 1500);
+    showAIPreview(updatedDay);
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalHTML;
 
   } catch (error) {
     console.error('[AI Edit] Error:', error);
@@ -957,6 +962,161 @@ async function submitAIEdit() {
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalHTML;
   }
+}
+
+/**
+ * Show AI changes preview
+ */
+function showAIPreview(updatedDay) {
+  const modal = document.getElementById('aiPreviewModal');
+  const previewContent = document.getElementById('aiPreviewContent');
+
+  if (!modal || !previewContent) return;
+
+  // Generate comparison HTML
+  const originalDay = currentTrip.days[currentEditDayIndex];
+
+  let html = `
+    <div class="preview-header">
+      <h3>Day ${currentEditDayIndex + 1}: ${updatedDay.title || originalDay.title}</h3>
+      <p class="preview-note">Compare the changes below and approve to apply them</p>
+    </div>
+
+    <div class="preview-sections">
+      <div class="preview-section">
+        <h4>Original Activities (${originalDay.activities?.length || 0})</h4>
+        <div class="preview-list">
+          ${(originalDay.activities || []).map(act => `
+            <div class="preview-activity preview-old">
+              <div class="preview-time">${act.time || ''}</div>
+              <div class="preview-details">
+                <strong>${act.name || act.title || ''}</strong>
+                <p>${act.details || act.description || ''}</p>
+                ${act.location ? `<small>📍 ${act.location.name || ''}</small>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="preview-divider">→</div>
+
+      <div class="preview-section">
+        <h4>Updated Activities (${updatedDay.activities?.length || 0})</h4>
+        <div class="preview-list">
+          ${(updatedDay.activities || []).map(act => `
+            <div class="preview-activity preview-new">
+              <div class="preview-time">${act.time || ''}</div>
+              <div class="preview-details">
+                <strong>${act.name || act.title || ''}</strong>
+                <p>${act.details || act.description || ''}</p>
+                ${act.location ? `<small>📍 ${act.location.name || ''} ${act.location.lat && act.location.lng ? `(${act.location.lat.toFixed(4)}, ${act.location.lng.toFixed(4)})` : ''}</small>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  previewContent.innerHTML = html;
+  modal.style.display = 'flex';
+}
+
+/**
+ * Close AI preview modal
+ */
+function closeAIPreviewModal() {
+  const modal = document.getElementById('aiPreviewModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  pendingAIChanges = null;
+}
+
+/**
+ * Approve and apply AI changes
+ */
+function approveAIChanges() {
+  if (!pendingAIChanges || currentEditDayIndex === null) {
+    showToast('No changes to apply', 2000, 'error');
+    return;
+  }
+
+  // Update the trip
+  if (currentEditDayIndex < currentTrip.days.length) {
+    currentTrip.days[currentEditDayIndex] = pendingAIChanges;
+  }
+
+  // Save to localStorage
+  tripManager.updateTrip(currentTripId, currentTrip);
+  console.log('[AI Edit] Trip updated in localStorage');
+
+  // Reload the page to show changes
+  closeAIPreviewModal();
+  showToast('Changes applied successfully! Refreshing...', 1500, 'success');
+  setTimeout(() => window.location.reload(), 1500);
+}
+
+/**
+ * Validate GPS coordinates for a location
+ */
+function validateCoordinates(location, destination) {
+  if (!location || !location.lat || !location.lng) {
+    return location;
+  }
+
+  // Define valid coordinate ranges for common destinations
+  const coordinateRanges = {
+    // Japan
+    'tokyo': { minLat: 35.5, maxLat: 35.9, minLng: 139.5, maxLng: 140.0 },
+    'kyoto': { minLat: 34.9, maxLat: 35.2, minLng: 135.6, maxLng: 135.9 },
+    'osaka': { minLat: 34.5, maxLat: 34.9, minLng: 135.3, maxLng: 135.7 },
+    'fukuoka': { minLat: 33.5, maxLat: 33.7, minLng: 130.3, maxLng: 130.5 },
+
+    // Southeast Asia
+    'singapore': { minLat: 1.2, maxLat: 1.5, minLng: 103.6, maxLng: 104.0 },
+    'bangkok': { minLat: 13.6, maxLat: 13.9, minLng: 100.4, maxLng: 100.7 },
+    'kuala lumpur': { minLat: 3.0, maxLat: 3.3, minLng: 101.5, maxLng: 101.8 },
+
+    // Default: world coordinates
+    'default': { minLat: -90, maxLat: 90, minLng: -180, maxLng: 180 }
+  };
+
+  // Find matching range
+  const destLower = (destination || '').toLowerCase();
+  let range = coordinateRanges.default;
+
+  for (const [key, value] of Object.entries(coordinateRanges)) {
+    if (destLower.includes(key)) {
+      range = value;
+      break;
+    }
+  }
+
+  // Check if coordinates are within valid range
+  const lat = parseFloat(location.lat);
+  const lng = parseFloat(location.lng);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    console.warn(`Invalid coordinates for ${location.name}:`, location.lat, location.lng);
+    return location;
+  }
+
+  if (lat < range.minLat || lat > range.maxLat || lng < range.minLng || lng > range.maxLng) {
+    console.warn(`Coordinates out of range for ${location.name} in ${destination}:`, { lat, lng, range });
+
+    // Set to center of range as fallback
+    location.lat = (range.minLat + range.maxLat) / 2;
+    location.lng = (range.minLng + range.maxLng) / 2;
+    location.coordinatesValidated = false;
+
+    showToast(`⚠️ GPS coordinates for "${location.name}" were corrected to ${destination} center`, 4000, 'warning');
+  } else {
+    location.coordinatesValidated = true;
+  }
+
+  return location;
 }
 
 // Generate Changes button now has onclick="submitAIEdit()" in HTML

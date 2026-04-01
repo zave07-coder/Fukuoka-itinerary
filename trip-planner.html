@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoto Cherry Blossom Adventure | Wahgola</title>
-    <link rel="stylesheet" href="trip-planner-v2.css?v=10">
+    <link rel="stylesheet" href="trip-planner-v2.css?v=11">
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth-service.js?v=10"></script>
-    <script src="sync-service.js?v=10"></script>
-    <script src="trip-manager.js?v=10"></script>
-    <script src="trip-planner-v2.js?v=10" defer></script>
+    <script src="auth-service.js?v=11"></script>
+    <script src="sync-service.js?v=11"></script>
+    <script src="trip-manager.js?v=11"></script>
+    <script src="trip-planner-v2.js?v=11" defer></script>
 </head>
 <body>
 
@@ -418,6 +418,39 @@
                         <span>Generate Changes</span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Edit Preview Modal -->
+    <div class="modal-overlay" id="aiPreviewModal" style="display: none;">
+        <div class="modal-modern modal-large">
+            <button class="modal-close-modern" onclick="closeAIPreviewModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <div class="modal-header-modern">
+                <h2>Review AI Changes</h2>
+                <p class="modal-subtitle">Review and approve the changes before applying</p>
+            </div>
+
+            <div class="modal-content-modern">
+                <div id="aiPreviewContent" class="preview-content">
+                    <!-- Changes will be inserted here -->
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeAIPreviewModal()">Reject</button>
+                <button class="btn-primary" onclick="approveAIChanges()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Accept & Apply</span>
+                </button>
             </div>
         </div>
     </div>
