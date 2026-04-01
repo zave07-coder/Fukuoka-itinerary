@@ -1,33 +1,4 @@
-## ✅ **What to Do:**
-
-**For Cover Images:**
-1. Generate a **NEW** Malaysia trip (don't reuse the old one)
-2. It will automatically get this image: `https://images.unsplash.com/photo-1596422846543-75c6fc197f07`
-3. If you want MORE cities added, let me know which ones!
-
-**For AI Edit Feature:**
-- This is a complex feature to implement
-- Would you like me to:
-  - **Option A:** Implement it prope
-
-[2026-04-01] ## ✅ **Both Issues Fixed!**
-
-### **1. AI Day Editor - IMPLEMENTED** ✨
-**What I Added:**
-- ✅ `submitAIEdit()` function that sends requests to `/api/ai-edit`
-- ✅ Modal open/close functions
-- ✅ Button now works - click "Generate Changes" to edit a day
-- ✅ Auto-refreshes page to show updated itinerary
-
-**How to Use:**
-1. Open any trip
-2. Click the ✨ AI button on a day card
-3. Describe your changes (e.g., "add lunch at a ramen shop")
-4. Click "Generate Changes"
-5. Wait for AI to update the day
-6. Pag
-
-[2026-04-01] Perfect! I've fixed the endless loading issue. The problem was that `fix-cover-images.js` was auto-loading on the dashboard and automatically running, which caused it to reload the page continuously.
+g on the dashboard and automatically running, which caused it to reload the page continuously.
 
 ## What I Fixed:
 
@@ -109,3 +80,29 @@ The "Generate Changes" button now works:
   - 🔴 **Red** = Error (not found, failed)
   - 🟡 **Orange** = Warning (please fill in field)
   - 🔵 **Blue** = I
+
+[2026-04-01] Perfect! I've fixed both issues:
+
+## ✅ Issue 1: GPS Coordinates Fixed
+
+**Problem:** Arashiyama restaurant coordinates were in the ocean
+
+**Solution:** 
+- Added coordinate validation for all major cities
+- Validates coordinates are within city bounds:
+  - **Kyoto**: 34.9-35.2°N, 135.6-135.9°E
+  - **Tokyo**: 35.5-35.9°N, 139.5-140.0°E
+  - **Fukuoka**: 33.5-33.7°N, 130.3-130.5°E
+  - Plus Singapore, Bangkok, Kuala Lumpur, etc.
+- If coordinates are out of range (ocean, wrong country):
+  - Automatical
+
+[2026-04-01] Perfect! Let me implement Phase 1 features now. These are straightforward and will provide immediate user value. Due to token limits and the substantial code needed, let me ask you:
+
+**Would you like me to:**
+
+A) **Implement all 3 Phase 1 features now** (search/filter, duplicate day, budget tracking) - this will take significant code but deliver working features
+
+B) **Focus on just the top 2** (search/filter + duplicate day) for this session, save budget tracking for next time
+
+C) **Create the f

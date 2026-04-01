@@ -215,6 +215,12 @@ function renderDayCard(day, dayNumber) {
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
           </button>
+          <button class="day-action-btn" onclick="openDuplicateDayModal(${dayNumber})" title="Duplicate day">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -1120,3 +1126,252 @@ function validateCoordinates(location, destination) {
 }
 
 // Generate Changes button now has onclick="submitAIEdit()" in HTML
+
+/**
+ * ============================================
+ * SEARCH & FILTER FUNCTIONALITY
+ * ============================================
+ */
+
+let currentSearchQuery = '';
+let currentFilterType = 'all';
+
+/**
+ * Handle activity search
+ */
+function handleActivitySearch(query) {
+  currentSearchQuery = query.toLowerCase().trim();
+  
+  // Show/hide clear button
+  const clearBtn = document.getElementById('searchClear');
+  if (clearBtn) {
+    clearBtn.style.display = currentSearchQuery ? 'block' : 'none';
+  }
+  
+  applyFilters();
+}
+
+/**
+ * Clear search
+ */
+function clearSearch() {
+  const searchInput = document.getElementById('activitySearch');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+  currentSearchQuery = '';
+  
+  const clearBtn = document.getElementById('searchClear');
+  if (clearBtn) {
+    clearBtn.style.display = 'none';
+  }
+  
+  applyFilters();
+}
+
+/**
+ * Handle activity type filter
+ */
+function handleActivityFilter(type) {
+  currentFilterType = type;
+  
+  // Update active state on filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    if (chip.dataset.type === type) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+  
+  applyFilters();
+}
+
+/**
+ * Apply both search and filter
+ */
+function applyFilters() {
+  if (!currentTrip || !currentTrip.days) return;
+  
+  let totalActivities = 0;
+  let visibleActivities = 0;
+  
+  // Iterate through all days
+  currentTrip.days.forEach((day, dayIndex) => {
+    const dayCard = document.querySelector(`[data-day="${dayIndex + 1}"]`);
+    if (!dayCard) return;
+    
+    let dayHasVisibleActivities = false;
+    
+    // Filter activities in this day
+    const activities = dayCard.querySelectorAll('.activity-item');
+    activities.forEach((activityEl, actIndex) => {
+      totalActivities++;
+      
+      const activity = day.activities[actIndex];
+      if (!activity) return;
+      
+      // Check search match
+      const searchMatch = !currentSearchQuery || 
+        (activity.name && activity.name.toLowerCase().includes(currentSearchQuery)) ||
+        (activity.title && activity.title.toLowerCase().includes(currentSearchQuery)) ||
+        (activity.details && activity.details.toLowerCase().includes(currentSearchQuery)) ||
+        (activity.description && activity.description.toLowerCase().includes(currentSearchQuery));
+      
+      // Check type filter match
+      const typeMatch = currentFilterType === 'all' || 
+        (activity.location && activity.location.type === currentFilterType);
+      
+      // Show/hide activity
+      if (searchMatch && typeMatch) {
+        activityEl.classList.remove('filtered-hidden');
+        visibleActivities++;
+        dayHasVisibleActivities = true;
+      } else {
+        activityEl.classList.add('filtered-hidden');
+      }
+    });
+    
+    // Mark day card if all activities are hidden
+    if (dayHasVisibleActivities) {
+      dayCard.classList.remove('all-filtered');
+    } else {
+      dayCard.classList.add('all-filtered');
+    }
+  });
+  
+  // Update results counter
+  updateResultsCounter(visibleActivities, totalActivities);
+}
+
+/**
+ * Update results counter display
+ */
+function updateResultsCounter(visible, total) {
+  const counter = document.getElementById('resultsCounter');
+  const text = document.getElementById('resultsText');
+  
+  if (!counter || !text) return;
+  
+  if (visible === total) {
+    counter.style.display = 'none';
+  } else {
+    counter.style.display = 'block';
+    text.textContent = `Showing ${visible} of ${total} activities`;
+  }
+}
+
+/**
+ * Initialize filter chips on page load
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Set "All" filter as active by default
+  const allChip = document.querySelector('.filter-chip[data-type="all"]');
+  if (allChip) {
+    allChip.classList.add('active');
+  }
+});
+
+/**
+ * ============================================
+ * DUPLICATE DAY FUNCTIONALITY
+ * ============================================
+ */
+
+let currentDuplicateDay = null;
+
+/**
+ * Open duplicate day modal
+ */
+function openDuplicateDayModal(dayNum) {
+  const modal = document.getElementById('duplicateDayModal');
+  if (!modal || !currentTrip || !currentTrip.days[dayNum - 1]) return;
+  
+  currentDuplicateDay = dayNum;
+  
+  // Update source day preview
+  const day = currentTrip.days[dayNum - 1];
+  const activitiesCount = day.activities ? day.activities.length : 0;
+  
+  document.getElementById('sourceDayPreview').innerHTML = `
+    <strong>Day ${dayNum}: ${day.title || `Day ${dayNum}`}</strong>
+    <span>${activitiesCount} ${activitiesCount === 1 ? 'activity' : 'activities'}</span>
+  `;
+  
+  // Populate replace day select
+  const replaceSelect = document.getElementById('replaceDaySelect');
+  replaceSelect.innerHTML = '<option value="">Select day to replace...</option>';
+  
+  currentTrip.days.forEach((d, idx) => {
+    if (idx + 1 !== dayNum) { // Don't allow replacing with itself
+      replaceSelect.innerHTML += `<option value="${idx + 1}">Day ${idx + 1}: ${d.title || `Day ${idx + 1}`}</option>`;
+    }
+  });
+  
+  // Set up mode toggle
+  const modeRadios = document.querySelectorAll('input[name="duplicateMode"]');
+  modeRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      replaceSelect.style.display = e.target.value === 'replace' ? 'block' : 'none';
+    });
+  });
+  
+  modal.style.display = 'flex';
+}
+
+/**
+ * Close duplicate day modal
+ */
+function closeDuplicateDayModal() {
+  const modal = document.getElementById('duplicateDayModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  currentDuplicateDay = null;
+}
+
+/**
+ * Execute day duplication
+ */
+function executeDuplicateDay() {
+  if (!currentDuplicateDay || !currentTrip) {
+    showToast('Error: No day selected', 2000, 'error');
+    return;
+  }
+  
+  const mode = document.querySelector('input[name="duplicateMode"]:checked').value;
+  const sourceDay = currentTrip.days[currentDuplicateDay - 1];
+  
+  // Deep clone the day
+  const clonedDay = JSON.parse(JSON.stringify(sourceDay));
+  
+  if (mode === 'new') {
+    // Add as new day at end
+    clonedDay.title = `${clonedDay.title || `Day ${currentDuplicateDay}`} (Copy)`;
+    currentTrip.days.push(clonedDay);
+    showToast(`Day ${currentDuplicateDay} duplicated as Day ${currentTrip.days.length}`, 2000, 'success');
+  } else if (mode === 'replace') {
+    // Replace existing day
+    const replaceDayNum = parseInt(document.getElementById('replaceDaySelect').value);
+    
+    if (!replaceDayNum || replaceDayNum === currentDuplicateDay) {
+      showToast('Please select a valid day to replace', 2000, 'warning');
+      return;
+    }
+    
+    if (!confirm(`Replace Day ${replaceDayNum} with Day ${currentDuplicateDay}? This cannot be undone.`)) {
+      return;
+    }
+    
+    clonedDay.title = `${clonedDay.title || `Day ${currentDuplicateDay}`} (Copy)`;
+    currentTrip.days[replaceDayNum - 1] = clonedDay;
+    showToast(`Day ${replaceDayNum} replaced with Day ${currentDuplicateDay}`, 2000, 'success');
+  }
+  
+  // Save to localStorage
+  tripManager.updateTrip(currentTripId, currentTrip);
+  
+  // Close modal and reload
+  closeDuplicateDayModal();
+  setTimeout(() => window.location.reload(), 1500);
+}
