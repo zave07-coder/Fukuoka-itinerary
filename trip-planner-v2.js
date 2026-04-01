@@ -47,8 +47,15 @@ function loadTripFromURL() {
   console.log('[Trip Loader] Found trip:', currentTrip);
 
   if (!currentTrip) {
-    console.error('[Trip Loader] Trip not found! ID:', currentTripId);
+    console.error('[Trip Loader] Trip not found in localStorage! ID:', currentTripId);
     console.error('[Trip Loader] Available IDs:', allTrips.map(t => t.id));
+
+    // Try to load from cloud if user is authenticated
+    if (typeof authService !== 'undefined' && authService.isAuthenticatedSync()) {
+      console.log('[Trip Loader] Attempting to load trip from cloud...');
+      loadTripFromCloud(currentTripId);
+      return;
+    }
 
     // Show more helpful error
     const errorMsg = allTrips.length === 0
@@ -61,6 +68,46 @@ function loadTripFromURL() {
   }
 
   renderTrip();
+}
+
+/**
+ * Load trip from cloud when not found in localStorage
+ */
+async function loadTripFromCloud(tripId) {
+  try {
+    console.log('[Cloud Loader] Fetching trip from cloud:', tripId);
+
+    const token = await authService.getAccessToken();
+    const response = await fetch(`/api/trips/${tripId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to load trip: ${response.status}`);
+    }
+
+    const cloudTrip = await response.json();
+    console.log('[Cloud Loader] Loaded from cloud:', cloudTrip);
+
+    // Save to localStorage
+    const tripData = {
+      ...cloudTrip.data,
+      id: cloudTrip.id,
+      cloudSynced: true,
+      lastSyncAt: new Date().toISOString()
+    };
+
+    const savedTrip = tripManager.createTrip(tripData);
+    currentTrip = savedTrip;
+
+    renderTrip();
+  } catch (error) {
+    console.error('[Cloud Loader] Failed to load trip from cloud:', error);
+    alert('Trip not found. Redirecting to dashboard...');
+    window.location.href = 'dashboard-v2.html';
+  }
 }
 
 /**
