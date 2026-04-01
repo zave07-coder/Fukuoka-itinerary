@@ -62,10 +62,5 @@ function fixCoverImages() {
   window.location.reload();
 }
 
-// Auto-run on script load
-if (typeof TripManager !== 'undefined') {
-  console.log('🔧 Fixing cover images for existing trips...');
-  fixCoverImages();
-} else {
-  console.error('❌ TripManager not found. Make sure to run this on the dashboard page.');
-}
+// Manual utility - run fixCoverImages() in console to update existing trips
+console.log('💡 Cover image fixer loaded. Run fixCoverImages() to update existing trips.');
