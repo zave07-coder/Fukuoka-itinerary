@@ -593,6 +593,13 @@ const generateTripHandler = async (request, env) => {
 
           console.log('📖 Starting to read streaming chunks...');
 
+          // Send initial progress event to show immediate feedback
+          await writer.write(encoder.encode(`data: ${JSON.stringify({
+            type: 'progress',
+            content: '',
+            percentage: 10
+          })}\n\n`));
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
@@ -617,10 +624,11 @@ const generateTripHandler = async (request, env) => {
                     fullContent += content;
 
                     // Estimate progress based on content length
-                    // Typical complete trips are 3000-8000 chars
-                    // Use a logarithmic curve that approaches 95% as we generate
-                    const estimatedTotal = 5000;
-                    let percentage = Math.min(95, Math.floor((fullContent.length / estimatedTotal) * 100));
+                    // Typical complete trips: 2000-12000 chars depending on trip length
+                    // Use smaller estimate for faster visible progress
+                    const estimatedTotal = 3500; // Lower estimate = faster progress feedback
+                    const rawProgress = (fullContent.length / estimatedTotal) * 80; // 0-80%
+                    let percentage = Math.min(95, Math.max(10, Math.floor(10 + rawProgress))); // 10-95%
 
                     // Send progress update to client with percentage
                     await writer.write(encoder.encode(`data: ${JSON.stringify({

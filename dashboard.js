@@ -319,11 +319,11 @@ async function generateTrip() {
   const loadingMessageEl = document.getElementById('loadingMessage');
   const progressBar = document.getElementById('progressBar');
   const progressText = document.getElementById('progressText');
-  loadingMessageEl.textContent = 'Starting AI generation...';
+  loadingMessageEl.textContent = 'Connecting to AI...';
 
-  // Initialize progress
-  if (progressBar) progressBar.style.width = '0%';
-  if (progressText) progressText.textContent = '0%';
+  // Initialize progress at 10% to show immediate activity
+  if (progressBar) progressBar.style.width = '10%';
+  if (progressText) progressText.textContent = '10%';
 
   try {
     console.log('🚀 Starting AI trip generation with streaming...');
@@ -367,12 +367,24 @@ async function generateTrip() {
             eventCount++;
 
             if (event.type === 'progress') {
-              // Use percentage from backend if available, otherwise calculate it
-              const percentage = event.percentage || Math.min(95, Math.floor((event.content.length / 6000) * 100));
+              // Use percentage from backend (already ensures 10-95% range)
+              // Fallback calculation if percentage not provided
+              let percentage = event.percentage !== undefined
+                ? event.percentage
+                : Math.min(95, Math.max(10, Math.floor(10 + (event.content.length / 5000) * 80)));
 
               // Update progress bar and text
-              if (progressBar) progressBar.style.width = `${percentage}%`;
-              if (progressText) progressText.textContent = `${percentage}%`;
+              if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+              }
+              if (progressText) {
+                progressText.textContent = `${percentage}%`;
+              }
+
+              // Debug logging (every 20 events to avoid spam)
+              if (eventCount % 20 === 0) {
+                console.log(`📊 Progress: ${percentage}% (content: ${event.content?.length} chars)`);
+              }
 
               // Update step indicators based on percentage
               const steps = document.querySelectorAll('.progress-step');
