@@ -632,8 +632,21 @@ const generateTripHandler = async (request, env) => {
           // Parse final JSON and send completion
           try {
             console.log('🔍 Parsing final JSON response...');
+            console.log(`📊 Content length: ${fullContent.length} characters`);
+
             const tripData = JSON.parse(fullContent);
             console.log('✅ JSON parsed successfully:', tripData.name);
+
+            // Validate trip data completeness
+            if (!tripData.days || !Array.isArray(tripData.days) || tripData.days.length === 0) {
+              throw new Error('Trip has no days - generation incomplete');
+            }
+
+            // Check if all days have activities
+            const incompleteDays = tripData.days.filter(day => !day.activities || day.activities.length === 0);
+            if (incompleteDays.length > 0) {
+              console.warn(`⚠️ Warning: ${incompleteDays.length} days have no activities`);
+            }
 
             // Validate and fix data
             if (!tripData.coverImage) {
@@ -652,12 +665,19 @@ const generateTripHandler = async (request, env) => {
               return day;
             });
 
+            console.log(`✅ Trip validated: ${tripData.days.length} days, ${tripData.days.reduce((sum, d) => sum + (d.activities?.length || 0), 0)} activities`);
             console.log('✅ Sending completion event to client');
             await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', data: tripData })}\n\n`));
           } catch (parseError) {
             console.error('❌ Failed to parse JSON:', parseError.message);
-            console.error('Content received:', fullContent.substring(0, 500));
-            await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: 'Failed to parse response' })}\n\n`));
+            console.error('Content length:', fullContent.length);
+            console.error('Content preview:', fullContent.substring(0, 500));
+            console.error('Content end:', fullContent.substring(fullContent.length - 200));
+            await writer.write(encoder.encode(`data: ${JSON.stringify({
+              type: 'error',
+              error: 'Failed to parse AI response - trip may be incomplete. Please try again.',
+              details: parseError.message
+            })}\n\n`));
           }
 
           await writer.close();
@@ -1132,7 +1152,7 @@ Important:
         { role: 'user', content: prompt }
       ],
       temperature: 0.7,
-      max_completion_tokens: 8000,
+      max_completion_tokens: 16000, // Increased from 8000 to ensure full trip generation
       response_format: { type: "json_object" },
       stream: true // Enable streaming
     })
