@@ -1664,6 +1664,313 @@ const generateSummaryHandler = async (request, env) => {
   }
 };
 
+/**
+ * Normalize POI name for cache lookup
+ */
+function normalizePOIName(name) {
+  return (name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+/**
+ * Get POI image with caching waterfall approach
+ * 1. Check Supabase cache
+ * 2. Try Google Places Photos
+ * 3. Try Unsplash
+ * 4. Return placeholder
+ */
+const getPOIImageHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const { poiName, location, category } = await request.json();
+
+    if (!poiName) {
+      return new Response(JSON.stringify({ error: 'POI name required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const normalizedName = normalizePOIName(poiName);
+    const lat = location?.lat;
+    const lng = location?.lng;
+
+    // 1. Check cache first
+    if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+      const db = new SupabaseClient(env);
+
+      try {
+        const cached = await db.query('poi_images', {
+          select: '*',
+          eq: { poi_name: normalizedName },
+          limit: 1
+        });
+
+        if (cached && cached.length > 0) {
+          console.log(`✅ Cache hit for "${poiName}"`);
+          return new Response(JSON.stringify({
+            imageUrl: cached[0].image_url,
+            source: cached[0].source,
+            attribution: cached[0].attribution,
+            cached: true
+          }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      } catch (cacheError) {
+        console.warn('Cache lookup failed:', cacheError.message);
+      }
+    }
+
+    console.log(`🔍 Cache miss for "${poiName}", fetching from APIs...`);
+
+    let imageData = null;
+
+    // 2. Try Google Places Photos
+    try {
+      imageData = await fetchGooglePlacesPhoto(poiName, lat, lng, env);
+      console.log('✅ Got image from Google Places');
+    } catch (googleError) {
+      console.warn('Google Places failed:', googleError.message);
+
+      // 3. Fallback to Unsplash
+      try {
+        imageData = await fetchUnsplashPhoto(poiName, category, env);
+        console.log('✅ Got image from Unsplash');
+      } catch (unsplashError) {
+        console.warn('Unsplash failed:', unsplashError.message);
+
+        // 4. Final fallback: placeholder
+        imageData = {
+          imageUrl: getPlaceholderImage(category),
+          source: 'placeholder',
+          attribution: null
+        };
+        console.log('ℹ️ Using placeholder image');
+      }
+    }
+
+    // Cache the result
+    if (imageData && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const db = new SupabaseClient(env);
+        await db.insert('poi_images', {
+          poi_name: normalizedName,
+          location_lat: lat,
+          location_lng: lng,
+          image_url: imageData.imageUrl,
+          source: imageData.source,
+          attribution: imageData.attribution
+        });
+        console.log(`💾 Cached image for "${poiName}"`);
+      } catch (cacheError) {
+        console.warn('Failed to cache image:', cacheError.message);
+      }
+    }
+
+    return new Response(JSON.stringify({
+      ...imageData,
+      cached: false
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('POI image fetch error:', error);
+    return new Response(JSON.stringify({
+      error: error.message || 'Failed to fetch POI image'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+/**
+ * Fetch photo from Google Places API
+ * Supports both new and legacy APIs
+ */
+async function fetchGooglePlacesPhoto(poiName, lat, lng, env) {
+  if (!env.GOOGLE_PLACES_API_KEY) {
+    throw new Error('Google Places API key not configured');
+  }
+
+  // Try new Places API first
+  try {
+    return await fetchGooglePlacesPhotoNew(poiName, lat, lng, env);
+  } catch (newApiError) {
+    // If new API fails, try legacy API
+    console.warn('New Places API failed, trying legacy:', newApiError.message);
+    return await fetchGooglePlacesPhotoLegacy(poiName, lat, lng, env);
+  }
+}
+
+/**
+ * Fetch photo from Google Places API (New)
+ */
+async function fetchGooglePlacesPhotoNew(poiName, lat, lng, env) {
+  // Build request body
+  const requestBody = {
+    textQuery: poiName
+  };
+
+  // Add location bias if available
+  if (lat && lng) {
+    requestBody.locationBias = {
+      circle: {
+        center: {
+          latitude: lat,
+          longitude: lng
+        },
+        radius: 2000
+      }
+    };
+  }
+
+  const searchResponse = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': env.GOOGLE_PLACES_API_KEY,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.photos'
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!searchResponse.ok) {
+    const errorText = await searchResponse.text();
+    throw new Error(`Google Places (New) search failed: ${searchResponse.status} - ${errorText}`);
+  }
+
+  const searchData = await searchResponse.json();
+  if (!searchData.places || searchData.places.length === 0) {
+    throw new Error('No place found');
+  }
+
+  const place = searchData.places[0];
+  if (!place.photos || place.photos.length === 0) {
+    throw new Error('No photos available for this place');
+  }
+
+  // Get photo using new API
+  const photoName = place.photos[0].name; // e.g., "places/ChIJ.../photos/ABC123"
+  const photoUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=800&key=${env.GOOGLE_PLACES_API_KEY}`;
+
+  return {
+    imageUrl: photoUrl,
+    source: 'google-new',
+    attribution: place.photos[0].authorAttributions?.[0]?.displayName || null,
+    width: 800,
+    height: place.photos[0].heightPx ? Math.round((800 * place.photos[0].heightPx) / place.photos[0].widthPx) : 600
+  };
+}
+
+/**
+ * Fetch photo from Google Places API (Legacy)
+ */
+async function fetchGooglePlacesPhotoLegacy(poiName, lat, lng, env) {
+  // Build search URL
+  let searchUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(poiName)}&inputtype=textquery&fields=place_id,photos&key=${env.GOOGLE_PLACES_API_KEY}`;
+
+  if (lat && lng) {
+    searchUrl += `&locationbias=circle:2000@${lat},${lng}`;
+  }
+
+  const searchResponse = await fetch(searchUrl);
+  if (!searchResponse.ok) {
+    throw new Error(`Google Places (Legacy) search failed: ${searchResponse.status}`);
+  }
+
+  const searchData = await searchResponse.json();
+
+  // Check for API errors
+  if (searchData.status === 'REQUEST_DENIED') {
+    throw new Error(`Google Places API error: ${searchData.error_message || 'API not enabled'}`);
+  }
+
+  if (!searchData.candidates || searchData.candidates.length === 0) {
+    throw new Error('No place found');
+  }
+
+  const place = searchData.candidates[0];
+  if (!place.photos || place.photos.length === 0) {
+    throw new Error('No photos available for this place');
+  }
+
+  // Get photo URL
+  const photoReference = place.photos[0].photo_reference;
+  const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoReference}&key=${env.GOOGLE_PLACES_API_KEY}`;
+
+  return {
+    imageUrl: photoUrl,
+    source: 'google-legacy',
+    attribution: place.photos[0].html_attributions?.[0] || null,
+    width: 800,
+    height: place.photos[0].height ? Math.round((800 * place.photos[0].height) / place.photos[0].width) : 600
+  };
+}
+
+/**
+ * Fetch photo from Unsplash API
+ */
+async function fetchUnsplashPhoto(poiName, category, env) {
+  if (!env.UNSPLASH_ACCESS_KEY) {
+    throw new Error('Unsplash API key not configured');
+  }
+
+  // Build search query (POI name + category for better results)
+  const searchQuery = category ? `${poiName} ${category}` : poiName;
+
+  const response = await fetch(
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=landscape`,
+    {
+      headers: {
+        'Authorization': `Client-ID ${env.UNSPLASH_ACCESS_KEY}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Unsplash API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data.results || data.results.length === 0) {
+    throw new Error('No images found on Unsplash');
+  }
+
+  const photo = data.results[0];
+  return {
+    imageUrl: photo.urls.regular,
+    source: 'unsplash',
+    attribution: `Photo by ${photo.user.name} on Unsplash`,
+    width: photo.width,
+    height: photo.height
+  };
+}
+
+/**
+ * Get category-based placeholder image
+ */
+function getPlaceholderImage(category) {
+  const placeholders = {
+    'restaurant': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    'cafe': 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
+    'temple': 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80',
+    'shrine': 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80',
+    'attraction': 'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=800&q=80',
+    'hotel': 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80',
+    'shopping': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80',
+    'park': 'https://images.unsplash.com/photo-1520302630591-dca90fcaa36a?w=800&q=80',
+    'museum': 'https://images.unsplash.com/photo-1565516781744-61b5df634672?w=800&q=80',
+    'default': 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'
+  };
+
+  return placeholders[category?.toLowerCase()] || placeholders.default;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -1734,6 +2041,8 @@ export default {
       return shareTripHandler(request, env);
     } else if (url.pathname === '/api/generate-summary') {
       return generateSummaryHandler(request, env);
+    } else if (url.pathname === '/api/poi-image') {
+      return getPOIImageHandler(request, env);
     }
 
     // For non-API routes, return the static file (handled by Pages)

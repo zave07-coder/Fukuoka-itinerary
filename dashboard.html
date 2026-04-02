@@ -307,13 +307,64 @@
                 </div>
             </div>
 
-            <!-- Loading State -->
+            <!-- Enhanced Loading State -->
             <div class="loading-state" id="loadingState" style="display: none;">
-                <div class="loading-animation">
-                    <div class="spinner"></div>
+                <!-- Animated Header -->
+                <div class="loading-header">
+                    <div class="loading-icon-container">
+                        <svg class="loading-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path class="plane-path" d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path class="plane-path-2" d="M2 17l10 5 10-5"></path>
+                            <path class="plane-path-3" d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <h3 class="loading-title">✨ Crafting Your Perfect Trip</h3>
                 </div>
-                <h3>Creating your itinerary...</h3>
-                <p id="loadingMessage">Analyzing destinations and activities</p>
+
+                <!-- Progress Steps -->
+                <div class="loading-progress">
+                    <div class="progress-step active" id="step1">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-label">Researching destination</div>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <div class="step-icon">🗺️</div>
+                        <div class="step-label">Finding best activities</div>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <div class="step-icon">📅</div>
+                        <div class="step-label">Planning schedule</div>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <div class="step-icon">✨</div>
+                        <div class="step-label">Finalizing details</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+
+                <!-- Current Status Message -->
+                <div class="loading-message-box">
+                    <p class="loading-message" id="loadingMessage">Analyzing your destination...</p>
+                </div>
+
+                <!-- Travel Tips Carousel -->
+                <div class="loading-tips">
+                    <div class="tip-header">💡 Travel Tip</div>
+                    <div class="tip-content" id="travelTip">
+                        The best trips are flexible - leave room for spontaneity!
+                    </div>
+                </div>
+
+                <!-- Fun Facts -->
+                <div class="loading-fun-fact" id="funFact" style="display: none;">
+                    <div class="fact-icon">🌍</div>
+                    <div class="fact-text" id="factText"></div>
+                </div>
             </div>
         </div>
     </div>
