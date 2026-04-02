@@ -615,11 +615,22 @@ const generateTripHandler = async (request, env) => {
                   const content = parsed.choices[0]?.delta?.content || '';
                   if (content) {
                     fullContent += content;
-                    // Send progress update to client
-                    await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'progress', content: fullContent })}\n\n`));
+
+                    // Estimate progress based on content length
+                    // Typical complete trips are 3000-8000 chars
+                    // Use a logarithmic curve that approaches 95% as we generate
+                    const estimatedTotal = 5000;
+                    let percentage = Math.min(95, Math.floor((fullContent.length / estimatedTotal) * 100));
+
+                    // Send progress update to client with percentage
+                    await writer.write(encoder.encode(`data: ${JSON.stringify({
+                      type: 'progress',
+                      content: fullContent,
+                      percentage
+                    })}\n\n`));
 
                     if (chunkCount % 10 === 0) {
-                      console.log(`📝 Progress: ${fullContent.length} chars generated`);
+                      console.log(`📝 Progress: ${fullContent.length} chars (${percentage}%)`);
                     }
                   }
                 } catch (e) {
@@ -667,7 +678,7 @@ const generateTripHandler = async (request, env) => {
 
             console.log(`✅ Trip validated: ${tripData.days.length} days, ${tripData.days.reduce((sum, d) => sum + (d.activities?.length || 0), 0)} activities`);
             console.log('✅ Sending completion event to client');
-            await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', data: tripData })}\n\n`));
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', data: tripData, percentage: 100 })}\n\n`));
           } catch (parseError) {
             console.error('❌ Failed to parse JSON:', parseError.message);
             console.error('Content length:', fullContent.length);

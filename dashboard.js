@@ -317,7 +317,13 @@ async function generateTrip() {
   document.getElementById('loadingState').style.display = 'block';
 
   const loadingMessageEl = document.getElementById('loadingMessage');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
   loadingMessageEl.textContent = 'Starting AI generation...';
+
+  // Initialize progress
+  if (progressBar) progressBar.style.width = '0%';
+  if (progressText) progressText.textContent = '0%';
 
   try {
     console.log('🚀 Starting AI trip generation with streaming...');
@@ -361,6 +367,23 @@ async function generateTrip() {
             eventCount++;
 
             if (event.type === 'progress') {
+              // Use percentage from backend if available, otherwise calculate it
+              const percentage = event.percentage || Math.min(95, Math.floor((event.content.length / 6000) * 100));
+
+              // Update progress bar and text
+              if (progressBar) progressBar.style.width = `${percentage}%`;
+              if (progressText) progressText.textContent = `${percentage}%`;
+
+              // Update step indicators based on percentage
+              const steps = document.querySelectorAll('.progress-step');
+              if (steps.length > 0) {
+                steps.forEach((step, index) => {
+                  if (percentage >= (index + 1) * 25) {
+                    step.classList.add('active');
+                  }
+                });
+              }
+
               // Show preview of content being generated
               const preview = event.content.substring(0, 200);
               const lines = preview.split('\n').filter(l => l.trim());
@@ -368,11 +391,17 @@ async function generateTrip() {
               loadingMessageEl.textContent = `✨ ${firstLine.substring(0, 80)}...`;
 
               if (eventCount % 10 === 0) {
-                console.log(`📝 Progress event ${eventCount}: ${event.content.length} chars`);
+                console.log(`📝 Progress event ${eventCount}: ${event.content.length} chars, ${percentage}%`);
               }
             } else if (event.type === 'complete') {
               console.log('✅ Received completion event');
               tripData = event.data;
+
+              // Update to 100% complete
+              if (progressBar) progressBar.style.width = '100%';
+              if (progressText) progressText.textContent = '100%';
+              loadingMessageEl.textContent = '✅ Trip generated successfully!';
+
               // Break out immediately - we have the data
               reader.cancel();
               break;
