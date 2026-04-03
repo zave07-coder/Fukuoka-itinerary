@@ -2,6 +2,18 @@ name = "fukuoka-itinerary-git"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "."
 
+# Queue for background trip generation
+[[queues.producers]]
+queue = "trip-generation-queue"
+binding = "TRIP_QUEUE"
+
+[[queues.consumers]]
+queue = "trip-generation-queue"
+max_batch_size = 1
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "trip-generation-dlq"
+
 [vars]
 # Public environment variables (non-sensitive)
 # Note: Secrets like SUPABASE_URL, SUPABASE_ANON_KEY are set via `wrangler pages secret put`
