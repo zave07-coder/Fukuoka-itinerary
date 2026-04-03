@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   updateCharCount();
   initializeAuth();
+
+  // Update sync UI every minute to keep "X minutes ago" fresh
+  setInterval(() => {
+    if (syncService && syncService.getSyncStatus().authenticated) {
+      updateSyncUI('synced');
+    }
+  }, 60000); // Every 60 seconds
 });
 
 /**
@@ -738,6 +745,147 @@ function updateSyncUI(status) {
       syncStatus.classList.add('error');
       syncText.textContent = 'Sync failed';
       break;
+  }
+
+  // Update tooltip details
+  updateSyncTooltip();
+}
+
+/**
+ * Update sync tooltip with detailed information
+ */
+function updateSyncTooltip() {
+  const syncStatus = syncService.getSyncStatus();
+
+  // Last sync time
+  const lastSyncEl = document.getElementById('lastSyncTime');
+  if (lastSyncEl) {
+    if (syncStatus.lastSync) {
+      lastSyncEl.textContent = formatRelativeTime(syncStatus.lastSync);
+      lastSyncEl.title = syncStatus.lastSync.toLocaleString();
+    } else {
+      lastSyncEl.textContent = 'Never';
+    }
+  }
+
+  // Status
+  const statusValueEl = document.getElementById('syncStatusValue');
+  if (statusValueEl) {
+    if (syncStatus.syncing) {
+      statusValueEl.textContent = 'Syncing...';
+      statusValueEl.style.color = 'var(--color-primary)';
+    } else if (syncStatus.authenticated) {
+      statusValueEl.textContent = 'Active';
+      statusValueEl.style.color = 'var(--color-success)';
+    } else {
+      statusValueEl.textContent = 'Offline';
+      statusValueEl.style.color = 'var(--color-text-tertiary)';
+    }
+  }
+
+  // Trips synced
+  const tripsSyncedEl = document.getElementById('tripsSynced');
+  if (tripsSyncedEl) {
+    const trips = tripManager.getAllTrips();
+    const syncedTrips = trips.filter(trip => trip.cloudSynced).length;
+    tripsSyncedEl.textContent = `${syncedTrips} of ${trips.length}`;
+  }
+
+  // Device ID
+  const deviceIdEl = document.getElementById('deviceId');
+  if (deviceIdEl) {
+    deviceIdEl.textContent = syncStatus.deviceId || '-';
+    deviceIdEl.title = syncStatus.deviceId;
+  }
+}
+
+/**
+ * Format relative time (e.g., "2 minutes ago", "Just now")
+ */
+function formatRelativeTime(date) {
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 10) return 'Just now';
+  if (seconds < 60) return `${seconds} seconds ago`;
+  if (minutes === 1) return '1 minute ago';
+  if (minutes < 60) return `${minutes} minutes ago`;
+  if (hours === 1) return '1 hour ago';
+  if (hours < 24) return `${hours} hours ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+
+  return date.toLocaleDateString();
+}
+
+/**
+ * Show sync details tooltip
+ */
+function showSyncDetails() {
+  const tooltip = document.getElementById('syncTooltip');
+  if (!tooltip) return;
+
+  const isVisible = tooltip.style.display === 'block';
+
+  // Close if already open
+  if (isVisible) {
+    tooltip.style.display = 'none';
+    return;
+  }
+
+  // Update and show
+  updateSyncTooltip();
+  tooltip.style.display = 'block';
+
+  // Close on outside click
+  setTimeout(() => {
+    const closeOnOutsideClick = (e) => {
+      const syncStatus = document.getElementById('syncStatus');
+      if (!syncStatus.contains(e.target)) {
+        tooltip.style.display = 'none';
+        document.removeEventListener('click', closeOnOutsideClick);
+      }
+    };
+    document.addEventListener('click', closeOnOutsideClick);
+  }, 100);
+}
+
+/**
+ * Manually trigger sync
+ */
+async function manualSync() {
+  const btn = document.querySelector('.btn-sync-now');
+  if (!btn) return;
+
+  // Disable button
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+    </svg>
+    Syncing...
+  `;
+
+  try {
+    updateSyncUI('syncing');
+    await syncService.syncAll();
+    showToast('Sync completed successfully!');
+  } catch (error) {
+    console.error('Manual sync error:', error);
+    showToast('Sync failed: ' + error.message);
+  } finally {
+    // Re-enable button
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+      </svg>
+      Sync Now
+    `;
   }
 }
 
