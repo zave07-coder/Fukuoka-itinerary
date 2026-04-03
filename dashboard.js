@@ -647,14 +647,24 @@ function initializeAuth() {
 
     // Listen for sync changes
     if (typeof syncService !== 'undefined') {
-      syncService.onSyncComplete = (result) => {
+      syncService.onSyncComplete((result) => {
+        console.log('Sync completed:', result);
         if (result.success) {
           updateSyncUI('synced');
+          console.log('Reloading trips after sync...');
           loadTrips(); // Reload trips after sync
         } else {
           updateSyncUI('error');
+          console.error('Sync error:', result.error);
         }
-      };
+      });
+
+      // Also reload trips immediately if already synced (handles page loads after login)
+      const syncStatus = syncService.getSyncStatus();
+      if (syncStatus.authenticated && syncStatus.lastSync) {
+        console.log('Loading trips after auth initialization');
+        setTimeout(() => loadTrips(), 500); // Give time for storage to settle
+      }
     }
   });
 }

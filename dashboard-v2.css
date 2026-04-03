@@ -949,6 +949,131 @@ body {
   color: var(--color-text-secondary);
 }
 
+/* Progress Bar */
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: var(--space-4) 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #4CAF50);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s ease-out;
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.loading-message-box {
+  margin-top: var(--space-4);
+}
+
+.loading-message {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  min-height: 20px;
+}
+
+/* Loading Progress Steps */
+.loading-header {
+  margin-bottom: var(--space-6);
+}
+
+.loading-icon-container {
+  margin-bottom: var(--space-4);
+}
+
+.loading-icon {
+  color: var(--color-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.loading-title {
+  font-size: 20px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: var(--space-3) 0;
+}
+
+.loading-progress {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+}
+
+.progress-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  opacity: 0.3;
+  transition: opacity 0.4s ease;
+}
+
+.progress-step.active {
+  opacity: 1;
+}
+
+.step-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.step-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.loading-tips {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-primary);
+}
+
+.tip-header {
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tip-content {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
 /* ============================================
    RESPONSIVE DESIGN
    ============================================ */

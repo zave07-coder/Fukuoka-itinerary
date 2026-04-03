@@ -9,6 +9,7 @@ class SyncService {
     this.syncInProgress = false;
     this.lastSyncTime = null;
     this.autoSyncInterval = null;
+    this.syncCallbacks = []; // Support multiple listeners
   }
 
   /**
@@ -61,6 +62,7 @@ class SyncService {
     }
 
     this.syncInProgress = true;
+    console.log('🔄 Starting sync...');
 
     try {
       const token = await authService.getAccessToken();
@@ -69,20 +71,24 @@ class SyncService {
       // Get all local trips
       const tripManager = new TripManager();
       const localTrips = tripManager.getAllTrips();
+      console.log(`📤 Pushing ${localTrips.length} local trips to cloud...`);
 
       // Push local trips to cloud
       const pushPromises = localTrips.map(trip => this.pushTrip(trip, token));
       await Promise.all(pushPromises);
+      console.log(`✅ Pushed ${localTrips.length} trips to cloud`);
 
       // Pull remote trips
+      console.log('📥 Pulling trips from cloud...');
       await this.pullTrips(token);
 
       this.lastSyncTime = new Date();
-      this.onSyncComplete?.({ success: true, time: this.lastSyncTime });
+      console.log('✅ Sync completed successfully');
+      this.notifySyncComplete({ success: true, time: this.lastSyncTime });
 
     } catch (error) {
-      console.error('Sync failed:', error);
-      this.onSyncComplete?.({ success: false, error });
+      console.error('❌ Sync failed:', error);
+      this.notifySyncComplete({ success: false, error });
     } finally {
       this.syncInProgress = false;
     }
@@ -140,10 +146,18 @@ class SyncService {
       }
 
       const cloudTrips = await response.json();
+      console.log(`📥 Pulling ${cloudTrips.length} trips from cloud`);
+
       const tripManager = new TripManager();
 
       // Merge cloud trips into localStorage
       const data = tripManager._loadData();
+      const localTripCount = data.trips.length;
+      console.log(`💾 Current local trips: ${localTripCount}`);
+
+      let newTrips = 0;
+      let updatedTrips = 0;
+      let skippedTrips = 0;
 
       for (const cloudTrip of cloudTrips) {
         const localTrip = tripManager.getTrip(cloudTrip.id);
@@ -157,6 +171,8 @@ class SyncService {
             lastSyncAt: new Date().toISOString()
           };
           data.trips.push(tripData);
+          newTrips++;
+          console.log(`➕ Added new trip from cloud: ${tripData.name}`);
         } else {
           // Conflict resolution: cloud wins if newer
           const cloudUpdated = new Date(cloudTrip.updated_at);
@@ -168,12 +184,18 @@ class SyncService {
               cloudSynced: true,
               lastSyncAt: new Date().toISOString()
             });
+            updatedTrips++;
+            console.log(`🔄 Updated trip from cloud (cloud newer): ${cloudTrip.data.name}`);
+          } else {
+            skippedTrips++;
+            console.log(`⏭️ Skipped trip (local newer): ${localTrip.name}`);
           }
         }
       }
 
       // Save new trips to localStorage
       tripManager._saveData(data);
+      console.log(`✅ Pull complete: ${newTrips} new, ${updatedTrips} updated, ${skippedTrips} skipped`);
 
     } catch (error) {
       console.error('Failed to pull trips:', error);
@@ -183,18 +205,25 @@ class SyncService {
 
   /**
    * Migrate localStorage trips to cloud on first login
+   * Uses user-specific migration key to ensure each device syncs properly
    */
   async migrateLocalTripsToCloud() {
     if (!authService.isAuthenticatedSync()) return;
 
-    const migrationKey = 'wahgola_migration_done';
+    const user = authService.getCurrentUser();
+    if (!user) return;
+
+    // Use user-specific migration key so each user's first login triggers sync
+    const migrationKey = `wahgola_migration_done_${user.id}`;
     if (localStorage.getItem(migrationKey)) {
-      console.log('Migration already completed');
+      console.log('Migration already completed for this user');
+      // Still do a sync to pull latest data
+      await this.syncAll();
       return;
     }
 
     try {
-      console.log('Migrating local trips to cloud...');
+      console.log('Migrating local trips to cloud for user:', user.email);
       await this.syncAll();
       localStorage.setItem(migrationKey, 'true');
       console.log('Migration complete');
@@ -216,10 +245,25 @@ class SyncService {
   }
 
   /**
+   * Notify all registered callbacks of sync completion
+   */
+  notifySyncComplete(result) {
+    this.syncCallbacks.forEach(callback => {
+      try {
+        callback(result);
+      } catch (error) {
+        console.error('Sync callback error:', error);
+      }
+    });
+  }
+
+  /**
    * Register sync completion callback
    */
   onSyncComplete(callback) {
-    this.onSyncComplete = callback;
+    if (typeof callback === 'function') {
+      this.syncCallbacks.push(callback);
+    }
   }
 }
 

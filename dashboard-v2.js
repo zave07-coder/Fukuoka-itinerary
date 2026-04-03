@@ -305,35 +305,110 @@ async function generateTrip() {
   document.querySelector('.ai-form').style.display = 'none';
   document.getElementById('loadingState').style.display = 'block';
 
-  const loadingMessages = [
-    'Analyzing destinations and activities...',
-    'Finding the best places to visit...',
-    'Creating day-by-day itinerary...',
-    'Adding GPS locations and details...'
-  ];
+  const loadingMessageEl = document.getElementById('loadingMessage');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  loadingMessageEl.textContent = 'Starting AI generation...';
 
-  let messageIndex = 0;
-  const messageInterval = setInterval(() => {
-    document.getElementById('loadingMessage').textContent = loadingMessages[messageIndex];
-    messageIndex = (messageIndex + 1) % loadingMessages.length;
-  }, 2000);
+  // Initialize progress
+  if (progressBar) progressBar.style.width = '0%';
+  if (progressText) progressText.textContent = '0%';
 
   try {
+    console.log('🚀 Starting AI trip generation with streaming...');
     const response = await fetch('/api/generate-trip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, stream: true })
     });
+
+    console.log('📡 Response received:', response.status, response.headers.get('Content-Type'));
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.userMessage || error.error || 'Failed to generate trip');
     }
 
-    const tripData = await response.json();
-    console.log('[AI Generation] Received trip data:', tripData);
+    // Read streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let tripData = null;
+    let eventCount = 0;
 
-    clearInterval(messageInterval);
+    console.log('📖 Starting to read stream...');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        console.log(`✅ Stream complete. Received ${eventCount} events`);
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const event = JSON.parse(line.slice(6));
+            eventCount++;
+
+            if (event.type === 'progress') {
+              // Calculate progress based on content length
+              // Typical trip JSON is 3000-8000 chars, we'll estimate completion at 6000 chars
+              const estimatedTotal = 6000;
+              const percentage = Math.min(95, Math.floor((event.content.length / estimatedTotal) * 100));
+
+              // Update progress bar and text
+              if (progressBar) progressBar.style.width = `${percentage}%`;
+              if (progressText) progressText.textContent = `${percentage}%`;
+
+              // Show preview of content being generated
+              const preview = event.content.substring(0, 200);
+              const lines = preview.split('\n').filter(l => l.trim());
+              const firstLine = lines[0] || 'Generating...';
+              loadingMessageEl.textContent = `✨ ${firstLine.substring(0, 80)}...`;
+
+              if (eventCount % 10 === 0) {
+                console.log(`📝 Progress event ${eventCount}: ${event.content.length} chars, ${percentage}%`);
+              }
+            } else if (event.type === 'complete') {
+              console.log('✅ Received completion event');
+              tripData = event.data;
+
+              // Update to 100% complete
+              if (progressBar) progressBar.style.width = '100%';
+              if (progressText) progressText.textContent = '100%';
+              loadingMessageEl.textContent = '✅ Trip generated successfully!';
+
+              // Break out immediately - we have the data
+              reader.cancel();
+              break;
+            } else if (event.type === 'error') {
+              console.error('❌ Received error event:', event.error);
+              throw new Error(event.error);
+            }
+          } catch (e) {
+            console.warn('⚠️ Failed to parse SSE event:', e, 'Line:', line);
+          }
+        }
+      }
+
+      // If we got the complete event, exit the outer loop too
+      if (tripData) {
+        console.log('🎉 Breaking out of stream loop with trip data');
+        break;
+      }
+    }
+
+    if (!tripData) {
+      console.error('❌ No trip data received after stream completed');
+      throw new Error('No trip data received');
+    }
+
+    console.log('[AI Generation] Received trip data:', tripData.name);
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
@@ -387,7 +462,6 @@ async function generateTrip() {
     openTrip(trip.id);
 
   } catch (error) {
-    clearInterval(messageInterval);
     console.error('[AI Generation] Error:', error);
     console.error('[AI Generation] Error stack:', error.stack);
 
@@ -596,14 +670,24 @@ async function initializeAuth() {
 
     // Listen for sync changes
     if (typeof syncService !== 'undefined') {
-      syncService.onSyncComplete = (result) => {
+      syncService.onSyncComplete((result) => {
+        console.log('Sync completed:', result);
         if (result.success) {
           updateSyncUI('synced');
+          console.log('Reloading trips after sync...');
           loadTrips(); // Reload trips after sync
         } else {
           updateSyncUI('error');
+          console.error('Sync error:', result.error);
         }
-      };
+      });
+
+      // Also reload trips immediately if already synced (handles page loads after login)
+      const syncStatus = syncService.getSyncStatus();
+      if (syncStatus.authenticated && syncStatus.lastSync) {
+        console.log('Loading trips after auth initialization');
+        setTimeout(() => loadTrips(), 500); // Give time for storage to settle
+      }
     }
   } catch (error) {
     console.error('Auth initialization error:', error);
