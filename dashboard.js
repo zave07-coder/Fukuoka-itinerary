@@ -459,7 +459,14 @@ async function generateTrip() {
     document.querySelector('.ai-form').style.display = 'block';
     document.getElementById('loadingState').style.display = 'none';
 
-    alert(error.message || 'Failed to generate trip. Please try again.');
+    // Provide helpful error messages
+    let errorMessage = error.message || 'Failed to generate trip. Please try again.';
+
+    if (errorMessage.includes('timeout')) {
+      errorMessage += '\n\nTip: Try describing a shorter trip (e.g., 3-5 days) or be more specific about your destination.';
+    }
+
+    alert(errorMessage);
   }
 }
 

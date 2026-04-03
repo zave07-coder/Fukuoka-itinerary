@@ -590,6 +590,8 @@ const generateTripHandler = async (request, env) => {
           let buffer = '';
           let fullContent = '';
           let chunkCount = 0;
+          const startTime = Date.now();
+          const TIMEOUT_MS = 25000; // 25 seconds safety margin (before Cloudflare's 30s limit)
 
           console.log('📖 Starting to read streaming chunks...');
 
@@ -601,6 +603,12 @@ const generateTripHandler = async (request, env) => {
           })}\n\n`));
 
           while (true) {
+            // Check for timeout
+            if (Date.now() - startTime > TIMEOUT_MS) {
+              console.error('⏱️ Timeout reached, stopping stream');
+              throw new Error('Generation timeout - please try a shorter or simpler trip');
+            }
+
             const { done, value } = await reader.read();
             if (done) {
               console.log(`✅ Stream complete. Received ${chunkCount} chunks, ${fullContent.length} chars`);
@@ -1158,50 +1166,65 @@ Important:
 - Add duration estimates
 - Suggest realistic daily pacing`;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.4', // Flagship model for initial itinerary generation - best quality
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.7,
-      max_completion_tokens: 16000, // Increased from 8000 to ensure full trip generation
-      response_format: { type: "json_object" },
-      stream: true // Enable streaming
-    })
-  });
+  // Add timeout to prevent hanging
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 28000); // 28 second timeout
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorMessage = 'Unknown error';
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-5.4', // Flagship model for initial itinerary generation - best quality
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_completion_tokens: 16000, // Increased from 8000 to ensure full trip generation
+        response_format: { type: "json_object" },
+        stream: true // Enable streaming
+      }),
+      signal: controller.signal
+    });
 
-    try {
-      const errorData = JSON.parse(errorText);
-      errorMessage = errorData.error?.message || errorText;
+    clearTimeout(timeoutId);
 
-      // Handle specific OpenAI error codes
-      if (response.status === 429) {
-        errorMessage = 'Rate limit exceeded';
-      } else if (response.status === 401) {
-        errorMessage = 'API key invalid';
-      } else if (response.status === 400) {
-        errorMessage = 'Invalid request format';
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Unknown error';
+
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error?.message || errorText;
+
+        // Handle specific OpenAI error codes
+        if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded';
+        } else if (response.status === 401) {
+          errorMessage = 'API key invalid';
+        } else if (response.status === 400) {
+          errorMessage = 'Invalid request format';
+        }
+      } catch (e) {
+        errorMessage = errorText.substring(0, 200);
       }
-    } catch (e) {
-      errorMessage = errorText.substring(0, 200);
+
+      throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
     }
 
-    throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
+    // Return the streaming response directly for the handler to process
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('OpenAI request timeout - please try a simpler trip or try again later');
+    }
+    throw error;
   }
-
-  // Return the streaming response directly for the handler to process
-  return response;
 }
 
 /**
