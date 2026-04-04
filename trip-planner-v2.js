@@ -252,7 +252,7 @@ function renderTrip() {
   // Add or update budget overview in header
   renderTripBudgetOverview();
 
-  // Render days
+  // Render days (includes summary and checklist placeholders)
   const itineraryPanel = document.querySelector('.itinerary-panel');
   itineraryPanel.innerHTML = renderDays(currentTrip.days || []);
 
@@ -263,6 +263,12 @@ function renderTrip() {
   if (currentTrip.days && currentTrip.days.length > 0) {
     updateMapMarkers();
   }
+
+  // Populate summary and checklist after rendering
+  setTimeout(() => {
+    displayTripSummary();
+    buildTripChecklist();
+  }, 100);
 }
 
 /**
@@ -287,7 +293,99 @@ function renderDays(days) {
     `;
   }
 
-  return days.map((day, index) => renderDayCard(day, index + 1)).join('');
+  // Include summary and checklist cards at the top
+  let html = '';
+
+  // Trip Summary Card (will be populated by displayTripSummary)
+  html += `
+    <section class="trip-summary-card" id="tripSummaryCard" style="display: none;">
+      <div class="summary-header">
+        <h3>Trip Overview</h3>
+        <button class="summary-refresh-btn" onclick="regenerateSummary()" title="Regenerate summary with AI">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </button>
+      </div>
+      <div class="summary-content" id="tripSummaryContent">
+        <div class="summary-skeleton">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // Trip Checklist Card (will be populated by buildTripChecklist)
+  html += `
+    <section class="trip-checklist-card" id="tripChecklistCard" style="display: none;">
+      <div class="checklist-header">
+        <h3>Trip Checklist</h3>
+        <button class="checklist-toggle-btn" onclick="toggleChecklistExpand()" id="checklistToggleBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="checklist-content" id="checklistContent">
+        <div class="checklist-categories">
+          <!-- To Eat -->
+          <div class="checklist-category">
+            <div class="checklist-category-header">
+              <span class="checklist-icon">🍽️</span>
+              <h4>To Eat</h4>
+              <span class="checklist-count" id="eatCount">0</span>
+            </div>
+            <div class="checklist-items" id="eatList">
+              <p class="checklist-empty">No food items yet</p>
+            </div>
+          </div>
+
+          <!-- To Shop -->
+          <div class="checklist-category">
+            <div class="checklist-category-header">
+              <span class="checklist-icon">🛍️</span>
+              <h4>To Shop</h4>
+              <span class="checklist-count" id="shopCount">0</span>
+            </div>
+            <div class="checklist-items" id="shopList">
+              <p class="checklist-empty">No shopping items yet</p>
+            </div>
+          </div>
+
+          <!-- To Play -->
+          <div class="checklist-category">
+            <div class="checklist-category-header">
+              <span class="checklist-icon">🎮</span>
+              <h4>To Play</h4>
+              <span class="checklist-count" id="playCount">0</span>
+            </div>
+            <div class="checklist-items" id="playList">
+              <p class="checklist-empty">No activities yet</p>
+            </div>
+          </div>
+
+          <!-- To Stay -->
+          <div class="checklist-category">
+            <div class="checklist-category-header">
+              <span class="checklist-icon">🏨</span>
+              <h4>To Stay</h4>
+              <span class="checklist-count" id="stayCount">0</span>
+            </div>
+            <div class="checklist-items" id="stayList">
+              <p class="checklist-empty">No accommodations yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // Add all day cards
+  html += days.map((day, index) => renderDayCard(day, index + 1)).join('');
+
+  return html;
 }
 
 /**
@@ -2425,3 +2523,400 @@ function printTrip() {
 
   window.print();
 }
+
+/**
+ * ============================================
+ * SYNC STATUS UI
+ * ============================================
+ */
+
+/**
+ * Initialize authentication and sync UI
+ */
+function initializeAuth() {
+  // Wait for auth service to initialize
+  if (typeof authService === 'undefined') {
+    console.log('Auth service not available - running in offline mode');
+    return;
+  }
+
+  authService.init().then(async () => {
+    const isAuth = await authService.isAuthenticated();
+    if (isAuth) {
+      updateSyncUI('synced');
+    }
+
+    // Listen for sync changes
+    if (typeof syncService !== 'undefined') {
+      syncService.onSyncComplete((result) => {
+        console.log('Sync completed:', result);
+        if (result.success) {
+          updateSyncUI('synced');
+          // Reload trip if it was synced
+          if (currentTrip && currentTrip.id) {
+            const updatedTrip = tripManager.getTrip(currentTrip.id);
+            if (updatedTrip) {
+              currentTrip = updatedTrip;
+              renderTrip();
+            }
+          }
+        } else {
+          updateSyncUI('error');
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Update sync UI indicator
+ */
+function updateSyncUI(status) {
+  const syncStatus = document.getElementById('syncStatus');
+  const syncText = document.getElementById('syncText');
+
+  if (!syncStatus) return;
+
+  syncStatus.style.display = 'flex';
+  syncStatus.className = 'sync-status';
+
+  switch (status) {
+    case 'syncing':
+      syncStatus.classList.add('syncing');
+      syncText.textContent = 'Syncing...';
+      break;
+    case 'synced':
+      if (typeof syncService !== 'undefined') {
+        const lastSync = syncService.getSyncStatus().lastSync;
+        if (lastSync) {
+          const minutes = Math.floor((Date.now() - lastSync.getTime()) / 60000);
+          syncText.textContent = minutes === 0 ? 'Just synced' : `Synced ${minutes}m ago`;
+        } else {
+          syncText.textContent = 'Synced';
+        }
+      } else {
+        syncText.textContent = 'Synced';
+      }
+      break;
+    case 'error':
+      syncStatus.classList.add('error');
+      syncText.textContent = 'Sync failed';
+      break;
+  }
+
+  // Update tooltip details
+  updateSyncTooltip();
+}
+
+/**
+ * Update sync tooltip with detailed information
+ */
+function updateSyncTooltip() {
+  if (typeof syncService === 'undefined') return;
+
+  const syncStatus = syncService.getSyncStatus();
+
+  // Last sync time
+  const lastSyncEl = document.getElementById('lastSyncTime');
+  if (lastSyncEl) {
+    if (syncStatus.lastSync) {
+      lastSyncEl.textContent = formatRelativeTime(syncStatus.lastSync);
+      lastSyncEl.title = syncStatus.lastSync.toLocaleString();
+    } else {
+      lastSyncEl.textContent = 'Never';
+    }
+  }
+
+  // Status
+  const statusValueEl = document.getElementById('syncStatusValue');
+  if (statusValueEl) {
+    if (syncStatus.syncing) {
+      statusValueEl.textContent = 'Syncing...';
+      statusValueEl.style.color = 'var(--color-primary)';
+    } else if (syncStatus.authenticated) {
+      statusValueEl.textContent = 'Active';
+      statusValueEl.style.color = 'var(--color-success)';
+    } else {
+      statusValueEl.textContent = 'Offline';
+      statusValueEl.style.color = 'var(--color-text-tertiary)';
+    }
+  }
+
+  // Device ID
+  const deviceIdEl = document.getElementById('deviceId');
+  if (deviceIdEl) {
+    deviceIdEl.textContent = syncStatus.deviceId || '-';
+    deviceIdEl.title = syncStatus.deviceId;
+  }
+}
+
+/**
+ * Format relative time (e.g., "2 minutes ago", "Just now")
+ */
+function formatRelativeTime(date) {
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 10) return 'Just now';
+  if (seconds < 60) return `${seconds} seconds ago`;
+  if (minutes === 1) return '1 minute ago';
+  if (minutes < 60) return `${minutes} minutes ago`;
+  if (hours === 1) return '1 hour ago';
+  if (hours < 24) return `${hours} hours ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+
+  return date.toLocaleDateString();
+}
+
+/**
+ * Show sync details tooltip
+ */
+function showSyncDetails() {
+  const tooltip = document.getElementById('syncTooltip');
+  if (!tooltip) return;
+
+  const isVisible = tooltip.style.display === 'block';
+
+  // Close if already open
+  if (isVisible) {
+    tooltip.style.display = 'none';
+    return;
+  }
+
+  // Update and show
+  updateSyncTooltip();
+  tooltip.style.display = 'block';
+
+  // Close on outside click
+  setTimeout(() => {
+    const closeOnOutsideClick = (e) => {
+      const syncStatus = document.getElementById('syncStatus');
+      if (!syncStatus.contains(e.target)) {
+        tooltip.style.display = 'none';
+        document.removeEventListener('click', closeOnOutsideClick);
+      }
+    };
+    document.addEventListener('click', closeOnOutsideClick);
+  }, 100);
+}
+
+/**
+ * Manually trigger sync
+ */
+async function manualSync() {
+  if (typeof syncService === 'undefined') {
+    showToast('Sync service not available', 3000, 'error');
+    return;
+  }
+
+  const btn = document.querySelector('.btn-sync-now');
+  if (!btn) return;
+
+  // Disable button
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+    </svg>
+    Syncing...
+  `;
+
+  try {
+    updateSyncUI('syncing');
+    await syncService.syncAll();
+    showToast('Sync completed successfully!', 2000, 'success');
+  } catch (error) {
+    console.error('Manual sync error:', error);
+    showToast('Sync failed: ' + error.message, 3000, 'error');
+  } finally {
+    // Re-enable button
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+      </svg>
+      Sync Now
+    `;
+  }
+}
+
+// Initialize auth on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initializeAuth();
+
+  // Update sync UI every minute to keep "X minutes ago" fresh
+  setInterval(() => {
+    if (typeof syncService !== 'undefined' && syncService.getSyncStatus().authenticated) {
+      updateSyncUI('synced');
+    }
+  }, 60000); // Every 60 seconds
+});
+
+/**
+ * ============================================
+ * TRIP CHECKLIST FUNCTIONALITY
+ * ============================================
+ */
+
+/**
+ * Build and display trip checklist from activities
+ */
+function buildTripChecklist() {
+  if (!currentTrip || !currentTrip.days) return;
+
+  const checklist = {
+    eat: [],
+    shop: [],
+    play: [],
+    stay: []
+  };
+
+  // Categorize activities
+  currentTrip.days.forEach((day, dayIndex) => {
+    if (!day.activities) return;
+
+    day.activities.forEach(activity => {
+      const type = activity.location?.type?.toLowerCase() || '';
+      const item = {
+        name: activity.name,
+        day: dayIndex + 1,
+        completed: activity.checklistCompleted || false,
+        activityId: activity.id || `${dayIndex}-${activity.name}`
+      };
+
+      // Categorize based on activity type
+      if (type.includes('food') || type.includes('restaurant') || type.includes('cafe') || type.includes('bar')) {
+        checklist.eat.push(item);
+      } else if (type.includes('shop') || type.includes('market') || type.includes('mall')) {
+        checklist.shop.push(item);
+      } else if (type.includes('hotel') || type.includes('accommodation') || type.includes('stay')) {
+        checklist.stay.push(item);
+      } else if (type.includes('temple') || type.includes('attraction') || type.includes('park') || type.includes('museum') || type.includes('activity')) {
+        checklist.play.push(item);
+      } else {
+        // Default to play/activities if uncertain
+        checklist.play.push(item);
+      }
+    });
+  });
+
+  // Display checklist
+  displayChecklist(checklist);
+}
+
+/**
+ * Display checklist in UI
+ */
+function displayChecklist(checklist) {
+  const checklistCard = document.getElementById('tripChecklistCard');
+  if (!checklistCard) return;
+
+  // Only show if there are items
+  const totalItems = checklist.eat.length + checklist.shop.length + checklist.play.length + checklist.stay.length;
+  if (totalItems === 0) {
+    checklistCard.style.display = 'none';
+    return;
+  }
+
+  checklistCard.style.display = 'block';
+
+  // Update each category
+  updateChecklistCategory('eat', checklist.eat, '🍽️');
+  updateChecklistCategory('shop', checklist.shop, '🛍️');
+  updateChecklistCategory('play', checklist.play, '🎮');
+  updateChecklistCategory('stay', checklist.stay, '🏨');
+}
+
+/**
+ * Update a single checklist category
+ */
+function updateChecklistCategory(categoryId, items, icon) {
+  const countEl = document.getElementById(`${categoryId}Count`);
+  const listEl = document.getElementById(`${categoryId}List`);
+
+  if (!countEl || !listEl) return;
+
+  // Update count
+  const completedCount = items.filter(item => item.completed).length;
+  countEl.textContent = `${completedCount}/${items.length}`;
+
+  // Update list
+  if (items.length === 0) {
+    listEl.innerHTML = '<p class="checklist-empty">No items yet</p>';
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => `
+    <div class="checklist-item ${item.completed ? 'completed' : ''}">
+      <label class="checklist-item-label">
+        <input
+          type="checkbox"
+          ${item.completed ? 'checked' : ''}
+          onchange="toggleChecklistItem('${categoryId}', '${escapeHtml(item.activityId)}')"
+        >
+        <span class="checklist-item-text">${escapeHtml(item.name)}</span>
+        <span class="checklist-item-day">Day ${item.day}</span>
+      </label>
+    </div>
+  `).join('');
+}
+
+/**
+ * Toggle checklist item completion
+ */
+function toggleChecklistItem(categoryId, activityId) {
+  if (!currentTrip || !currentTrip.days) return;
+
+  // Find and update activity
+  let found = false;
+  currentTrip.days.forEach(day => {
+    if (!day.activities) return;
+    day.activities.forEach(activity => {
+      const itemId = activity.id || `${currentTrip.days.indexOf(day)}-${activity.name}`;
+      if (itemId === activityId) {
+        activity.checklistCompleted = !activity.checklistCompleted;
+        found = true;
+      }
+    });
+  });
+
+  if (found) {
+    // Save to trip manager
+    tripManager.updateTrip(currentTripId, currentTrip);
+
+    // Rebuild checklist to reflect changes
+    buildTripChecklist();
+  }
+}
+
+/**
+ * Toggle checklist expand/collapse
+ */
+function toggleChecklistExpand() {
+  const content = document.getElementById('checklistContent');
+  const btn = document.getElementById('checklistToggleBtn');
+
+  if (!content || !btn) return;
+
+  const isCollapsed = content.style.display === 'none';
+
+  if (isCollapsed) {
+    content.style.display = 'block';
+    btn.style.transform = 'rotate(0deg)';
+  } else {
+    content.style.display = 'none';
+    btn.style.transform = 'rotate(-90deg)';
+  }
+}
+
+// Build checklist on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    buildTripChecklist();
+  }, 500);
+});

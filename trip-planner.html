@@ -36,6 +36,42 @@
 
             <!-- Right: Actions -->
             <div class="trip-header-actions">
+                <!-- Sync Status -->
+                <div class="sync-status" id="syncStatus" style="display: none;" onclick="showSyncDetails()">
+                    <svg class="sync-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                    <span id="syncText">Synced</span>
+
+                    <!-- Sync Details Tooltip -->
+                    <div class="sync-tooltip" id="syncTooltip" style="display: none;">
+                        <div class="sync-tooltip-header">
+                            <strong>Sync Status</strong>
+                        </div>
+                        <div class="sync-tooltip-body">
+                            <div class="sync-detail-row">
+                                <span class="sync-detail-label">Last Sync:</span>
+                                <span class="sync-detail-value" id="lastSyncTime">Never</span>
+                            </div>
+                            <div class="sync-detail-row">
+                                <span class="sync-detail-label">Status:</span>
+                                <span class="sync-detail-value" id="syncStatusValue">Idle</span>
+                            </div>
+                            <div class="sync-detail-row">
+                                <span class="sync-detail-label">Device ID:</span>
+                                <span class="sync-detail-value sync-device-id" id="deviceId">-</span>
+                            </div>
+                        </div>
+                        <div class="sync-tooltip-footer">
+                            <button class="btn-sync-now" onclick="event.stopPropagation(); manualSync()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                                </svg>
+                                Sync Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <button class="action-btn" onclick="exportToPDF()" title="Export to PDF">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -258,6 +294,69 @@
                         <div class="skeleton-line"></div>
                         <div class="skeleton-line"></div>
                         <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trip Checklist Card -->
+            <section class="trip-checklist-card" id="tripChecklistCard" style="display: none;">
+                <div class="checklist-header">
+                    <h3>Trip Checklist</h3>
+                    <button class="checklist-toggle-btn" onclick="toggleChecklistExpand()" id="checklistToggleBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="checklist-content" id="checklistContent">
+                    <div class="checklist-categories">
+                        <!-- To Eat -->
+                        <div class="checklist-category">
+                            <div class="checklist-category-header">
+                                <span class="checklist-icon">🍽️</span>
+                                <h4>To Eat</h4>
+                                <span class="checklist-count" id="eatCount">0</span>
+                            </div>
+                            <div class="checklist-items" id="eatList">
+                                <p class="checklist-empty">No food items yet</p>
+                            </div>
+                        </div>
+
+                        <!-- To Shop -->
+                        <div class="checklist-category">
+                            <div class="checklist-category-header">
+                                <span class="checklist-icon">🛍️</span>
+                                <h4>To Shop</h4>
+                                <span class="checklist-count" id="shopCount">0</span>
+                            </div>
+                            <div class="checklist-items" id="shopList">
+                                <p class="checklist-empty">No shopping items yet</p>
+                            </div>
+                        </div>
+
+                        <!-- To Play -->
+                        <div class="checklist-category">
+                            <div class="checklist-category-header">
+                                <span class="checklist-icon">🎮</span>
+                                <h4>To Play</h4>
+                                <span class="checklist-count" id="playCount">0</span>
+                            </div>
+                            <div class="checklist-items" id="playList">
+                                <p class="checklist-empty">No activities yet</p>
+                            </div>
+                        </div>
+
+                        <!-- To Stay -->
+                        <div class="checklist-category">
+                            <div class="checklist-category-header">
+                                <span class="checklist-icon">🏨</span>
+                                <h4>To Stay</h4>
+                                <span class="checklist-count" id="stayCount">0</span>
+                            </div>
+                            <div class="checklist-items" id="stayList">
+                                <p class="checklist-empty">No accommodations yet</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
