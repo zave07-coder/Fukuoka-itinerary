@@ -432,5 +432,30 @@
         </div>
     </div>
 
+    <!-- Version indicator (bottom-right corner) -->
+    <div id="versionIndicator" style="position: fixed; bottom: 8px; right: 8px; font-size: 11px; color: #888; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; font-family: monospace; cursor: pointer; z-index: 1000;" onclick="checkVersion()" title="Click to check for updates">
+        v?.?.?
+    </div>
+
+    <script>
+    // Check version on load
+    async function checkVersion() {
+        try {
+            const response = await fetch('/api/version?' + Date.now());
+            const data = await response.json();
+            const indicator = document.getElementById('versionIndicator');
+            indicator.textContent = `v${data.version}`;
+            indicator.title = `Version: ${data.version}\nTimestamp: ${data.timestamp}\nEnv: SUPABASE=${data.env.hasSupabaseUrl}, OpenAI=${data.env.hasOpenAI}\nClick to check for updates`;
+            console.log('📦 Version:', data);
+            return data;
+        } catch (error) {
+            console.error('Failed to check version:', error);
+        }
+    }
+
+    // Check version on page load
+    checkVersion();
+    </script>
+
 </body>
 </html>

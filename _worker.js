@@ -2085,6 +2085,26 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Version endpoint
+    if (url.pathname === '/api/version') {
+      const version = {
+        version: '1.0.1',
+        timestamp: new Date().toISOString(),
+        env: {
+          hasSupabaseUrl: !!env.SUPABASE_URL,
+          hasSupabaseServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
+          hasSupabaseAnonKey: !!env.SUPABASE_ANON_KEY,
+          hasOpenAI: !!env.OPENAI_API_KEY
+        }
+      };
+      return new Response(JSON.stringify(version, null, 2), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+    }
+
     // Serve config from environment variables
     if (url.pathname === '/config.js') {
       // Try env var first, then fall back to constructed token
