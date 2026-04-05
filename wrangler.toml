@@ -16,5 +16,10 @@ dead_letter_queue = "trip-generation-dlq"
 
 [vars]
 # Public environment variables (non-sensitive)
-# Note: Secrets like SUPABASE_URL, SUPABASE_ANON_KEY are set via `wrangler pages secret put`
-# and are available in the `env` parameter of the fetch handler
+# Note: Secrets should be set via Cloudflare Pages dashboard or `wrangler pages secret put`
+# These are available in the `env` parameter of the fetch handler
+
+# Supabase configuration
+SUPABASE_URL = "https://gdhyukplodnvokrmxvba.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkaHl1a3Bsb2Rudm9rcm14dmJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTI4NjQsImV4cCI6MjA5MDQ2ODg2NH0.Ygoi5WlRHbfxdNx7dQzvlPnXkRElTWbOac1LZQZAkm4"
+# Note: SUPABASE_SERVICE_ROLE_KEY is sensitive - set it as a secret in Cloudflare Pages dashboard

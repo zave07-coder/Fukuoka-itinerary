@@ -1,53 +1,4 @@
- files. Here's what to do:
-
-### Steps to see the changes:
-
-1. **Wait 2-3 minutes** for Cloudflare Pages to rebuild and deploy
-2. **Visit**: `https://wahgola.zavecoder.com/trip-planner.html?trip={your-trip-id}`
-3. **Hard refresh** to clear any remaining cache:
-   - **Windows/Linux**: `Ctrl + Shift + R`
-   - **Mac**: `Cmd + Shift + R`
-   - **Or**: Open DevTools (F12) → Right-click refresh butto
-
-[2026-04-04] Perfect! 🚀 **Changes pushed to trigger deployment!**
-
-## What I Did:
-
-1. **Added aggressive cache-busting meta tags** to both `trip-planner.html` and `dashboard.html`:
-   ```html
-   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-   <meta http-equiv="Pragma" content="no-cache">
-   <meta http-equiv="Expires" content="0">
-   ```
-
-2. **Bumped all asset versions from v19 → v20** (CSS and all JS files)
-
-3. **Fixed a typo** in dashboard.html
-
-## To See the Changes:
-
-**
-
-[2026-04-05] Perfect! The changes are deployed. Let me explain what was wrong and what I fixed:
-
-## Summary
-
-**The Problem:**
-When you tried to generate a new trip using AI, it said "No trip data" because:
-
-1. **trip-planner-v2.js** had a validation check that prevented AI editing when `currentTrip.days` was empty or didn't exist
-2. **_worker.js** AI edit handler wasn't designed to generate new trips - it was only for editing existing trips
-
-**The Fix:**
-1. **Removed the blocking validation** - Now allows AI
-
-[2026-04-05] Perfect! Now let me provide you with a summary:
-
-## Summary
-
-I've fixed two critical issues:
-
-### Issue 1: ✅ **Supabase Sync Error** (`undefined/rest/v1/users`)
+: ✅ **Supabase Sync Error** (`undefined/rest/v1/users`)
 
 **Problem:** Environment variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` were not configured in Cloudflare Pages.
 
@@ -108,3 +59,53 @@ The error showed that `env` was undefined, which made `env.SUPABASE_URL` also un
 - Better logging to see which URL is being used
 
 This should now use the fallback Supabase URL even if the `env` obje
+
+[2026-04-05] Excellent! The fix is deployed. The issue was:
+
+**What went wrong:**
+- I added aggressive timeouts (25s for streaming, 28s for fetch) trying to prevent hanging
+- These timeouts were way too short for generating 7-day trips
+- Multi-day itineraries need more time to generate all the content
+- Streaming responses don't hit Cloudflare's CPU time limit the same way
+
+**What I fixed:**
+- Removed the 25-second timeout from the streaming loop
+- Removed the 28-second AbortController timeout from the fetch
+
+[2026-04-05] ## Summary
+
+**Good news!** Your Supabase database is already 90% set up! 
+
+✅ **Already working:**
+- `users` table - ready for syncing user profiles
+- `trips` table - ready for syncing trips
+- `sync_metadata` table - ready for conflict resolution
+
+❌ **Missing (optional):**
+- `poi_images` table - for caching POI photos (reduces Google Places API calls)
+
+**The sync should work now!** Try:
+1. Hard refresh your browser (Ctrl+Shift+R)
+2. Log out and log back in
+3. Create a trip and sync it
+
+The only i
+
+[2026-04-05] Perfect! I can see:
+- ✅ **users** table has 1 row (your user is already synced!)
+- ✅ **trips** table exists (ready for sync)
+- ✅ **sync_metadata** table exists
+- ❌ **poi_images** is the only missing table
+
+Since I can't create tables via API, here's what to do:
+
+## Quick Fix
+
+**Option 1: Manual (30 seconds)**
+1. Go to: https://supabase.com/dashboard/project/gdhyukplodnvokrmxvba/sql
+2. Click "New Query"
+3. Copy this SQL and paste it:
+
+```sql
+CREATE TABLE IF NOT EXISTS poi_images (
+  id UUID PRIMA
