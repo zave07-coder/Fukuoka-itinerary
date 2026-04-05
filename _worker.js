@@ -1393,7 +1393,11 @@ const syncUserHandler = async (request, env) => {
     });
   } catch (error) {
     console.error('Sync user error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error stack:', error.stack);
+    return new Response(JSON.stringify({
+      error: error.message,
+      details: error.stack
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -1469,7 +1473,13 @@ const tripsHandler = async (request, env) => {
 
   } catch (error) {
     console.error('Trips handler error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error stack:', error.stack);
+    console.error('Request method:', request.method);
+    return new Response(JSON.stringify({
+      error: error.message,
+      details: error.stack,
+      method: request.method
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

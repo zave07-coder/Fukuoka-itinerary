@@ -118,13 +118,15 @@ class SyncService {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to push trip');
+        const errorData = await response.json();
+        console.error('❌ Push trip error details:', errorData);
+        throw new Error(errorData.error || 'Failed to push trip');
       }
 
       return await response.json();
     } catch (error) {
-      console.error(`Failed to push trip ${trip.id}:`, error);
+      console.error(`❌ Failed to push trip ${trip.id}:`, error);
+      console.error('Trip data:', trip);
       throw error;
     }
   }

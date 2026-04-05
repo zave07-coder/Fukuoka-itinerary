@@ -1,21 +1,4 @@
-ree features you requested:
-
-### 1. ✅ Sync Status Now Visible in Trip Planner
-
-**What was added:**
-- Sync status indicator in the trip planner header (next to export/share buttons)
-- Shows "Synced Xm ago" or "Just synced" based on last sync time
-- Click to view detailed tooltip with:
-  - Last sync time (e.g., "2 minutes ago")
-  - Sync status (Active/Syncing/Offline)
-  - Device ID
-  - "Sync No
-
-[2026-04-04] Great! 🚀 **Your changes are now deployed!**
-
-### What's Been Deployed:
-
-✅ **Sync Status Indicator** - Now visible in the trip planner header with detailed tooltip  
+w visible in the trip planner header with detailed tooltip  
 ✅ **Trip Executive Summary** - AI-generated overview displays at the top of your itinerary  
 ✅ **Trip Checklist** - Automatic categorization into To Eat, To Shop, To Play, To Stay
 
@@ -108,3 +91,16 @@ I've successfully fixed **three critical issues**:
 **Fixed:** Added robust error handling, partial data recovery, and extensive logging to diagnose and recover from incomplete AI responses.
 
 ### ✅ Issue 3: AI Edit - "N
+
+[2026-04-05] Perfect! I've fixed the issue. Here's what was wrong:
+
+## Problem
+The `syncUserHandler` function (line 1359) was checking if `env.SUPABASE_URL` and `env.SUPABASE_SERVICE_ROLE_KEY` exist, and returning a **503 error** if they weren't set - even though the `SupabaseClient` class has fallback credentials built-in.
+
+This caused the error you saw:
+```
+POST https://wahgola.zavecoder.com/api/sync-user 503 (Service Unavailable)
+```
+
+## Solution
+I removed the environment variable check from `syncUserHand
