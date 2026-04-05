@@ -1364,9 +1364,14 @@ async function submitAIEdit() {
     return;
   }
 
-  if (!currentTrip || !currentTrip.days || currentTrip.days.length === 0) {
-    showToast('No trip data available to edit', 2000, 'error');
+  if (!currentTrip) {
+    showToast('No trip loaded', 2000, 'error');
     return;
+  }
+
+  // Initialize days array if it doesn't exist (for new trips)
+  if (!currentTrip.days) {
+    currentTrip.days = [];
   }
 
   // Disable button and show loading

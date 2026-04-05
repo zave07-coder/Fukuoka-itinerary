@@ -266,6 +266,7 @@ const aiEditHandler = async (request, env) => {
     }
 
     const isWholeTrip = tripContext?.isWholeTrip || allDays !== null;
+    const isNewTrip = isWholeTrip && (!allDays || allDays.length === 0);
 
     // Build context from trip data
     const contextParts = [];
@@ -276,17 +277,48 @@ const aiEditHandler = async (request, env) => {
       contextParts.push(`Total trip duration: ${tripContext.totalDays} days`);
     }
 
-    if (isWholeTrip && allDays) {
+    if (isWholeTrip && allDays && allDays.length > 0) {
       contextParts.push(`Editing entire trip with ${allDays.length} days`);
       contextParts.push(`Current trip data: ${JSON.stringify(allDays)}`);
+    } else if (isNewTrip) {
+      contextParts.push(`Generating a brand new trip`);
     } else if (currentDay) {
       contextParts.push(`Editing single day: ${JSON.stringify(currentDay)}`);
     }
 
     const context = contextParts.join('. ');
 
-    // System prompt - different for whole trip vs single day
-    const systemPrompt = isWholeTrip ?
+    // System prompt - different for whole trip vs single day vs new trip
+    const systemPrompt = isNewTrip ?
+      `You are a professional travel planning expert. Generate a complete new trip itinerary based on the user's request. ${context}
+
+Return a complete trip as an array of day objects in JSON format:
+{
+  "days": [
+    {
+      "title": "Day 1: Arrival",
+      "activities": [
+        {
+          "time": "9:00 AM",
+          "name": "Activity name",
+          "details": "Detailed activity description with tips",
+          "duration": "1 hour",
+          "location": {
+            "name": "Location name",
+            "lat": 33.5904,
+            "lng": 130.4017,
+            "type": "restaurant|attraction|hotel|cafe|park",
+            "address": "Full address"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+CRITICAL: Use REAL, ACCURATE GPS coordinates for actual locations. Look up the true latitude and longitude for each specific place/POI. Do not use placeholder or approximate coordinates.
+Important: Generate a complete, well-paced itinerary with realistic activities and timing.`
+      : isWholeTrip ?
       `You are editing an entire multi-day travel itinerary. ${context}
 
 Return a complete updated trip as an array of day objects in JSON format:
