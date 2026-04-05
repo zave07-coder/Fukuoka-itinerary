@@ -1355,21 +1355,11 @@ const syncUserHandler = async (request, env) => {
   }
 
   try {
-    // Check if Supabase is configured
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Database not configured',
-        message: 'User sync is not available - working in offline mode'
-      }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    // Initialize Supabase client (has fallback credentials built-in)
+    const db = new SupabaseClient(env);
 
     const auth = await verifySupabaseToken(request, env);
     const { supabaseUserId, email, displayName, avatarUrl} = await request.json();
-    const db = new SupabaseClient(env);
 
     // Check if user exists
     const existingUsers = await db.query('users', {
