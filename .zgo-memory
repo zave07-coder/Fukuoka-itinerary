@@ -1,16 +1,4 @@
-1: Check Cloudflare Pages Dashboard**
-- Go to your Cloudflare dashboard
-- Navigate to Pages → Fukuoka-itinerary
-- Look for the latest deployment (should show commit `d7cd256`)
-
-**Option 2: Wait and Hard Refresh**
-- Wait 2-3 minutes for the build to complete
-- Visit: `https://wahgola.zavecoder.com/trip-planner.html?trip={your-trip-id}`
-- Do a hard refresh: **Ctrl+Shift+R** (Windows/Linux) or *
-
-[2026-04-04] Perfect! 🚀 **Cache-busting update deployed!**
-
-Now the browser will be forced to load the new CSS and JS files. Here's what to do:
+ files. Here's what to do:
 
 ### Steps to see the changes:
 
@@ -108,3 +96,15 @@ The 500 error you're seeing when trying to sync trips is because **the database 
    - Go to **SQL Editor** → **New Query**
    - Open the file `supabase-schema.sql` in your project
    - Copy ALL the SQL code and paste it into the edito
+
+[2026-04-05] Perfect! The fix is deployed. Now wait about 30-60 seconds for Cloudflare Pages to rebuild, then:
+
+1. **Hard refresh your browser** (Ctrl+Shift+R or Cmd+Shift+R)
+2. Check if the sync works now
+
+The error showed that `env` was undefined, which made `env.SUPABASE_URL` also undefined. I've added:
+- Optional chaining (`env?.SUPABASE_URL`)
+- Default empty object parameter (`env = {}`)
+- Better logging to see which URL is being used
+
+This should now use the fallback Supabase URL even if the `env` obje

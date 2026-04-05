@@ -634,8 +634,6 @@ const generateTripHandler = async (request, env) => {
           let buffer = '';
           let fullContent = '';
           let chunkCount = 0;
-          const startTime = Date.now();
-          const TIMEOUT_MS = 25000; // 25 seconds safety margin (before Cloudflare's 30s limit)
 
           console.log('📖 Starting to read streaming chunks...');
 
@@ -647,12 +645,6 @@ const generateTripHandler = async (request, env) => {
           })}\n\n`));
 
           while (true) {
-            // Check for timeout
-            if (Date.now() - startTime > TIMEOUT_MS) {
-              console.error('⏱️ Timeout reached, stopping stream');
-              throw new Error('Generation timeout - please try a shorter or simpler trip');
-            }
-
             const { done, value } = await reader.read();
             if (done) {
               console.log(`✅ Stream complete. Received ${chunkCount} chunks, ${fullContent.length} chars`);
@@ -1233,10 +1225,6 @@ Important:
 - Add duration estimates
 - Suggest realistic daily pacing`;
 
-  // Add timeout to prevent hanging
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 28000); // 28 second timeout
-
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -1254,11 +1242,8 @@ Important:
         max_completion_tokens: 16000, // Increased from 8000 to ensure full trip generation
         response_format: { type: "json_object" },
         stream: true // Enable streaming
-      }),
-      signal: controller.signal
+      })
     });
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -1286,10 +1271,6 @@ Important:
     // Return the streaming response directly for the handler to process
     return response;
   } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('OpenAI request timeout - please try a simpler trip or try again later');
-    }
     throw error;
   }
 }
