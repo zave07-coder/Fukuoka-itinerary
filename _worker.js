@@ -692,12 +692,17 @@ const generateTripHandler = async (request, env) => {
           try {
             console.log('🔍 Parsing final JSON response...');
             console.log(`📊 Content length: ${fullContent.length} characters`);
+            console.log(`📄 Content preview: ${fullContent.substring(0, 200)}...`);
+            console.log(`📄 Content end: ...${fullContent.substring(fullContent.length - 200)}`);
 
             const tripData = JSON.parse(fullContent);
-            console.log('✅ JSON parsed successfully:', tripData.name);
+            console.log('✅ JSON parsed successfully');
+            console.log(`📍 Trip name: ${tripData.name || 'Unnamed'}`);
+            console.log(`📍 Days count: ${tripData.days?.length || 0}`);
 
             // Validate trip data completeness
             if (!tripData.days || !Array.isArray(tripData.days) || tripData.days.length === 0) {
+              console.error('❌ Trip has no days array or is empty');
               throw new Error('Trip has no days - generation incomplete');
             }
 
@@ -732,10 +737,28 @@ const generateTripHandler = async (request, env) => {
             console.error('Content length:', fullContent.length);
             console.error('Content preview:', fullContent.substring(0, 500));
             console.error('Content end:', fullContent.substring(fullContent.length - 200));
+
+            // Try to extract whatever JSON we can
+            let partialData = null;
+            try {
+              // Try to find the last complete JSON object
+              const lastBrace = fullContent.lastIndexOf('}');
+              if (lastBrace > 0) {
+                const possibleJson = fullContent.substring(0, lastBrace + 1);
+                partialData = JSON.parse(possibleJson);
+                console.log('⚠️ Recovered partial data:', partialData.name);
+              }
+            } catch (e) {
+              console.error('Could not recover partial data');
+            }
+
             await writer.write(encoder.encode(`data: ${JSON.stringify({
               type: 'error',
-              error: 'Failed to parse AI response - trip may be incomplete. Please try again.',
-              details: parseError.message
+              error: partialData
+                ? 'Trip generation incomplete. Showing partial results.'
+                : 'Failed to parse AI response - trip may be incomplete. Please try again.',
+              details: parseError.message,
+              partialData: partialData
             })}\n\n`));
           }
 

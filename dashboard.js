@@ -443,7 +443,9 @@ async function generateTrip() {
 
     if (!tripData) {
       console.error('❌ No trip data received after stream completed');
-      throw new Error('No trip data received');
+      console.error('Event count:', eventCount);
+      console.error('Buffer remaining:', buffer);
+      throw new Error('No trip data received - stream may have been interrupted');
     }
 
     console.log('✅ Trip data received:', tripData.name);
