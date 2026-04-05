@@ -1,18 +1,19 @@
 // Supabase REST API helper (updated with env vars)
 class SupabaseClient {
-  constructor(env) {
+  constructor(env = {}) {
     // Use env vars with fallback to hardcoded values
     // Note: Service key is sensitive but needed for backend operations
-    this.url = env.SUPABASE_URL || 'https://gdhyukplodnvokrmxvba.supabase.co';
-    this.serviceKey = env.SUPABASE_SERVICE_ROLE_KEY ||
+    this.url = env?.SUPABASE_URL || 'https://gdhyukplodnvokrmxvba.supabase.co';
+    this.serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY ||
                      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkaHl1a3Bsb2Rudm9rcm14dmJhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDg5Mjg2NCwiZXhwIjoyMDkwNDY4ODY0fQ.cEt3gBApYN4lDykyQMnrwMZE_iH2mBoDpwClIVstOmk';
-    this.anonKey = env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkaHl1a3Bsb2Rudm9rcm14dmJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTI4NjQsImV4cCI6MjA5MDQ2ODg2NH0.Ygoi5WlRHbfxdNx7dQzvlPnXkRElTWbOac1LZQZAkm4';
+    this.anonKey = env?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkaHl1a3Bsb2Rudm9rcm14dmJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTI4NjQsImV4cCI6MjA5MDQ2ODg2NH0.Ygoi5WlRHbfxdNx7dQzvlPnXkRElTWbOac1LZQZAkm4';
 
     // Log which values are being used (for debugging)
-    if (!env.SUPABASE_URL) {
+    console.log(`🔧 SupabaseClient initialized with URL: ${this.url}`);
+    if (!env?.SUPABASE_URL) {
       console.log('ℹ️ Using fallback SUPABASE_URL');
     }
-    if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!env?.SUPABASE_SERVICE_ROLE_KEY) {
       console.log('ℹ️ Using fallback SUPABASE_SERVICE_ROLE_KEY');
     }
   }
