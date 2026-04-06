@@ -1233,13 +1233,13 @@ Important:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-5.4', // Flagship model for initial itinerary generation - best quality
+        model: 'gpt-4o-mini', // Fast model with good quality - stays within Cloudflare Worker timeout
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_completion_tokens: 16000, // Increased from 8000 to ensure full trip generation
+        max_completion_tokens: 8000, // Balanced for quality while staying within CF Worker 30s timeout
         response_format: { type: "json_object" },
         stream: true // Enable streaming
       })
