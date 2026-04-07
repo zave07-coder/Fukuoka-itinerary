@@ -54,17 +54,35 @@ class TripManager {
         endDate: tripData.endDate || '',
         coverImage: tripData.coverImage || this._getDefaultCoverImage(),
         days: tripData.days || [],
+        // Preserve additional AI-generated fields
+        summary: tripData.summary,
+        highlights: tripData.highlights,
+        aiGenerated: tripData.aiGenerated,
+        generatedBy: tripData.generatedBy,
+        generatedAt: tripData.generatedAt,
+        currency: tripData.currency,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+
+      console.log('[TripManager] Creating trip:', {
+        id: newTrip.id,
+        name: newTrip.name,
+        destination: newTrip.destination,
+        daysCount: newTrip.days?.length,
+        hasSummary: !!newTrip.summary
+      });
 
       data.trips.push(newTrip);
       data.currentTripId = newTrip.id;
 
       this._saveData(data);
+
+      console.log('[TripManager] Trip saved successfully. Total trips:', data.trips.length);
+
       return newTrip;
     } catch (error) {
-      console.error('Error creating trip:', error);
+      console.error('[TripManager] Error creating trip:', error);
       throw error;
     }
   }

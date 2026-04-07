@@ -449,9 +449,19 @@ async function generateTrip() {
     }
 
     console.log('✅ Trip data received:', tripData.name);
+    console.log('📊 Trip has', tripData.days?.length, 'days');
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
+    console.log('💾 Trip saved with ID:', trip.id);
+
+    // Verify trip was actually saved
+    const savedTrip = tripManager.getTrip(trip.id);
+    if (!savedTrip) {
+      console.error('❌ Trip was not saved properly!');
+      throw new Error('Failed to save trip to localStorage');
+    }
+    console.log('✅ Verified trip saved successfully:', savedTrip.name);
 
     // Close modal and open trip
     closeAIModal();
@@ -459,8 +469,11 @@ async function generateTrip() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('aiPrompt').value = '';
 
-    // Redirect to trip
-    openTrip(trip.id);
+    // Add small delay to ensure localStorage is flushed before redirect
+    console.log('🔄 Redirecting to trip planner in 100ms...');
+    setTimeout(() => {
+      openTrip(trip.id);
+    }, 100);
 
   } catch (error) {
     console.error('AI generation error:', error);
