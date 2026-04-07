@@ -1,12 +1,8 @@
 {
   "version": 2,
-  "name": "wahgola-api",
   "functions": {
     "api/**/*.js": {
       "maxDuration": 60
     }
-  },
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
   }
 }

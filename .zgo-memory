@@ -1,18 +1,4 @@
-or streaming, 28s for fetch) trying to prevent hanging
-- These timeouts were way too short for generating 7-day trips
-- Multi-day itineraries need more time to generate all the content
-- Streaming responses don't hit Cloudflare's CPU time limit the same way
-
-**What I fixed:**
-- Removed the 25-second timeout from the streaming loop
-- Removed the 28-second AbortController timeout from the fetch
-
-[2026-04-05] ## Summary
-
-**Good news!** Your Supabase database is already 90% set up! 
-
-✅ **Already working:**
-- `users` table - ready for syncing user profiles
+s` table - ready for syncing user profiles
 - `trips` table - ready for syncing trips
 - `sync_metadata` table - ready for conflict resolution
 
@@ -103,3 +89,17 @@ If you still get issues, check the browser console (F12) and you'll see detailed
 - `💾 Trip saved with ID: xxx`
 - `✅ Verified trip saved successfully`
 - `🔄 Redirecting to trip pla
+
+[2026-04-07] # ✅ Fixed and Deployed!
+
+## What I Changed:
+
+1. **❌ Removed the artificial 25-second timeout** that was killing your generations
+2. **✂️ Reduced `max_completion_tokens` from 8000 → 4000** for faster completion
+3. **⚡ Now your 4D3N Chiang Mai trip should complete in ~15-20 seconds** instead of timing out
+
+## Trade-offs:
+
+- ✅ **Pro**: Trips will generate reliably without timeout errors
+- ⚠️ **Con**: Activity descriptions will be slightly shorter (but still detailed enough)
+- 💡 **Tip**: For 7+ day
