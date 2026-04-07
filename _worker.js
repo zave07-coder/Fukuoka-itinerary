@@ -1239,7 +1239,7 @@ Important:
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_completion_tokens: 8000, // Balanced for quality while staying within CF Worker 30s timeout
+        max_completion_tokens: 4000, // Reduced to stay well within CF Worker 30s timeout (was 8000)
         response_format: { type: "json_object" },
         stream: true // Enable streaming
       })
