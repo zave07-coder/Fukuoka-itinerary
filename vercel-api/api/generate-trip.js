@@ -88,13 +88,13 @@ Important:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o', // Switched from gpt-4o-mini for better streaming performance
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_completion_tokens: 12000, // 3x higher than CF Workers limit!
+        max_completion_tokens: 12000,
         response_format: { type: "json_object" },
         stream: true
       })
@@ -182,7 +182,7 @@ Important:
 
     // Add metadata
     tripData.aiGenerated = true;
-    tripData.generatedBy = 'gpt-4o-mini-vercel';
+    tripData.generatedBy = 'gpt-4o-vercel';
     tripData.generatedAt = new Date().toISOString();
 
     console.log(`✅ Trip generated: ${tripData.name} (${tripData.days?.length} days)`);
