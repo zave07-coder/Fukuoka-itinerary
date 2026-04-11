@@ -335,13 +335,13 @@ async function generateTrip() {
   try {
     console.log('🚀 Starting AI trip generation with streaming...');
 
-    // Use Vercel API for higher token limit (12k vs 4k) and no 30s timeout
-    const API_URL = 'https://wahgola-api.vercel.app/api/generate-trip';
+    // Use local Cloudflare worker with streaming support (gpt-4o, 16k tokens)
+    const API_URL = '/api/generate-trip';
 
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, stream: true })
     });
 
     console.log('📡 Response received:', response.status, response.headers.get('Content-Type'));
