@@ -2200,22 +2200,23 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-11';
-      const buildTime = '22:51';
-      const buildTimestamp = '2026-04-11T22:51:00+08:00';
+      const buildTime = '23:22';
+      const buildTimestamp = '2026-04-11T23:22:00+08:00';
 
       const version = {
-        version: '1.1.8',
+        version: '1.1.9',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.8 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.1.9 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
           hasSupabaseServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
           hasSupabaseAnonKey: !!env.SUPABASE_ANON_KEY,
           hasOpenAI: !!env.OPENAI_API_KEY,
-          hasGooglePlacesApiKey: !!env.GOOGLE_PLACES_API_KEY
+          hasGooglePlacesApiKey: !!env.GOOGLE_PLACES_API_KEY,
+          hasUnsplashAccessKey: !!env.UNSPLASH_ACCESS_KEY
         }
       };
       return new Response(JSON.stringify(version, null, 2), {
