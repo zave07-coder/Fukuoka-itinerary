@@ -2018,7 +2018,13 @@ async function fetchGooglePlacesPhoto(poiName, lat, lng, env) {
   } catch (newApiError) {
     // If new API fails, try legacy API
     console.warn('New Places API failed, trying legacy:', newApiError.message);
-    return await fetchGooglePlacesPhotoLegacy(poiName, lat, lng, env);
+
+    try {
+      return await fetchGooglePlacesPhotoLegacy(poiName, lat, lng, env);
+    } catch (legacyApiError) {
+      // Both failed - throw combined error
+      throw new Error(`Google Places API error: ${newApiError.message} (New API); ${legacyApiError.message} (Legacy API)`);
+    }
   }
 }
 
@@ -2194,15 +2200,15 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-11';
-      const buildTime = '22:44';
-      const buildTimestamp = '2026-04-11T22:44:00+08:00';
+      const buildTime = '22:51';
+      const buildTimestamp = '2026-04-11T22:51:00+08:00';
 
       const version = {
-        version: '1.1.7',
+        version: '1.1.8',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.7 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.1.8 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
