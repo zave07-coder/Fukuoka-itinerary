@@ -142,9 +142,14 @@ class TripManager {
       // Also delete from cloud if user is authenticated
       if (typeof authService !== 'undefined') {
         try {
+          console.log(`🗑️ Attempting to delete trip ${id} from cloud...`);
           const isAuth = await authService.isAuthenticated();
+          console.log(`🔐 Auth status: ${isAuth}`);
+
           if (isAuth) {
             const token = await authService.getAccessToken();
+            console.log(`🎫 Got access token: ${token ? 'yes' : 'no'}`);
+
             const response = await fetch('/api/trips', {
               method: 'DELETE',
               headers: {
@@ -154,15 +159,22 @@ class TripManager {
               body: JSON.stringify({ tripId: id })
             });
 
+            console.log(`📡 DELETE response status: ${response.status}`);
+
             if (response.ok) {
-              console.log(`✅ Trip ${id} deleted from cloud`);
+              const result = await response.json();
+              console.log(`✅ Trip ${id} deleted from cloud:`, result);
             } else {
-              console.warn(`⚠️ Failed to delete trip ${id} from cloud:`, await response.text());
+              const errorText = await response.text();
+              console.error(`❌ Failed to delete trip ${id} from cloud (${response.status}):`, errorText);
+              throw new Error(`Cloud delete failed: ${response.status} - ${errorText}`);
             }
+          } else {
+            console.log('⚠️ Not authenticated - skipping cloud delete');
           }
         } catch (cloudError) {
-          console.warn('Failed to delete from cloud (offline?):', cloudError);
-          // Continue anyway - local delete succeeded
+          console.error('❌ Cloud delete error:', cloudError);
+          throw cloudError; // Re-throw so the UI shows the error
         }
       }
 
