@@ -1,19 +1,4 @@
-ck the browser console (F12) and you'll see detailed logs like:
-- `💾 Trip saved with ID: xxx`
-- `✅ Verified trip saved successfully`
-- `🔄 Redirecting to trip pla
-
-[2026-04-07] # ✅ Fixed and Deployed!
-
-## What I Changed:
-
-1. **❌ Removed the artificial 25-second timeout** that was killing your generations
-2. **✂️ Reduced `max_completion_tokens` from 8000 → 4000** for faster completion
-3. **⚡ Now your 4D3N Chiang Mai trip should complete in ~15-20 seconds** instead of timing out
-
-## Trade-offs:
-
-- ✅ **Pro**: Trips will generate reliably without timeout errors
+ips will generate reliably without timeout errors
 - ⚠️ **Con**: Activity descriptions will be slightly shorter (but still detailed enough)
 - 💡 **Tip**: For 7+ day
 
@@ -95,3 +80,20 @@ The changes have been committed and pushed to the remote repository. The commit 
 - **Streaming**: Enabled to prevent Cloudflare timeouts
 
 The repository is now up to date with origin/main. Cloudflare Pages should automatically deploy this update within the next 1-2 minutes.
+
+[2026-04-11] Perfect! ✅ **All done!**
+
+## Summary
+
+I've successfully added a comprehensive **version tracking system** with SGT timestamps to your Wahgola project:
+
+### 🎯 What Was Added
+
+1. **Version API Endpoint** (`/api/version`)
+   - Returns version number, build date/time in SGT, and environment status
+   - Example: `v1.1.0 (2026-04-11 14:30 SGT)`
+
+2. **Version Indicator on All Pages**
+   - Bottom-right corner on dashboard, trip-planner, and login pages
+   - Click to refresh and check for updates
+   - T
