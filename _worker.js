@@ -123,7 +123,7 @@ class SupabaseClient {
     return true;
   }
 
-  async upsert(table, data, onConflict) {
+  async upsert(table, data, onConflict = null) {
     const headers = {
       'apikey': this.serviceKey,
       'Authorization': `Bearer ${this.serviceKey}`,
@@ -131,7 +131,13 @@ class SupabaseClient {
       'Prefer': 'resolution=merge-duplicates,return=representation'
     };
 
-    const response = await fetch(`${this.url}/rest/v1/${table}`, {
+    // Build URL with on_conflict parameter if provided
+    let url = `${this.url}/rest/v1/${table}`;
+    if (onConflict) {
+      url += `?on_conflict=${onConflict}`;
+    }
+
+    const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(data)
@@ -1511,13 +1517,14 @@ const tripsHandler = async (request, env) => {
         data: data
       });
 
-      // Update sync metadata
+      // Update sync metadata (upsert on trip_id, device_id conflict)
       await db.upsert('sync_metadata', {
         user_id: userId,
         trip_id: tripId,
         device_id: deviceId,
-        sync_version: 1
-      });
+        sync_version: 1,
+        last_synced_at: new Date().toISOString()
+      }, 'trip_id,device_id');
 
       return new Response(JSON.stringify(trip[0] || trip), {
         headers: { 'Content-Type': 'application/json' }
@@ -2182,15 +2189,15 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-11';
-      const buildTime = '22:03';
-      const buildTimestamp = '2026-04-11T22:03:00+08:00';
+      const buildTime = '22:22';
+      const buildTimestamp = '2026-04-11T22:22:00+08:00';
 
       const version = {
-        version: '1.1.3',
+        version: '1.1.4',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.3 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.1.4 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
