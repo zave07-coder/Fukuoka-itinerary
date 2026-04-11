@@ -124,11 +124,12 @@ class TripManager {
    * @param {string} id - Trip ID
    * @returns {boolean} True if deleted, false if not found
    */
-  deleteTrip(id) {
+  async deleteTrip(id) {
     try {
       const data = this._loadData();
       const initialLength = data.trips.length;
 
+      // Delete from local storage
       data.trips = data.trips.filter(trip => trip.id !== id);
 
       // If current trip was deleted, set to first available trip
@@ -137,6 +138,34 @@ class TripManager {
       }
 
       this._saveData(data);
+
+      // Also delete from cloud if user is authenticated
+      if (typeof authService !== 'undefined') {
+        try {
+          const isAuth = await authService.isAuthenticated();
+          if (isAuth) {
+            const token = await authService.getAccessToken();
+            const response = await fetch('/api/trips', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ tripId: id })
+            });
+
+            if (response.ok) {
+              console.log(`✅ Trip ${id} deleted from cloud`);
+            } else {
+              console.warn(`⚠️ Failed to delete trip ${id} from cloud:`, await response.text());
+            }
+          }
+        } catch (cloudError) {
+          console.warn('Failed to delete from cloud (offline?):', cloudError);
+          // Continue anyway - local delete succeeded
+        }
+      }
+
       return data.trips.length < initialLength;
     } catch (error) {
       console.error('Error deleting trip:', error);

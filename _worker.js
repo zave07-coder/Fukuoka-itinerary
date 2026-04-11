@@ -1530,6 +1530,28 @@ const tripsHandler = async (request, env) => {
         headers: { 'Content-Type': 'application/json' }
       });
 
+    } else if (request.method === 'DELETE') {
+      // Delete trip from cloud
+      const { tripId } = await request.json();
+
+      if (!tripId) {
+        return new Response(JSON.stringify({ error: 'Trip ID required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Delete trip (cascade will delete sync_metadata due to foreign key)
+      await db.delete('trips', {
+        eq: { id: tripId, user_id: userId }
+      });
+
+      console.log(`🗑️ Deleted trip ${tripId} for user ${userId}`);
+
+      return new Response(JSON.stringify({ success: true, tripId }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
     } else {
       return new Response('Method not allowed', { status: 405 });
     }
@@ -2199,16 +2221,16 @@ export default {
     // Version endpoint
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
-      const buildDate = '2026-04-11';
-      const buildTime = '23:22';
-      const buildTimestamp = '2026-04-11T23:22:00+08:00';
+      const buildDate = '2026-04-12';
+      const buildTime = '00:03';
+      const buildTimestamp = '2026-04-12T00:03:00+08:00';
 
       const version = {
-        version: '1.1.9',
+        version: '1.2.0',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.9 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.2.0 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,

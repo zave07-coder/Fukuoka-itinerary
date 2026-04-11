@@ -2554,15 +2554,23 @@ function deleteTrip() {
 
   if (!confirmed) return;
 
-  // Delete trip
-  tripManager.deleteTrip(currentTripId);
+  // Delete trip (async - deletes from both local and cloud)
+  tripManager.deleteTrip(currentTripId).then(() => {
+    showToast('Trip deleted from local and cloud', 2000, 'success');
 
-  showToast('Trip deleted', 2000, 'success');
+    // Redirect to dashboard
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+  }).catch(error => {
+    console.error('Delete error:', error);
+    showToast('Trip deleted (cloud delete may have failed)', 2000, 'warning');
 
-  // Redirect to dashboard
-  setTimeout(() => {
-    window.location.href = 'dashboard.html';
-  }, 1000);
+    // Redirect anyway
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+  });
 }
 
 /**

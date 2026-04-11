@@ -579,10 +579,15 @@ function confirmDeleteTrip(tripId) {
   const trip = tripManager.getTrip(tripId);
   if (!trip) return;
 
-  if (confirm(`Delete "${trip.name}"?\n\nThis cannot be undone.`)) {
-    tripManager.deleteTrip(tripId);
-    loadTrips();
-    showToast('Trip deleted');
+  if (confirm(`Delete "${trip.name}"?\n\nThis will delete from both local storage and cloud.\n\nThis cannot be undone.`)) {
+    tripManager.deleteTrip(tripId).then(() => {
+      loadTrips();
+      showToast('Trip deleted from local and cloud');
+    }).catch(error => {
+      console.error('Delete error:', error);
+      loadTrips(); // Refresh anyway
+      showToast('Trip deleted locally (cloud delete may have failed)');
+    });
   }
 }
 
