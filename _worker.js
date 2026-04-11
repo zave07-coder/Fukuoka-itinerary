@@ -1543,7 +1543,8 @@ const tripsHandler = async (request, env) => {
 
       // Delete trip (cascade will delete sync_metadata due to foreign key)
       await db.delete('trips', {
-        eq: { id: tripId, user_id: userId }
+        id: tripId,
+        user_id: userId
       });
 
       console.log(`🗑️ Deleted trip ${tripId} for user ${userId}`);

@@ -1,99 +1,138 @@
-ips will generate reliably without timeout errors
-- ⚠️ **Con**: Activity descriptions will be slightly shorter (but still detailed enough)
-- 💡 **Tip**: For 7+ day
+es & Solutions**
 
-[2026-04-07] # ✅ ALL DONE! Vercel API Deployed and Live!
+### ✅ **What We Fixed:**
+1. ✅ Added Google Places API key check to version endpoint
+2. ✅ Confirmed Google Places API key is in Cloudflare Pages
+3. ✅ Added POI image service to diagnostic page
+4. ✅ Deployed version 1.1.6
 
-## Summary
+### 🔍 **Current Status:**
+- **Cover Images**: Working for Singapore trip (Marina Bay Sands), broken for Perth/Chiang Mai (bad Unsplash URLs)
+- **POI Images**:
 
-### What I Built:
-1. **✅ Vercel API Deployed**: https://wahgola-api.vercel.app
-2. **✅ Frontend Updated**: Now calls Vercel instead of CF Workers
-3. **✅ 3x Better Quality**: 12,000 tokens (vs 4,000 on CF Workers)
-4. **✅ No Timeout Issues**: 60-second limit (vs 30s on CF)
+[2026-04-11] Perfect! Now after the deployment (~60 seconds), please:
 
-### GitHub Auto-Deploy Setup:
-The Vercel project is deployed and ready. For **automatic GitHub deployments**, you need to:
+## 🧪 **Test Again After Deployment:**
 
-**Option 1: Manual (via Vercel Dashboard)**
-1.
+1. **Wait ~60 seconds** for version 1.1.7 to deploy
+2. **Go to diagnostic page**: https://fkk.zavecoder.com/image-diagnostic.html
+3. **Hard refresh**: `Ctrl+Shift+R`
+4. **Click "Test Senso-ji Temple"**
+5. **Look at the JSON response** at the bottom - it should now include a `"debug"` field with `"errors"` array showing **exactly why** Google Places and Unsplash failed
 
-[2026-04-10] I can see the issue now! Looking at the code and recent commits, the problem is that **OpenAI is timing out the stream**, not Vercel. The error "Generation timeout" comes from OpenAI's servers when the stream takes too long.
+For example, you might see:
+``
 
-The current configuration has `max_completion_tokens: 12000` which is quite large. For 7-day itineraries with rich details, OpenAI is hitting an internal timeout before it can complete streaming 12,000 tokens.
+[2026-04-11] ## 📋 **Action Required: Enable Google Places API (New)**
 
-Here are your options to fix this:
+While we wait for deployment, here's what you need to do:
 
-## Option 1: Reduce token l
+### **Step 1: Enable Places API (New) in Google Cloud Console**
 
-[2026-04-10] Perfect! I've switched the model from `gpt-4o-mini` to `gpt-4o`. This should fix your timeout issues because:
+1. **Go to**: https://console.cloud.google.com/apis/library/places-backend.googleapis.com
+2. **Select your project** (the one with the API key `AIzaSyBRaCjDtoLx_DnzjCQ4RyImwL_KwpVY8yo`)
+3. **Click "ENABLE"**
+4. Wait a few seconds for it to activate
 
-1. **`gpt-4o` is faster** at generating large outputs - it can handle 7-day itineraries much better
-2. **Better streaming reliability** - less likely to timeout on long responses
-3. **Same JSON mode support** - all features work identically
+### **Step 2: Verify API Key Restrictions**
 
-**Next steps:**
-1. Deploy this change to Vercel
-2. Test with a 7-day itinerary
+1. **Go to**: https://
 
-The cost will be higher per request (gpt-4o costs more than gpt-4o-
+[2026-04-11] Perfect! Now let me create a summary of what needs to be done:
 
-[2026-04-10] ✅ **Committed and pushed!** 
+---
 
-The changes are now on GitHub. Vercel should automatically deploy this within 1-2 minutes.
+## ✅ **What I've Done:**
 
-**What changed:**
-- Model: `gpt-4o-mini` → `gpt-4o`
-- This should fix the timeout issues for 7-day itineraries
+1. ✅ **Added Unsplash API key** to Cloudflare Pages
+2. ✅ **Updated version endpoint** to show Unsplash status
+3. ✅ **Deployed version 1.1.9**
 
-Once Vercel finishes deploying, try generating a 7-day trip again. The `gpt-4o` model should handle it without timing out. Let me know how it goes!
+---
 
-[2026-04-10] Perfect! I've reverted to the **original working configuration**:
+## 🎯 **Critical Action Required: Fix Google Places API Key**
 
-**Changes made:**
-- ✅ Model: `gpt-4o-mini` → `gpt-4o` 
-- ✅ Token limit: `4000` → `16000`
+You still need to **fix the Google Places API key restrictions**. This is the main blocker for images.
 
-This matches what you had when 7-day itineraries were working perfectly. The key insight is that:
+### **Quick Fix Steps:**
 
-1. **Streaming prevents Cloudflare timeout** - The stream keeps the connection alive
-2. **gpt-4o is faster than gpt-4o-mini** for large outputs
-3. **16,000 tokens** was the proven working limit before all the timeout workarounds
+1. **Go to**: https://console.cloud.google.com/apis/credentials
 
-Ready to commi
+[2026-04-11] Perfect! Now let me give you clear testing instructions:
 
-[2026-04-11] ✅ **Committed and pushed!** 
+---
 
-The changes have been successfully pushed to `main`. The commit includes:
-- Model switch from `gpt-4o-mini` to `gpt-4o` for better streaming performance
-- Token limit restored to 16,000 for complete 7-day trip generation
-- Updated `.zgo-memory` file
+## 🧪 **Google Places API Test Page**
 
-Your Cloudflare Pages deployment should automatically pick up these changes in the next minute or two.
+I've created a comprehensive test page to verify if Google Places is working.
 
-[2026-04-11] Perfect! ✅ **All done!**
+### **Step 1: Access Test Page**
+1. **Wait ~30 seconds** for deployment
+2. **Go to**: https://fkk.zavecoder.com/test-google-places.html
+3. **Hard refresh**: `Ctrl+Shift+R`
 
-The changes have been committed and pushed to the remote repository. The commit includes:
+### **Step 2: Run Tests**
 
-- **Model update**: `gpt-4o` (faster and more reliable for long trips)
-- **Token limit**: Increased to 16,000 (restored original working value)
-- **Streaming**: Enabled to prevent Cloudflare timeouts
+The page has 3 sections:
 
-The repository is now up to date with origin/main. Cloudflare Pages should automatically deploy this update within the next 1-2 minutes.
+#### **A. Test Famous Landmarks**
+Click these buttons one by one:
+- **Tokyo Tower**
+- **Eiffe
 
-[2026-04-11] Perfect! ✅ **All done!**
+[2026-04-11] The code looks correct. The issue is likely still the **API key restrictions**. Let me check if you actually removed/updated the restrictions. Can you:
 
-## Summary
+1. **Go to the test page** again: https://fkk.zavecoder.com/test-google-places.html
+2. **Click "Tokyo Tower"** (just one test)
+3. **Scroll down to the JSON response**
+4. **Look inside the `debug.errors` array**
+5. **Share what the Google Places error says**
 
-I've successfully added a comprehensive **version tracking system** with SGT timestamps to your Wahgola project:
+It should show something like:
+```json
+"debug": {
+  "errors": [
+    {
+      "source": "g
 
-### 🎯 What Was Added
+[2026-04-11] Perfect! Now let me create a summary:
 
-1. **Version API Endpoint** (`/api/version`)
-   - Returns version number, build date/time in SGT, and environment status
-   - Example: `v1.1.0 (2026-04-11 14:30 SGT)`
+---
 
-2. **Version Indicator on All Pages**
-   - Bottom-right corner on dashboard, trip-planner, and login pages
-   - Click to refresh and check for updates
-   - T
+## ✅ **Fixed: Trip Delete + Cloud Sync**
+
+### **Problem:**
+When you deleted the Perth trip:
+1. ✅ Deleted from **localStorage** (local)
+2. ❌ Still in **Supabase** (cloud)
+3. ❌ Sync pulled it back down → trip reappeared
+
+### **Solution:**
+Now when you delete a trip:
+1. ✅ Deletes from **localStorage** (instant)
+2. ✅ Deletes from **Supabase cloud** (if logged in)
+3. ✅ Auto-deletes **sync_metadata** (cascade)
+4. ✅ Won't come back on next sync
+
+---
+
+## 🧪 **
+
+[2026-04-11] Perfect! Now here's what to do:
+
+---
+
+## 🔍 **Debug: Why Trip Keeps Coming Back**
+
+### **Step 1: Delete with Logging (After Deployment)**
+
+1. **Wait ~60 seconds** for deployment
+2. **Hard refresh**: `Ctrl+Shift+R`
+3. **Open browser console** (F12) - keep it open!
+4. **Delete the Perth trip**
+5. **Watch the console** for these messages:
+   ```
+   🗑️ Attempting to delete trip ... from cloud...
+   🔐 Auth status: true/false
+   🎫 Got access token: yes/no
+   📡 DELETE response status: 200/400/500
