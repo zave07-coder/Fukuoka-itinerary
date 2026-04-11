@@ -1935,8 +1935,10 @@ const getPOIImageHandler = async (request, env) => {
     }
 
     console.log(`🔍 Cache miss for "${poiName}", fetching from APIs...`);
+    console.log(`📍 Google Places API Key available: ${!!env.GOOGLE_PLACES_API_KEY}`);
 
     let imageData = null;
+    let errors = [];
 
     // 2. Try Google Places Photos
     try {
@@ -1944,6 +1946,7 @@ const getPOIImageHandler = async (request, env) => {
       console.log('✅ Got image from Google Places');
     } catch (googleError) {
       console.warn('Google Places failed:', googleError.message);
+      errors.push({ source: 'google-places', error: googleError.message });
 
       // 3. Fallback to Unsplash
       try {
@@ -1951,14 +1954,16 @@ const getPOIImageHandler = async (request, env) => {
         console.log('✅ Got image from Unsplash');
       } catch (unsplashError) {
         console.warn('Unsplash failed:', unsplashError.message);
+        errors.push({ source: 'unsplash', error: unsplashError.message });
 
         // 4. Final fallback: placeholder
         imageData = {
           imageUrl: getPlaceholderImage(category),
           source: 'placeholder',
-          attribution: null
+          attribution: null,
+          debug: { errors } // Include error details for debugging
         };
-        console.log('ℹ️ Using placeholder image');
+        console.log('ℹ️ Using placeholder image. Errors:', errors);
       }
     }
 
@@ -2189,15 +2194,15 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-11';
-      const buildTime = '22:42';
-      const buildTimestamp = '2026-04-11T22:42:00+08:00';
+      const buildTime = '22:44';
+      const buildTimestamp = '2026-04-11T22:44:00+08:00';
 
       const version = {
-        version: '1.1.6',
+        version: '1.1.7',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.6 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.1.7 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
