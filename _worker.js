@@ -2087,8 +2087,17 @@ export default {
 
     // Version endpoint
     if (url.pathname === '/api/version') {
+      // Build timestamp in SGT (UTC+8)
+      const buildDate = '2026-04-11';
+      const buildTime = '14:30';
+      const buildTimestamp = '2026-04-11T14:30:00+08:00';
+
       const version = {
-        version: '1.0.1',
+        version: '1.1.0',
+        buildDate: buildDate,
+        buildTime: buildTime,
+        buildTimestamp: buildTimestamp,
+        versionString: `v1.1.0 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,

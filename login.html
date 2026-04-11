@@ -363,5 +363,33 @@
 
         initLoginPage().catch(console.error);
     </script>
+
+    <!-- Version indicator (bottom-right corner) -->
+    <div id="versionIndicator" style="position: fixed; bottom: 8px; right: 8px; font-size: 11px; color: #888; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; font-family: monospace; cursor: pointer; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="checkVersion()" title="Click to check for updates">
+        v?.?.? (loading...)
+    </div>
+
+    <script>
+    // Check version on load
+    async function checkVersion() {
+        try {
+            const response = await fetch('/api/version?' + Date.now());
+            const data = await response.json();
+            const indicator = document.getElementById('versionIndicator');
+            indicator.textContent = data.versionString || `v${data.version}`;
+            indicator.title = `Version: ${data.versionString || data.version}\nBuild: ${data.buildDate} ${data.buildTime} SGT\nLast Check: ${new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}\n\nEnv Status:\n- Supabase: ${data.env.hasSupabaseUrl ? '✓' : '✗'}\n- OpenAI: ${data.env.hasOpenAI ? '✓' : '✗'}\n\nClick to refresh version`;
+            console.log('📦 Version:', data);
+            return data;
+        } catch (error) {
+            console.error('Failed to check version:', error);
+            const indicator = document.getElementById('versionIndicator');
+            indicator.textContent = 'v?.?.? (error)';
+            indicator.title = 'Failed to load version info. Click to retry.';
+        }
+    }
+
+    // Check version on page load
+    checkVersion();
+    </script>
 </body>
 </html>
