@@ -423,7 +423,7 @@ async function generateTrip() {
               // Update to 100% complete
               if (progressBar) progressBar.style.width = '100%';
               if (progressText) progressText.textContent = '100%';
-              loadingMessageEl.textContent = '✅ Trip generated successfully!';
+              loadingMessageEl.textContent = '✅ Trip generated successfully! Redirecting...';
 
               // Break out immediately - we have the data
               reader.cancel();
@@ -473,11 +473,9 @@ async function generateTrip() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('aiPrompt').value = '';
 
-    // Add small delay to ensure localStorage is flushed before redirect
-    console.log('🔄 Redirecting to trip planner in 100ms...');
-    setTimeout(() => {
-      openTrip(trip.id);
-    }, 100);
+    // Redirect immediately - no delay needed
+    console.log('🔄 Redirecting to trip planner...');
+    openTrip(trip.id);
 
   } catch (error) {
     console.error('AI generation error:', error);
