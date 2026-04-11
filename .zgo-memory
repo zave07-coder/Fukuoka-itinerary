@@ -1,34 +1,4 @@
-*Wait ~60 seconds** for version 1.1.7 to deploy
-2. **Go to diagnostic page**: https://fkk.zavecoder.com/image-diagnostic.html
-3. **Hard refresh**: `Ctrl+Shift+R`
-4. **Click "Test Senso-ji Temple"**
-5. **Look at the JSON response** at the bottom - it should now include a `"debug"` field with `"errors"` array showing **exactly why** Google Places and Unsplash failed
-
-For example, you might see:
-``
-
-[2026-04-11] ## 📋 **Action Required: Enable Google Places API (New)**
-
-While we wait for deployment, here's what you need to do:
-
-### **Step 1: Enable Places API (New) in Google Cloud Console**
-
-1. **Go to**: https://console.cloud.google.com/apis/library/places-backend.googleapis.com
-2. **Select your project** (the one with the API key `AIzaSyBRaCjDtoLx_DnzjCQ4RyImwL_KwpVY8yo`)
-3. **Click "ENABLE"**
-4. Wait a few seconds for it to activate
-
-### **Step 2: Verify API Key Restrictions**
-
-1. **Go to**: https://
-
-[2026-04-11] Perfect! Now let me create a summary of what needs to be done:
-
----
-
-## ✅ **What I've Done:**
-
-1. ✅ **Added Unsplash API key** to Cloudflare Pages
+Added Unsplash API key** to Cloudflare Pages
 2. ✅ **Updated version endpoint** to show Unsplash status
 3. ✅ **Deployed version 1.1.9**
 
@@ -140,3 +110,30 @@ await db.delete('trips', {
   id: tripId,        // ✅ Correct - no wrapper needed
   user_id: userId
 })
+
+[2026-04-11] Perfect! The fix has been deployed. Here's what I changed:
+
+## POI Image Loading Fix
+
+**Problem:** POI images weren't being fetched from Google Places API or Unsplash - they were stuck showing the default Unsplash placeholder images.
+
+**Root Cause:** 
+1. The code was checking if `window.poiImageService` was defined at render time, but the service might not be loaded yet
+2. The 100ms delay wasn't enough to ensure both DOM and service were ready
+
+**Solution:**
+1. **Removed early check** - Now alwa
+
+[2026-04-11] ✅ **Deployed successfully!**
+
+The POI image loading fix is now live on production at **https://wahgola.zavecoder.com**
+
+## What's been deployed:
+
+1. **Trip deletion fix** - Deleted trips will no longer reappear after sync
+2. **POI image loading fix** - Images will now load from Google Places API/Unsplash instead of showing generic placeholders
+
+## To test:
+
+1. **Hard refresh** your browser on the trip page: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+2. **Open Developer Console** (F12)

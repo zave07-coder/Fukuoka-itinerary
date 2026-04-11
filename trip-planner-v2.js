@@ -473,7 +473,8 @@ function renderActivity(activity, activityIndex, dayNumber) {
            alt="${escapeHtml(activity.name)}"
            class="activity-image"
            data-poi-name="${escapeHtml(activity.name)}"
-           data-location='${JSON.stringify(activity.location || {})}'>
+           data-location='${JSON.stringify(activity.location || {})}'
+           onclick="openLightbox('${activityId}-img', '${escapeHtml(activity.name)}')">
     </div>
   ` : '';
 
@@ -540,6 +541,10 @@ async function loadPOIImage(activityId, activity) {
         imgEl.style.transition = 'opacity 0.3s';
         imgEl.style.opacity = '1';
       };
+
+      // Store image data for lightbox
+      imgEl.dataset.imageSource = imageData.source;
+      imgEl.dataset.attribution = imageData.attribution || '';
 
       // Log for debugging
       console.log(`🖼️ Loaded image for "${activity.name}" from ${imageData.source} ${imageData.cached ? '(cached)' : '(fresh)'}`);
@@ -2991,4 +2996,67 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     buildTripChecklist();
   }, 500);
+});
+
+/**
+ * ============================================
+ * IMAGE LIGHTBOX FUNCTIONS
+ * ============================================
+ */
+
+function openLightbox(imageId, poiName) {
+  const imgEl = document.getElementById(imageId);
+  if (!imgEl) return;
+
+  const lightbox = document.getElementById('imageLightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const lightboxAttribution = document.getElementById('lightboxAttribution');
+
+  // Set image and info
+  lightboxImage.src = imgEl.src;
+  lightboxTitle.textContent = poiName;
+
+  // Set attribution
+  const source = imgEl.dataset.imageSource || 'placeholder';
+  const attribution = imgEl.dataset.attribution || '';
+
+  if (source === 'google-new' && attribution) {
+    lightboxAttribution.textContent = `Photo by ${attribution} · Google Places`;
+  } else if (source === 'unsplash' && attribution) {
+    lightboxAttribution.textContent = `Photo by ${attribution} · Unsplash`;
+  } else if (source === 'placeholder') {
+    lightboxAttribution.textContent = 'Stock photo';
+  } else {
+    lightboxAttribution.textContent = '';
+  }
+
+  // Show lightbox
+  lightbox.classList.add('active');
+  document.body.style.overflow = 'hidden'; // Prevent scrolling
+}
+
+function closeLightbox() {
+  const lightbox = document.getElementById('imageLightbox');
+  lightbox.classList.remove('active');
+  document.body.style.overflow = ''; // Restore scrolling
+}
+
+// Close lightbox on background click
+document.addEventListener('DOMContentLoaded', () => {
+  const lightbox = document.getElementById('imageLightbox');
+  if (lightbox) {
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
+    });
+  }
+});
+
+// Close lightbox on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeLightbox();
+  }
 });
