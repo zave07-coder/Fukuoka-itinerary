@@ -1,0 +1,2 @@
+Build configuration updated - no build command needed for static site with worker.
+Deployment should now succeed.
