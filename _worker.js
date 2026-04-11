@@ -1523,7 +1523,7 @@ const tripsHandler = async (request, env) => {
         trip_id: tripId,
         device_id: deviceId,
         sync_version: 1,
-        last_synced_at: new Date().toISOString()
+        last_sync: new Date().toISOString()
       }, 'trip_id,device_id');
 
       return new Response(JSON.stringify(trip[0] || trip), {
@@ -2189,15 +2189,15 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-11';
-      const buildTime = '22:22';
-      const buildTimestamp = '2026-04-11T22:22:00+08:00';
+      const buildTime = '22:24';
+      const buildTimestamp = '2026-04-11T22:24:00+08:00';
 
       const version = {
-        version: '1.1.4',
+        version: '1.1.5',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.1.4 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.1.5 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
