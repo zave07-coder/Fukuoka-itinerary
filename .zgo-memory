@@ -1,20 +1,4 @@
-es & Solutions**
-
-### ✅ **What We Fixed:**
-1. ✅ Added Google Places API key check to version endpoint
-2. ✅ Confirmed Google Places API key is in Cloudflare Pages
-3. ✅ Added POI image service to diagnostic page
-4. ✅ Deployed version 1.1.6
-
-### 🔍 **Current Status:**
-- **Cover Images**: Working for Singapore trip (Marina Bay Sands), broken for Perth/Chiang Mai (bad Unsplash URLs)
-- **POI Images**:
-
-[2026-04-11] Perfect! Now after the deployment (~60 seconds), please:
-
-## 🧪 **Test Again After Deployment:**
-
-1. **Wait ~60 seconds** for version 1.1.7 to deploy
+*Wait ~60 seconds** for version 1.1.7 to deploy
 2. **Go to diagnostic page**: https://fkk.zavecoder.com/image-diagnostic.html
 3. **Hard refresh**: `Ctrl+Shift+R`
 4. **Click "Test Senso-ji Temple"**
@@ -136,3 +120,23 @@ Now when you delete a trip:
    🔐 Auth status: true/false
    🎫 Got access token: yes/no
    📡 DELETE response status: 200/400/500
+
+[2026-04-11] ✅ **Deployment triggered!** The fix has been pushed to production.
+
+## What was fixed:
+
+The bug in the DELETE endpoint was causing deleted trips to reappear after sync. The issue was on line 1545-1547 of `_worker.js`:
+
+**Before (incorrect):**
+```javascript
+await db.delete('trips', {
+  eq: { id: tripId, user_id: userId }  // ❌ Wrong - extra 'eq' wrapper
+});
+```
+
+**After (correct):**
+```javascript
+await db.delete('trips', {
+  id: tripId,        // ✅ Correct - no wrapper needed
+  user_id: userId
+})

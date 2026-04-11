@@ -478,8 +478,9 @@ function renderActivity(activity, activityIndex, dayNumber) {
   ` : '';
 
   // Fetch real POI image asynchronously (after render)
-  if (hasImage && typeof window.poiImageService !== 'undefined') {
-    setTimeout(() => loadPOIImage(activityId, activity), 100);
+  // Always try to load POI images, even if service isn't loaded yet
+  if (hasImage) {
+    setTimeout(() => loadPOIImage(activityId, activity), 500);
   }
 
   return `
@@ -509,9 +510,21 @@ function renderActivity(activity, activityIndex, dayNumber) {
  */
 async function loadPOIImage(activityId, activity) {
   const imgEl = document.getElementById(`${activityId}-img`);
-  if (!imgEl || !window.poiImageService) return;
+  if (!imgEl) {
+    console.warn(`⚠️ Image element not found for ${activityId}`);
+    return;
+  }
+
+  // Wait for POI service to be available
+  if (!window.poiImageService) {
+    console.log(`⏳ Waiting for POI service to load for "${activity.name}"...`);
+    // Try again after a short delay
+    setTimeout(() => loadPOIImage(activityId, activity), 500);
+    return;
+  }
 
   try {
+    console.log(`🔍 Fetching POI image for "${activity.name}"...`);
     const imageData = await window.poiImageService.getImage(
       activity.name,
       activity.location,
