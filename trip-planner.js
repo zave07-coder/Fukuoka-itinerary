@@ -204,13 +204,26 @@ function renderDayCard(day, dayNumber) {
  */
 function renderActivity(activity, activityIndex, dayNumber) {
   const hasImage = activity.image || (activity.location && activity.location.type);
-  const imageUrl = activity.image || getDefaultActivityImage(activity.location?.type);
+  const placeholderUrl = activity.image || getDefaultActivityImage(activity.location?.type);
+
+  // Generate unique ID for this activity
+  const activityId = `activity-${dayNumber}-${activityIndex}`;
 
   const imageHtml = hasImage ? `
     <div class="activity-image-wrapper">
-      <img src="${imageUrl}" alt="${escapeHtml(activity.name)}" class="activity-image">
+      <img id="${activityId}-img"
+           src="${placeholderUrl}"
+           alt="${escapeHtml(activity.name)}"
+           class="activity-image"
+           data-poi-name="${escapeHtml(activity.name)}"
+           data-location='${JSON.stringify(activity.location || {})}'>
     </div>
   ` : '';
+
+  // Fetch real POI image asynchronously (after render)
+  if (hasImage && typeof window.poiImageService !== 'undefined') {
+    setTimeout(() => loadPOIImage(activityId, activity), 100);
+  }
 
   return `
     <div class="activity-item ${hasImage ? 'activity-with-image' : ''}" data-day="${dayNumber}" data-activity="${activityIndex}">
@@ -232,6 +245,39 @@ function renderActivity(activity, activityIndex, dayNumber) {
       </div>
     </div>
   `;
+}
+
+/**
+ * Load POI image asynchronously
+ */
+async function loadPOIImage(activityId, activity) {
+  const imgEl = document.getElementById(`${activityId}-img`);
+  if (!imgEl || !window.poiImageService) return;
+
+  try {
+    const imageData = await window.poiImageService.getImage(
+      activity.name,
+      activity.location,
+      activity.location?.type
+    );
+
+    if (imageData && imageData.imageUrl) {
+      // Fade transition for smooth loading
+      imgEl.style.opacity = '0.5';
+      imgEl.src = imageData.imageUrl;
+
+      imgEl.onload = () => {
+        imgEl.style.transition = 'opacity 0.3s';
+        imgEl.style.opacity = '1';
+      };
+
+      // Log for debugging
+      console.log(`🖼️ Loaded image for "${activity.name}" from ${imageData.source} ${imageData.cached ? '(cached)' : '(fresh)'}`);
+    }
+  } catch (error) {
+    console.warn(`Failed to load POI image for "${activity.name}":`, error);
+    // Keep placeholder image on error
+  }
 }
 
 /**

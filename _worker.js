@@ -718,7 +718,7 @@ const generateTripHandler = async (request, env) => {
 
             // Validate and fix data
             if (!tripData.coverImage) {
-              tripData.coverImage = getCoverImageForDestination(tripData.destination);
+              tripData.coverImage = await getCoverImageForDestination(tripData.destination, env);
             }
 
             tripData.days = tripData.days.map(day => {
@@ -869,7 +869,7 @@ const generateTripHandler = async (request, env) => {
 
     // Ensure cover image is present
     if (!tripData.coverImage || tripData.coverImage === '') {
-      tripData.coverImage = getCoverImageForDestination(tripData.destination);
+      tripData.coverImage = await getCoverImageForDestination(tripData.destination, env);
     }
 
     // Validate and fix GPS coordinates
@@ -1002,16 +1002,71 @@ function validateLocationCoordinates(location, destination) {
  * Generate trip using Gemini 2.0 Flash (primary, cheaper)
  */
 /**
- * Get a destination-appropriate cover image from Unsplash
+ * Get a destination-appropriate cover image from Google Places or Unsplash
  */
-function getCoverImageForDestination(destination) {
+async function getCoverImageForDestination(destination, env) {
   if (!destination) {
     return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'; // Generic travel
   }
 
   const dest = destination.toLowerCase();
 
-  // Destination-specific images
+  // Landmark mappings for better Google Places search
+  const landmarkMap = {
+    // Japan
+    'tokyo': 'Tokyo Tower',
+    'kyoto': 'Fushimi Inari Shrine',
+    'osaka': 'Osaka Castle',
+    'fukuoka': 'Fukuoka Tower',
+
+    // Malaysia
+    'kuala lumpur': 'Petronas Twin Towers',
+    'penang': 'Penang Bridge',
+
+    // Southeast Asia
+    'singapore': 'Marina Bay Sands',
+    'bangkok': 'Grand Palace Bangkok',
+
+    // South Korea
+    'seoul': 'N Seoul Tower',
+
+    // Europe
+    'paris': 'Eiffel Tower',
+    'london': 'Big Ben',
+    'rome': 'Colosseum',
+    'barcelona': 'Sagrada Familia',
+
+    // USA
+    'new york': 'Statue of Liberty',
+    'san francisco': 'Golden Gate Bridge',
+
+    // Australia
+    'sydney': 'Sydney Opera House',
+
+    // Middle East
+    'dubai': 'Burj Khalifa'
+  };
+
+  // Try Google Places API first
+  let landmark = null;
+  for (const [key, value] of Object.entries(landmarkMap)) {
+    if (dest.includes(key)) {
+      landmark = value;
+      break;
+    }
+  }
+
+  if (landmark && env.GOOGLE_PLACES_API_KEY) {
+    try {
+      const imageData = await fetchGooglePlacesPhoto(landmark, null, null, env);
+      console.log(`✅ Got cover image from Google Places for ${destination}: ${landmark}`);
+      return imageData.imageUrl;
+    } catch (error) {
+      console.warn(`Google Places failed for ${landmark}, falling back to Unsplash:`, error.message);
+    }
+  }
+
+  // Fallback to Unsplash hardcoded URLs
   const imageMap = {
     // Japan
     'tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80',
@@ -1395,16 +1450,35 @@ const tripsHandler = async (request, env) => {
     const db = new SupabaseClient(env);
 
     // Get user ID from database
-    const users = await db.query('users', {
+    let users = await db.query('users', {
       select: 'id',
       eq: { supabase_user_id: auth.userId }
     });
 
+    // Auto-create user if not found
     if (!users || users.length === 0) {
-      return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.log(`🔧 User not found for ${auth.email}, creating automatically...`);
+
+      try {
+        const newUser = await db.insert('users', {
+          supabase_user_id: auth.userId,
+          email: auth.email,
+          display_name: auth.email?.split('@')[0] || 'User',
+          avatar_url: null
+        });
+
+        console.log(`✅ Auto-created user: ${auth.email}`);
+        users = newUser;
+      } catch (createError) {
+        console.error('Failed to auto-create user:', createError);
+        return new Response(JSON.stringify({
+          error: 'User not found and auto-creation failed',
+          details: createError.message
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     const userId = users[0].id;
@@ -1477,16 +1551,35 @@ const getTripByIdHandler = async (request, env, tripId) => {
     const db = new SupabaseClient(env);
 
     // Get user ID
-    const users = await db.query('users', {
+    let users = await db.query('users', {
       select: 'id',
       eq: { supabase_user_id: auth.userId }
     });
 
+    // Auto-create user if not found
     if (!users || users.length === 0) {
-      return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.log(`🔧 User not found for ${auth.email}, creating automatically...`);
+
+      try {
+        const newUser = await db.insert('users', {
+          supabase_user_id: auth.userId,
+          email: auth.email,
+          display_name: auth.email?.split('@')[0] || 'User',
+          avatar_url: null
+        });
+
+        console.log(`✅ Auto-created user: ${auth.email}`);
+        users = newUser;
+      } catch (createError) {
+        console.error('Failed to auto-create user:', createError);
+        return new Response(JSON.stringify({
+          error: 'User not found and auto-creation failed',
+          details: createError.message
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     const userId = users[0].id;

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POI Image API Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        button:hover { background: #5568d3; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .image-info {
+            padding: 15px;
+        }
+        .image-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .image-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .badge-google { background: #e3f2fd; color: #1976d2; }
+        .badge-unsplash { background: #f3e5f5; color: #7b1fa2; }
+        .badge-placeholder { background: #fff3e0; color: #e65100; }
+        .badge-cached { background: #e8f5e9; color: #2e7d32; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🖼️ POI Image API Test</h1>
+
+    <div class="test-section">
+        <h2>Test 1: Single POI Image</h2>
+        <button onclick="testSinglePOI()">Test "Fukuoka Tower"</button>
+        <div id="result1" class="result" style="display:none;"></div>
+        <div id="images1" class="image-grid"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Multiple POIs (Batch)</h2>
+        <button onclick="testBatchPOIs()">Test 5 Famous Fukuoka POIs</button>
+        <div id="result2" class="result" style="display:none;"></div>
+        <div id="images2" class="image-grid"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Different Categories</h2>
+        <button onclick="testCategories()">Test All Categories</button>
+        <div id="result3" class="result" style="display:none;"></div>
+        <div id="images3" class="image-grid"></div>
+    </div>
+
+    <script>
+        async function testSinglePOI() {
+            const resultEl = document.getElementById('result1');
+            const imagesEl = document.getElementById('images1');
+
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Loading...';
+            imagesEl.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/poi-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poiName: 'Fukuoka Tower',
+                        location: { lat: 33.5934, lng: 130.3564 },
+                        category: 'attraction'
+                    })
+                });
+
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+
+                if (data.imageUrl) {
+                    imagesEl.innerHTML = createImageCard('Fukuoka Tower', data);
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testBatchPOIs() {
+            const resultEl = document.getElementById('result2');
+            const imagesEl = document.getElementById('images2');
+
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Loading...';
+            imagesEl.innerHTML = '<div class="loading">Fetching 5 POI images...</div>';
+
+            const pois = [
+                { name: 'Fukuoka Tower', lat: 33.5934, lng: 130.3564, category: 'attraction' },
+                { name: 'Ohori Park', lat: 33.5844, lng: 130.3786, category: 'park' },
+                { name: 'Ichiran Ramen Hakata', lat: 33.5903, lng: 130.4161, category: 'restaurant' },
+                { name: 'Kushida Shrine', lat: 33.5961, lng: 130.4121, category: 'shrine' },
+                { name: 'Canal City Hakata', lat: 33.5903, lng: 130.4088, category: 'shopping' }
+            ];
+
+            try {
+                const promises = pois.map(poi =>
+                    fetch('/api/poi-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            poiName: poi.name,
+                            location: { lat: poi.lat, lng: poi.lng },
+                            category: poi.category
+                        })
+                    }).then(r => r.json())
+                );
+
+                const results = await Promise.all(promises);
+
+                resultEl.textContent = `✅ Fetched ${results.length} images\n\n` +
+                    results.map((r, i) => `${i + 1}. ${pois[i].name}: ${r.source} ${r.cached ? '(cached)' : '(fresh)'}`).join('\n');
+
+                imagesEl.innerHTML = results.map((data, i) =>
+                    createImageCard(pois[i].name, data)
+                ).join('');
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                imagesEl.innerHTML = '';
+            }
+        }
+
+        async function testCategories() {
+            const resultEl = document.getElementById('result3');
+            const imagesEl = document.getElementById('images3');
+
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Loading...';
+            imagesEl.innerHTML = '<div class="loading">Testing different categories...</div>';
+
+            const categories = [
+                { name: 'Random Restaurant', category: 'restaurant', lat: 33.59, lng: 130.40 },
+                { name: 'Random Cafe', category: 'cafe', lat: 33.59, lng: 130.40 },
+                { name: 'Random Temple', category: 'temple', lat: 33.59, lng: 130.40 },
+                { name: 'Random Hotel', category: 'hotel', lat: 33.59, lng: 130.40 },
+                { name: 'Random Museum', category: 'museum', lat: 33.59, lng: 130.40 }
+            ];
+
+            try {
+                const promises = categories.map(cat =>
+                    fetch('/api/poi-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            poiName: cat.name,
+                            location: { lat: cat.lat, lng: cat.lng },
+                            category: cat.category
+                        })
+                    }).then(r => r.json())
+                );
+
+                const results = await Promise.all(promises);
+
+                resultEl.textContent = `✅ Fetched ${results.length} placeholder images\n\n` +
+                    results.map((r, i) => `${categories[i].category}: ${r.source}`).join('\n');
+
+                imagesEl.innerHTML = results.map((data, i) =>
+                    createImageCard(`${categories[i].category.toUpperCase()} Category`, data)
+                ).join('');
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                imagesEl.innerHTML = '';
+            }
+        }
+
+        function createImageCard(name, data) {
+            const sourceBadge = data.source === 'google-new' || data.source === 'google-legacy' ? 'badge-google' :
+                               data.source === 'unsplash' ? 'badge-unsplash' : 'badge-placeholder';
+            const cachedBadge = data.cached ? '<span class="badge badge-cached">Cached</span>' : '';
+
+            return `
+                <div class="image-card">
+                    <img src="${data.imageUrl}" alt="${name}" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Failed'">
+                    <div class="image-info">
+                        <div class="image-title">${name}</div>
+                        <div class="image-meta">Source: ${data.source}</div>
+                        ${data.attribution ? `<div class="image-meta">${data.attribution}</div>` : ''}
+                        <span class="badge ${sourceBadge}">${data.source}</span>
+                        ${cachedBadge}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
