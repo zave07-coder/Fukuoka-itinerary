@@ -2203,7 +2203,8 @@ export default {
           hasSupabaseUrl: !!env.SUPABASE_URL,
           hasSupabaseServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
           hasSupabaseAnonKey: !!env.SUPABASE_ANON_KEY,
-          hasOpenAI: !!env.OPENAI_API_KEY
+          hasOpenAI: !!env.OPENAI_API_KEY,
+          hasGooglePlacesApiKey: !!env.GOOGLE_PLACES_API_KEY
         }
       };
       return new Response(JSON.stringify(version, null, 2), {
