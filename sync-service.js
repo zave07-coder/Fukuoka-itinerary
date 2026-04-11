@@ -95,10 +95,68 @@ class SyncService {
   }
 
   /**
+   * Check if ID is old format (timestamp-random) and needs conversion
+   */
+  isOldFormatId(id) {
+    // Old format: 1775139529608-sa127w8if (timestamp-random)
+    // UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return !uuidPattern.test(id);
+  }
+
+  /**
+   * Generate UUID for old-format trip IDs
+   */
+  generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  /**
+   * Migrate old trip ID to UUID format
+   */
+  async migrateTripId(trip) {
+    if (!this.isOldFormatId(trip.id)) {
+      return trip; // Already UUID format
+    }
+
+    console.log(`🔄 Migrating old trip ID: ${trip.id} → new UUID`);
+
+    const oldId = trip.id;
+    const newId = this.generateUUID();
+
+    // Update trip with new ID
+    const updatedTrip = { ...trip, id: newId };
+
+    // Update in localStorage via TripManager
+    if (typeof tripManager !== 'undefined') {
+      // Delete old trip
+      tripManager.deleteTrip(oldId);
+
+      // Save with new ID
+      const savedTrip = tripManager.createTrip(updatedTrip);
+
+      console.log(`✅ Migrated trip "${trip.name}" from ${oldId} to ${newId}`);
+      return savedTrip;
+    }
+
+    return updatedTrip;
+  }
+
+  /**
    * Push a single trip to cloud
    */
   async pushTrip(trip, token) {
     try {
+      // Migrate old ID format to UUID if needed
+      const migratedTrip = await this.migrateTripId(trip);
+
       const response = await fetch('/api/trips', {
         method: 'POST',
         headers: {
@@ -106,13 +164,13 @@ class SyncService {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          tripId: trip.id,
-          name: trip.name,
-          destination: trip.destination,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          coverImage: trip.coverImage,
-          data: trip,
+          tripId: migratedTrip.id,
+          name: migratedTrip.name,
+          destination: migratedTrip.destination,
+          startDate: migratedTrip.startDate,
+          endDate: migratedTrip.endDate,
+          coverImage: migratedTrip.coverImage,
+          data: migratedTrip,
           deviceId: this.deviceId
         })
       });
