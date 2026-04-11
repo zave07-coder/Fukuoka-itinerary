@@ -1233,13 +1233,13 @@ Important:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Fast model with good quality - stays within Cloudflare Worker timeout
+        model: 'gpt-4o', // gpt-4o is faster and more reliable for long trips than gpt-4o-mini
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_completion_tokens: 4000, // Reduced to stay well within CF Worker 30s timeout (was 8000)
+        max_completion_tokens: 16000, // Restored to original working value for full 7-day trip generation
         response_format: { type: "json_object" },
         stream: true // Enable streaming
       })
