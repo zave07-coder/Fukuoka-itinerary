@@ -1,101 +1,4 @@
-'ve created a comprehensive test page to verify if Google Places is working.
-
-### **Step 1: Access Test Page**
-1. **Wait ~30 seconds** for deployment
-2. **Go to**: https://fkk.zavecoder.com/test-google-places.html
-3. **Hard refresh**: `Ctrl+Shift+R`
-
-### **Step 2: Run Tests**
-
-The page has 3 sections:
-
-#### **A. Test Famous Landmarks**
-Click these buttons one by one:
-- **Tokyo Tower**
-- **Eiffe
-
-[2026-04-11] The code looks correct. The issue is likely still the **API key restrictions**. Let me check if you actually removed/updated the restrictions. Can you:
-
-1. **Go to the test page** again: https://fkk.zavecoder.com/test-google-places.html
-2. **Click "Tokyo Tower"** (just one test)
-3. **Scroll down to the JSON response**
-4. **Look inside the `debug.errors` array**
-5. **Share what the Google Places error says**
-
-It should show something like:
-```json
-"debug": {
-  "errors": [
-    {
-      "source": "g
-
-[2026-04-11] Perfect! Now let me create a summary:
-
----
-
-## ✅ **Fixed: Trip Delete + Cloud Sync**
-
-### **Problem:**
-When you deleted the Perth trip:
-1. ✅ Deleted from **localStorage** (local)
-2. ❌ Still in **Supabase** (cloud)
-3. ❌ Sync pulled it back down → trip reappeared
-
-### **Solution:**
-Now when you delete a trip:
-1. ✅ Deletes from **localStorage** (instant)
-2. ✅ Deletes from **Supabase cloud** (if logged in)
-3. ✅ Auto-deletes **sync_metadata** (cascade)
-4. ✅ Won't come back on next sync
-
----
-
-## 🧪 **
-
-[2026-04-11] Perfect! Now here's what to do:
-
----
-
-## 🔍 **Debug: Why Trip Keeps Coming Back**
-
-### **Step 1: Delete with Logging (After Deployment)**
-
-1. **Wait ~60 seconds** for deployment
-2. **Hard refresh**: `Ctrl+Shift+R`
-3. **Open browser console** (F12) - keep it open!
-4. **Delete the Perth trip**
-5. **Watch the console** for these messages:
-   ```
-   🗑️ Attempting to delete trip ... from cloud...
-   🔐 Auth status: true/false
-   🎫 Got access token: yes/no
-   📡 DELETE response status: 200/400/500
-
-[2026-04-11] ✅ **Deployment triggered!** The fix has been pushed to production.
-
-## What was fixed:
-
-The bug in the DELETE endpoint was causing deleted trips to reappear after sync. The issue was on line 1545-1547 of `_worker.js`:
-
-**Before (incorrect):**
-```javascript
-await db.delete('trips', {
-  eq: { id: tripId, user_id: userId }  // ❌ Wrong - extra 'eq' wrapper
-});
-```
-
-**After (correct):**
-```javascript
-await db.delete('trips', {
-  id: tripId,        // ✅ Correct - no wrapper needed
-  user_id: userId
-})
-
-[2026-04-11] Perfect! The fix has been deployed. Here's what I changed:
-
-## POI Image Loading Fix
-
-**Problem:** POI images weren't being fetched from Google Places API or Unsplash - they were stuck showing the default Unsplash placeholder images.
+mages weren't being fetched from Google Places API or Unsplash - they were stuck showing the default Unsplash placeholder images.
 
 **Root Cause:** 
 1. The code was checking if `window.poiImageService` was defined at render time, but the service might not be loaded yet
@@ -135,3 +38,91 @@ The POI image loading fix is now live on production at **https://wahgola.zavecod
   - Smooth hover effects on thumbnails (slight zoom + shadow)
 
 ##
+
+[2026-04-12] Perfect! ✅ **Deployment successful!**
+
+---
+
+## 🎉 **Fixed: Trip Cover Images Now Loading**
+
+### **The Problem:**
+The AI was returning **placeholder cover images** like:
+```
+"coverImage": "https://images.unsplash.com/photo-XXXXX"
+```
+
+Since this value was **not empty**, our validation code never replaced it with a real image!
+
+### **The Solution:**
+Updated the cover image validation in `_worker.js` to detect **placeholder patterns**:
+
+```javascript
+// Before (only checked if empty)
+if (!tripData.
+
+[2026-04-12] Based on the code, you're currently using **GPT-4o** for trip generation.
+
+Here's the breakdown of models used in different parts of the app:
+
+## Current Models:
+
+1. **Trip Generation** (main itinerary creation): **`gpt-4o`**
+   - Line 1306 in `_worker.js`
+   - Comment says: "gpt-4o is faster and more reliable for long trips than gpt-4o-mini"
+   - `max_completion_tokens: 16000`
+
+2. **AI Chat** (conversational Q&A): **`gpt-4o-mini`**
+   - Line 204 in `_worker.js`
+   - Used for answering questions
+
+[2026-04-12] Based on the configuration and OpenAI's current pricing (as of January 2025), here's the cost estimate:
+
+## 💰 **Cost Estimate Per Trip Generation**
+
+### **Model: GPT-4o**
+- **Input:** ~$2.50 per 1M tokens
+- **Output:** ~$10.00 per 1M tokens
+
+### **Typical Token Usage for Trip Generation:**
+
+Based on the code:
+- **System Prompt:** ~300 tokens
+- **User Prompt:** ~200-500 tokens (depending on trip details)
+- **Max Output:** 16,000 tokens
+
+### **Estimated Cost Per Trip:**
+
+**Conservative Estimate (
+
+[2026-04-12] Perfect! Now let me provide you with a comprehensive cost comparison:
+
+## 💰 **AI Model Cost Comparison (Jan 2025 Pricing)**
+
+### **Current Setup:**
+Your app already tries **Gemini 2.0 Flash first**, then falls back to GPT-4o!
+
+---
+
+### **1. Gemini 2.0 Flash** ⭐ **CHEAPEST & ALREADY IMPLEMENTED**
+- **Input:** $0.075 per 1M tokens ($0.000000075/token)
+- **Output:** $0.30 per 1M tokens ($0.0000003/token)
+- **Cost per trip (7-day):** **~$0.003** (0.3 cents!)
+- **Quality:** Excellent, comparable to
+
+[2026-04-12] Perfect! Now I have the full picture. Let me give you the summary:
+
+---
+
+## 🔍 **Current Trip Generation Analysis**
+
+### **What's Actually Happening:**
+
+Your dashboard is using **streaming mode** (`stream: true` on line 344 of dashboard.js), which means:
+
+1. ✅ **All recent trips are using GPT-4o** (not Gemini)
+2. ❌ The `generatedBy` field is NOT being set in streaming mode (that's why it shows `null`)
+3. ✅ Gemini 2.0 Flash is implemented but **only used in non-streaming mode**
+
+---
+
+## 📊 **Code
