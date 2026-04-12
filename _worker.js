@@ -723,7 +723,12 @@ const generateTripHandler = async (request, env) => {
             }
 
             // Validate and fix data
-            if (!tripData.coverImage) {
+            // Check for missing or placeholder cover image
+            if (!tripData.coverImage ||
+                tripData.coverImage === '' ||
+                tripData.coverImage.includes('photo-XXXXX') ||
+                tripData.coverImage.includes('placeholder')) {
+              console.log('🖼️ Fetching cover image for destination:', tripData.destination);
               tripData.coverImage = await getCoverImageForDestination(tripData.destination, env);
             }
 
@@ -873,8 +878,12 @@ const generateTripHandler = async (request, env) => {
       throw new Error('Invalid trip data structure received from AI');
     }
 
-    // Ensure cover image is present
-    if (!tripData.coverImage || tripData.coverImage === '') {
+    // Ensure cover image is present (check for placeholder patterns)
+    if (!tripData.coverImage ||
+        tripData.coverImage === '' ||
+        tripData.coverImage.includes('photo-XXXXX') ||
+        tripData.coverImage.includes('placeholder')) {
+      console.log('🖼️ Fetching cover image for destination:', tripData.destination);
       tripData.coverImage = await getCoverImageForDestination(tripData.destination, env);
     }
 
