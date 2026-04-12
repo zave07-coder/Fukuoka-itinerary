@@ -8,15 +8,18 @@
     <meta http-equiv="Expires" content="0">
     <title>Kyoto Cherry Blossom Adventure | Wahgola</title>
     <link rel="stylesheet" href="trip-planner.css?v=25">
+    <link rel="stylesheet" href="booking.css?v=1">
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <script src="config.js"></script>
+    <script src="feature-flags.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="auth-service.js?v=20"></script>
     <script src="sync-service.js?v=21"></script>
     <script src="trip-manager.js?v=22"></script>
     <script src="poi-image-service.js?v=2"></script>
+    <script src="booking-service.js?v=1"></script>
     <script src="trip-planner.js?v=25" defer></script>
 </head>
 <body>
@@ -852,6 +855,20 @@
             </div>
         </div>
     </div>
+
+    <!-- BOOKING SIDEBAR (Feature flagged - disabled by default) -->
+    <div id="booking-sidebar" class="booking-sidebar">
+        <div class="booking-header">
+            <h3 id="booking-title">Book Activity</h3>
+            <button onclick="closeBooking()" aria-label="Close booking">✕</button>
+        </div>
+        <div id="booking-content" class="booking-iframe-container">
+            <!-- Dynamic booking widget loads here -->
+        </div>
+    </div>
+
+    <!-- Overlay for booking sidebar -->
+    <div class="booking-overlay" onclick="closeBooking()"></div>
 
 </body>
 </html>

@@ -1,0 +1,221 @@
+/**
+ * Booking Sidebar Styles
+ * Feature flagged - only visible when BOOKING_ENABLED = true
+ */
+
+/* Booking sidebar (hidden by default) */
+.booking-sidebar {
+  position: fixed;
+  top: 0;
+  right: -500px; /* Hidden off-screen */
+  width: 500px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.booking-sidebar.active {
+  right: 0; /* Slide in */
+}
+
+/* Header */
+.booking-sidebar .booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.booking-sidebar .booking-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.booking-sidebar .booking-header button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.booking-sidebar .booking-header button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Content area */
+.booking-iframe-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Widget styles */
+.booking-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-info {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.booking-info p {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.booking-subtext {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 !important;
+}
+
+/* iframe */
+.booking-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: white;
+}
+
+/* Fallback (when iframe not available) */
+.booking-fallback {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.booking-fallback p {
+  margin: 0 0 1rem 0;
+  color: #374151;
+}
+
+.booking-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.booking-link {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.booking-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Activity booking button (in activity cards) */
+.activity-book-btn {
+  display: none; /* Hidden by default until feature enabled */
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 0.5rem;
+}
+
+/* Only show when booking is enabled */
+body.booking-feature-enabled .activity-book-btn {
+  display: inline-flex;
+}
+
+.activity-book-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.activity-book-btn:active {
+  transform: translateY(0);
+}
+
+/* Overlay when sidebar is open */
+.booking-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+body.booking-active .booking-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .booking-sidebar {
+    right: -100vw;
+    width: 100vw;
+  }
+
+  .booking-sidebar.active {
+    right: 0;
+  }
+}
+
+/* Loading state */
+.booking-widget.loading .booking-iframe {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="%23667eea" stroke-width="8" fill="none" stroke-dasharray="188.4" stroke-dashoffset="47.1"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1s" repeatCount="indefinite"/></circle></svg>') center center no-repeat;
+  background-size: 50px 50px;
+}
+
+/* Feature flag indicator (dev only) */
+.booking-feature-flag {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #92400e;
+  z-index: 10001;
+  display: none; /* Hidden in production */
+}
+
+body.dev-mode .booking-feature-flag {
+  display: block;
+}
