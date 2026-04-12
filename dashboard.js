@@ -18,13 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   updateCharCount();
   initializeAuth();
-
-  // Update sync UI every minute to keep "X minutes ago" fresh
-  setInterval(() => {
-    if (syncService && syncService.getSyncStatus().authenticated) {
-      updateSyncUI('synced');
-    }
-  }, 60000); // Every 60 seconds
 });
 
 /**
@@ -66,8 +59,6 @@ function renderTrips() {
 function createTripCard(trip) {
   const duration = calculateDuration(trip.startDate, trip.endDate);
   const coverImage = trip.coverImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
-  const totalBudget = calculateTripBudget(trip);
-  const currency = trip.currency || 'USD';
 
   return `
     <div class="trip-card" onclick="openTrip('${trip.id}')">
@@ -122,15 +113,6 @@ function createTripCard(trip) {
             </svg>
             ${duration}
           </div>
-          ${totalBudget > 0 ? `
-            <div class="trip-card-meta-item trip-card-budget">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 6v12M15 9H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H9"></path>
-              </svg>
-              ${formatCurrency(totalBudget, currency)}
-            </div>
-          ` : ''}
         </div>
       </div>
     </div>
@@ -309,7 +291,7 @@ function startBlankTrip() {
 }
 
 /**
- * Generate trip with AI (with streaming support)
+ * Generate trip with AI
  */
 async function generateTrip() {
   const prompt = document.getElementById('aiPrompt').value.trim();
@@ -326,19 +308,15 @@ async function generateTrip() {
   const loadingMessageEl = document.getElementById('loadingMessage');
   const progressBar = document.getElementById('progressBar');
   const progressText = document.getElementById('progressText');
-  loadingMessageEl.textContent = 'Connecting to AI...';
+  loadingMessageEl.textContent = 'Starting AI generation...';
 
-  // Initialize progress at 10% to show immediate activity
-  if (progressBar) progressBar.style.width = '10%';
-  if (progressText) progressText.textContent = '10%';
+  // Initialize progress
+  if (progressBar) progressBar.style.width = '0%';
+  if (progressText) progressText.textContent = '0%';
 
   try {
     console.log('🚀 Starting AI trip generation with streaming...');
-
-    // Use local Cloudflare worker with streaming support (gpt-4o, 16k tokens)
-    const API_URL = '/api/generate-trip';
-
-    const response = await fetch(API_URL, {
+    const response = await fetch('/api/generate-trip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, stream: true })
@@ -378,34 +356,14 @@ async function generateTrip() {
             eventCount++;
 
             if (event.type === 'progress') {
-              // Use percentage from backend (already ensures 10-95% range)
-              // Fallback calculation if percentage not provided
-              let percentage = event.percentage !== undefined
-                ? event.percentage
-                : Math.min(95, Math.max(10, Math.floor(10 + (event.content.length / 5000) * 80)));
+              // Calculate progress based on content length
+              // Typical trip JSON is 3000-8000 chars, we'll estimate completion at 6000 chars
+              const estimatedTotal = 6000;
+              const percentage = Math.min(95, Math.floor((event.content.length / estimatedTotal) * 100));
 
               // Update progress bar and text
-              if (progressBar) {
-                progressBar.style.width = `${percentage}%`;
-              }
-              if (progressText) {
-                progressText.textContent = `${percentage}%`;
-              }
-
-              // Debug logging (every 20 events to avoid spam)
-              if (eventCount % 20 === 0) {
-                console.log(`📊 Progress: ${percentage}% (content: ${event.content?.length} chars)`);
-              }
-
-              // Update step indicators based on percentage
-              const steps = document.querySelectorAll('.progress-step');
-              if (steps.length > 0) {
-                steps.forEach((step, index) => {
-                  if (percentage >= (index + 1) * 25) {
-                    step.classList.add('active');
-                  }
-                });
-              }
+              if (progressBar) progressBar.style.width = `${percentage}%`;
+              if (progressText) progressText.textContent = `${percentage}%`;
 
               // Show preview of content being generated
               const preview = event.content.substring(0, 200);
@@ -423,7 +381,7 @@ async function generateTrip() {
               // Update to 100% complete
               if (progressBar) progressBar.style.width = '100%';
               if (progressText) progressText.textContent = '100%';
-              loadingMessageEl.textContent = '✅ Trip generated successfully! Redirecting...';
+              loadingMessageEl.textContent = '✅ Trip generated successfully!';
 
               // Break out immediately - we have the data
               reader.cancel();
@@ -447,25 +405,50 @@ async function generateTrip() {
 
     if (!tripData) {
       console.error('❌ No trip data received after stream completed');
-      console.error('Event count:', eventCount);
-      console.error('Buffer remaining:', buffer);
-      throw new Error('No trip data received - stream may have been interrupted');
+      throw new Error('No trip data received');
     }
 
-    console.log('✅ Trip data received:', tripData.name);
-    console.log('📊 Trip has', tripData.days?.length, 'days');
+    console.log('[AI Generation] Received trip data:', tripData.name);
 
     // Create trip
     const trip = tripManager.createTrip(tripData);
-    console.log('💾 Trip saved with ID:', trip.id);
+    console.log('[AI Generation] Created trip:', {
+      id: trip.id,
+      name: trip.name,
+      destination: trip.destination,
+      coverImage: trip.coverImage,
+      daysCount: trip.days?.length
+    });
 
-    // Verify trip was actually saved
-    const savedTrip = tripManager.getTrip(trip.id);
-    if (!savedTrip) {
-      console.error('❌ Trip was not saved properly!');
-      throw new Error('Failed to save trip to localStorage');
+    // Ensure trip is saved to localStorage before redirecting
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify trip exists in storage
+    const verifyTrip = tripManager.getTrip(trip.id);
+    console.log('[AI Generation] Verified trip in storage:', !!verifyTrip);
+
+    if (!verifyTrip) {
+      console.error('[AI Generation] CRITICAL: Trip not found in storage after creation!');
+      const allTrips = tripManager.getAllTrips();
+      console.error('[AI Generation] All trips in storage:', allTrips.map(t => ({ id: t.id, name: t.name })));
+      alert('Error: Trip was created but could not be saved. Please try again.');
+      return;
     }
-    console.log('✅ Verified trip saved successfully:', savedTrip.name);
+
+    // If user is authenticated, save trip to cloud immediately
+    if (authService && authService.getCurrentUser()) {
+      try {
+        console.log('[AI Generation] User is authenticated, saving trip to cloud...');
+        const token = await authService.getAccessToken();
+        if (token) {
+          await tripManager.saveTripToCloud(trip.id, token);
+          console.log('[AI Generation] Trip saved to cloud successfully');
+        }
+      } catch (cloudError) {
+        console.error('[AI Generation] Failed to save to cloud:', cloudError);
+        // Don't block the user, continue anyway
+      }
+    }
 
     // Close modal and open trip
     closeAIModal();
@@ -473,24 +456,21 @@ async function generateTrip() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('aiPrompt').value = '';
 
-    // Redirect immediately - no delay needed
-    console.log('🔄 Redirecting to trip planner...');
+    console.log('[AI Generation] Redirecting to trip:', trip.id);
+
+    // Redirect to trip
     openTrip(trip.id);
 
   } catch (error) {
-    console.error('AI generation error:', error);
+    console.error('[AI Generation] Error:', error);
+    console.error('[AI Generation] Error stack:', error.stack);
 
     document.querySelector('.ai-form').style.display = 'block';
     document.getElementById('loadingState').style.display = 'none';
 
-    // Provide helpful error messages
-    let errorMessage = error.message || 'Failed to generate trip. Please try again.';
-
-    if (errorMessage.includes('timeout')) {
-      errorMessage += '\n\nTip: Try describing a shorter trip (e.g., 3-5 days) or be more specific about your destination.';
-    }
-
-    alert(errorMessage);
+    // Show detailed error message
+    const errorMsg = error.message || 'Failed to generate trip. Please try again.';
+    alert(`Error: ${errorMsg}\n\nPlease check the browser console (F12) for details.`);
   }
 }
 
@@ -579,15 +559,10 @@ function confirmDeleteTrip(tripId) {
   const trip = tripManager.getTrip(tripId);
   if (!trip) return;
 
-  if (confirm(`Delete "${trip.name}"?\n\nThis will delete from both local storage and cloud.\n\nThis cannot be undone.`)) {
-    tripManager.deleteTrip(tripId).then(() => {
-      loadTrips();
-      showToast('Trip deleted from local and cloud');
-    }).catch(error => {
-      console.error('Delete error:', error);
-      loadTrips(); // Refresh anyway
-      showToast('Trip deleted locally (cloud delete may have failed)');
-    });
+  if (confirm(`Delete "${trip.name}"?\n\nThis cannot be undone.`)) {
+    tripManager.deleteTrip(tripId);
+    loadTrips();
+    showToast('Trip deleted');
   }
 }
 
@@ -656,7 +631,7 @@ function showToast(message) {
 /**
  * Authentication and Sync Integration
  */
-function initializeAuth() {
+async function initializeAuth() {
   // Wait for auth service to initialize
   if (typeof authService === 'undefined') {
     console.log('Auth service not available - running in offline mode');
@@ -664,20 +639,32 @@ function initializeAuth() {
     return;
   }
 
-  authService.init().then(async () => {
+  try {
+    // Wait for auth to fully initialize
+    await authService.init();
+
+    // Give OAuth callback time to process (if redirected from login)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Verify session is still valid
     const isAuth = await authService.isAuthenticated();
     if (!isAuth) {
       console.log('No valid session found, user needs to log in again');
+    } else {
+      console.log('User is authenticated:', authService.getCurrentUser()?.email);
     }
+
     updateAuthUI();
 
     // Listen for auth changes
     authService.onAuthStateChange((user) => {
+      console.log('Auth state changed in dashboard:', user?.email);
       updateAuthUI();
       if (user) {
         // User just logged in - sync trips
-        syncService.migrateLocalTripsToCloud();
+        if (typeof syncService !== 'undefined') {
+          syncService.migrateLocalTripsToCloud();
+        }
       }
     });
 
@@ -702,7 +689,10 @@ function initializeAuth() {
         setTimeout(() => loadTrips(), 500); // Give time for storage to settle
       }
     }
-  });
+  } catch (error) {
+    console.error('Auth initialization error:', error);
+    document.getElementById('signInBtn').style.display = 'block';
+  }
 }
 
 /**
@@ -767,147 +757,6 @@ function updateSyncUI(status) {
       syncStatus.classList.add('error');
       syncText.textContent = 'Sync failed';
       break;
-  }
-
-  // Update tooltip details
-  updateSyncTooltip();
-}
-
-/**
- * Update sync tooltip with detailed information
- */
-function updateSyncTooltip() {
-  const syncStatus = syncService.getSyncStatus();
-
-  // Last sync time
-  const lastSyncEl = document.getElementById('lastSyncTime');
-  if (lastSyncEl) {
-    if (syncStatus.lastSync) {
-      lastSyncEl.textContent = formatRelativeTime(syncStatus.lastSync);
-      lastSyncEl.title = syncStatus.lastSync.toLocaleString();
-    } else {
-      lastSyncEl.textContent = 'Never';
-    }
-  }
-
-  // Status
-  const statusValueEl = document.getElementById('syncStatusValue');
-  if (statusValueEl) {
-    if (syncStatus.syncing) {
-      statusValueEl.textContent = 'Syncing...';
-      statusValueEl.style.color = 'var(--color-primary)';
-    } else if (syncStatus.authenticated) {
-      statusValueEl.textContent = 'Active';
-      statusValueEl.style.color = 'var(--color-success)';
-    } else {
-      statusValueEl.textContent = 'Offline';
-      statusValueEl.style.color = 'var(--color-text-tertiary)';
-    }
-  }
-
-  // Trips synced
-  const tripsSyncedEl = document.getElementById('tripsSynced');
-  if (tripsSyncedEl) {
-    const trips = tripManager.getAllTrips();
-    const syncedTrips = trips.filter(trip => trip.cloudSynced).length;
-    tripsSyncedEl.textContent = `${syncedTrips} of ${trips.length}`;
-  }
-
-  // Device ID
-  const deviceIdEl = document.getElementById('deviceId');
-  if (deviceIdEl) {
-    deviceIdEl.textContent = syncStatus.deviceId || '-';
-    deviceIdEl.title = syncStatus.deviceId;
-  }
-}
-
-/**
- * Format relative time (e.g., "2 minutes ago", "Just now")
- */
-function formatRelativeTime(date) {
-  const now = Date.now();
-  const diff = now - date.getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (seconds < 10) return 'Just now';
-  if (seconds < 60) return `${seconds} seconds ago`;
-  if (minutes === 1) return '1 minute ago';
-  if (minutes < 60) return `${minutes} minutes ago`;
-  if (hours === 1) return '1 hour ago';
-  if (hours < 24) return `${hours} hours ago`;
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-
-  return date.toLocaleDateString();
-}
-
-/**
- * Show sync details tooltip
- */
-function showSyncDetails() {
-  const tooltip = document.getElementById('syncTooltip');
-  if (!tooltip) return;
-
-  const isVisible = tooltip.style.display === 'block';
-
-  // Close if already open
-  if (isVisible) {
-    tooltip.style.display = 'none';
-    return;
-  }
-
-  // Update and show
-  updateSyncTooltip();
-  tooltip.style.display = 'block';
-
-  // Close on outside click
-  setTimeout(() => {
-    const closeOnOutsideClick = (e) => {
-      const syncStatus = document.getElementById('syncStatus');
-      if (!syncStatus.contains(e.target)) {
-        tooltip.style.display = 'none';
-        document.removeEventListener('click', closeOnOutsideClick);
-      }
-    };
-    document.addEventListener('click', closeOnOutsideClick);
-  }, 100);
-}
-
-/**
- * Manually trigger sync
- */
-async function manualSync() {
-  const btn = document.querySelector('.btn-sync-now');
-  if (!btn) return;
-
-  // Disable button
-  btn.disabled = true;
-  btn.innerHTML = `
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-    </svg>
-    Syncing...
-  `;
-
-  try {
-    updateSyncUI('syncing');
-    await syncService.syncAll();
-    showToast('Sync completed successfully!');
-  } catch (error) {
-    console.error('Manual sync error:', error);
-    showToast('Sync failed: ' + error.message);
-  } finally {
-    // Re-enable button
-    btn.disabled = false;
-    btn.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-      </svg>
-      Sync Now
-    `;
   }
 }
 
@@ -1011,53 +860,4 @@ function showToast(message, duration = 3000) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, duration);
-}
-
-/**
- * Format currency with symbol
- */
-function formatCurrency(amount, currency = 'USD') {
-  const symbols = {
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CNY': '¥',
-    'KRW': '₩',
-    'THB': '฿',
-    'SGD': 'S$',
-    'MYR': 'RM',
-    'INR': '₹',
-    'AUD': 'A$'
-  };
-
-  const symbol = symbols[currency] || currency;
-  const num = parseFloat(amount);
-
-  if (isNaN(num)) return symbol + '0';
-
-  // For JPY and KRW, no decimals
-  if (currency === 'JPY' || currency === 'KRW') {
-    return symbol + Math.round(num).toLocaleString();
-  }
-
-  return symbol + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-/**
- * Calculate trip total budget
- */
-function calculateTripBudget(trip) {
-  if (!trip || !trip.days) return 0;
-
-  return trip.days.reduce((total, day) => {
-    if (!day || !day.activities) return total;
-
-    const dayTotal = day.activities.reduce((daySum, activity) => {
-      const cost = parseFloat(activity.cost) || 0;
-      return daySum + cost;
-    }, 0);
-
-    return total + dayTotal;
-  }, 0);
 }

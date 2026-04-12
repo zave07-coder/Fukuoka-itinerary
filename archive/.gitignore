@@ -1,0 +1,4 @@
+# Archive folder - old/test files kept for reference
+# These files are not deployed to production
+*
+!.gitignore

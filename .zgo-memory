@@ -1,128 +1,129 @@
-mages weren't being fetched from Google Places API or Unsplash - they were stuck showing the default Unsplash placeholder images.
+n Verification**
 
-**Root Cause:** 
-1. The code was checking if `window.poiImageService` was defined at render time, but the service might not be loaded yet
-2. The 100ms delay wasn't enough to ensure both DOM and service were ready
+Based on my code review, here's what's currently implemented:
 
-**Solution:**
-1. **Removed early check** - Now alwa
+### **📋 Current Setup:**
 
-[2026-04-11] ✅ **Deployed successfully!**
+**1. API Endpoint:** `/api/generate-trip` (line 2407 in _worker.js)
 
-The POI image loading fix is now live on production at **https://wahgola.zavecoder.com**
+**2. Model Selection Flow:**
 
-## What's been deployed:
-
-1. **Trip deletion fix** - Deleted trips will no longer reappear after sync
-2. **POI image loading fix** - Images will now load from Google Places API/Unsplash instead of showing generic placeholders
-
-## To test:
-
-1. **Hard refresh** your browser on the trip page: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
-2. **Open Developer Console** (F12)
-
-[2026-04-11] Excellent! ✅ **Successfully deployed to production!**
-
-## What's Been Implemented:
-
-### 1. **POI Image Lightbox** 🖼️
-- **Click any POI thumbnail** to view the full-size image in a beautiful modal
-- **Features:**
-  - Dark overlay with fade animation
-  - Large image display (up to 90% viewport)
-  - POI name and photo attribution shown below image
-  - Close with:
-    - ✕ button (top right)
-    - ESC key
-    - Click outside the image
-  - Smooth hover effects on thumbnails (slight zoom + shadow)
-
-##
-
-[2026-04-12] Perfect! ✅ **Deployment successful!**
-
----
-
-## 🎉 **Fixed: Trip Cover Images Now Loading**
-
-### **The Problem:**
-The AI was returning **placeholder cover images** like:
+**Streaming Mode** (default from dashboard):
 ```
-"coverImage": "https://images.unsplash.com/photo-XXXXX"
+Gemini 2.0 Flash (primary) → GPT-5.4 (fallback)
 ```
 
-Since this value was **not empty**, our validation code never replaced it with a real image!
+**Non-Streaming Mode:**
+```
+Gemini 2.0 Flash (primary) → GPT-5.4 (fallback)
+```
 
-### **The Solution:**
-Updated the cover image validation in `_worker.js` to detect **placeholder patterns**:
+**3. Imple
 
-```javascript
-// Before (only checked if empty)
-if (!tripData.
+[2026-04-12] Perfect! The Gemini commit was made at **01:53 SGT** (Apr 12), but you saw the version as **00:03 SGT**, which suggests Cloudflare hasn't auto-deployed the latest commit yet. 
 
-[2026-04-12] Based on the code, you're currently using **GPT-4o** for trip generation.
+Cloudflare Pages should auto-deploy on git push, but sometimes there's a delay. Let me trigger a manual deployment:
 
-Here's the breakdown of models used in different parts of the app:
+## 📊 **Deployment Status Summary**
 
-## Current Models:
+- **Latest Commit**: `5b5e10a` - Gemini 2.0 Flash implementation (Apr 12, 01:53 SGT)
+- **Your Deployed Version**: v1.2.0 (Apr 12, 00:03 SGT) 
+- **Status**: ⚠️ **Cloudfla
 
-1. **Trip Generation** (main itinerary creation): **`gpt-4o`**
-   - Line 1306 in `_worker.js`
-   - Comment says: "gpt-4o is faster and more reliable for long trips than gpt-4o-mini"
-   - `max_completion_tokens: 16000`
+[2026-04-12] ## ✅ **Deployment Successful!**
 
-2. **AI Chat** (conversational Q&A): **`gpt-4o-mini`**
-   - Line 204 in `_worker.js`
-   - Used for answering questions
+Your **Gemini 2.0 Flash implementation** is now **LIVE** on production!
 
-[2026-04-12] Based on the configuration and OpenAI's current pricing (as of January 2025), here's the cost estimate:
+### 📊 **Deployment Details:**
+- **Deployment URL**: https://bfaa08a6.fukuoka-itinerary-git.pages.dev
+- **Production Domains**: 
+  - https://wahgola.zavecoder.com ✅
+  - https://fkk.zavecoder.com ✅
+- **Deployment Time**: Apr 12, 2026 02:26 GMT (10:26 SGT)
+- **Files Uploaded**: 4 new files (142 cached)
 
-## 💰 **Cost Estimate Per Trip Generation**
+### 🎯 **What's Now Live:**
+1. ✅ **Gemini 2.0 Flash** as primary model (streaming mode)
+2.
 
-### **Model: GPT-4o**
-- **Input:** ~$2.50 per 1M tokens
-- **Output:** ~$10.00 per 1M tokens
+[2026-04-12] ## ✅ **Version Updated Successfully!**
 
-### **Typical Token Usage for Trip Generation:**
+The version is now **v1.3.0 (2026-04-12 10:26 SGT)** - live on production!
 
-Based on the code:
-- **System Prompt:** ~300 tokens
-- **User Prompt:** ~200-500 tokens (depending on trip details)
-- **Max Output:** 16,000 tokens
+### 📊 **What Changed:**
+- **Previous**: v1.2.0 (00:03 SGT)
+- **Current**: v1.3.0 (10:26 SGT) ✨
+- **Deployment**: https://6c7bdddc.fukuoka-itinerary-git.pages.dev
+- **Production**: https://wahgola.zavecoder.com
 
-### **Estimated Cost Per Trip:**
+### 🎯 **Version 1.3.0 Features:**
+- Gemini 2.0 Flash streaming (primary)
+- GPT-5.4 Turbo fallback
+- 200x cost reduction
+- Faster response times
 
-**Conservative Estimate (
+You can verify the version
 
-[2026-04-12] Perfect! Now let me provide you with a comprehensive cost comparison:
+[2026-04-12] ## 🔍 **Analysis Summary**
 
-## 💰 **AI Model Cost Comparison (Jan 2025 Pricing)**
+I **cannot determine** which model generated your trip without access to:
+1. The trip's creation timestamp
+2. The trip's metadata (requires authentication)
 
-### **Current Setup:**
-Your app already tries **Gemini 2.0 Flash first**, then falls back to GPT-4o!
+**However, here's how to check yourself:**
+
+### **Method 1: Check Browser Console**
+1. Open https://wahgola.zavecoder.com/trip-planner?trip=b4397f18-591c-46d4-8468-0431ee3c8af7
+2. Open DevTools (F12) → Console tab
+3. Look for logs like:
+   - `"✅ Got streaming response from Gemini"` ✅ = Gemini 2.0 Flash
+   - `"✅ Go
+
+[2026-04-12] Perfect! Let me create a summary:
+
+## ✅ **Model Tracking Implemented!**
+
+### **What Was Added:**
+
+1. **Trip Metadata Tracking** (both streaming & non-streaming modes)
+   - `metadata.generatedBy` - Which AI model generated the trip
+   - `metadata.generatedAt` - Timestamp of generation
+
+2. **Console Logging in Trip Planner**
+   - Opens trip → Check browser console
+   - Shows: `🤖 Trip generated by: gemini-2.0-flash` or `gpt-5.4`
+
+### **How to Check Any Trip:**
+
+1. **Open trip in browser**: https:/
+
+[2026-04-12] ## 🚀 **Improvement Recommendations for Wahgola**
+
+Based on your current setup, here are prioritized improvements:
 
 ---
 
-### **1. Gemini 2.0 Flash** ⭐ **CHEAPEST & ALREADY IMPLEMENTED**
-- **Input:** $0.075 per 1M tokens ($0.000000075/token)
-- **Output:** $0.30 per 1M tokens ($0.0000003/token)
-- **Cost per trip (7-day):** **~$0.003** (0.3 cents!)
-- **Quality:** Excellent, comparable to
+### **🎯 High Priority - User Experience**
 
-[2026-04-12] Perfect! Now I have the full picture. Let me give you the summary:
+1. **Mobile Responsiveness**
+   - Your app has `mobile.css` but might need optimization
+   - Split-screen layout may not work well on phones
+   - Consider: Collapsible map, bottom sheet for itinerary on mobile
 
----
+2. **Offline Support / PWA**
+   - Add service worker for offline trip viewing
+   - Cache trips locally for airplane mode
 
-## 🔍 **Current Trip Generation Analysis**
+[2026-04-12] Great! Now let me address your excellent booking/monetization question while I continue the cleanup:
 
-### **What's Actually Happening:**
+## 💰 **Booking Integration & Commission Opportunities**
 
-Your dashboard is using **streaming mode** (`stream: true` on line 344 of dashboard.js), which means:
+Yes! This is a **HUGE monetization opportunity**. Here are the best options:
 
-1. ✅ **All recent trips are using GPT-4o** (not Gemini)
-2. ❌ The `generatedBy` field is NOT being set in streaming mode (that's why it shows `null`)
-3. ✅ Gemini 2.0 Flash is implemented but **only used in non-streaming mode**
+### **🏆 Top Booking Affiliate Programs:**
 
----
-
-## 📊 **Code
+#### **1. Booking.com Affiliate Program** ⭐ BEST
+- **Commission**: 25-40% of Booking.com's commission (~4% of booking value)
+- **Average**: $30-50 per hotel booking
+- **Easy Integration**: REST API + deep links
+- **Coo
