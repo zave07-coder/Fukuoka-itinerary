@@ -2337,15 +2337,15 @@ export default {
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
       const buildDate = '2026-04-12';
-      const buildTime = '00:03';
-      const buildTimestamp = '2026-04-12T00:03:00+08:00';
+      const buildTime = '10:26';
+      const buildTimestamp = '2026-04-12T10:26:00+08:00';
 
       const version = {
-        version: '1.2.0',
+        version: '1.3.0',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.2.0 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.3.0 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
