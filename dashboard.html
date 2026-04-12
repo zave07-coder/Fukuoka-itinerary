@@ -8,7 +8,17 @@
     <meta http-equiv="Expires" content="0">
     <title>Wahgola - Your Travel Companion</title>
     <meta name="description" content="Plan, organize, and visualize your perfect trip">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Wahgola">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
     <link rel="stylesheet" href="dashboard.css?v=21">
+    <link rel="stylesheet" href="pwa.css?v=1">
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth-service.js?v=20"></script>
@@ -16,6 +26,7 @@
     <script src="storage-monitor.js?v=20"></script>
     <script src="auth-prompt.js?v=20"></script>
     <script src="trip-manager.js?v=22"></script>
+    <script src="pwa-installer.js?v=1"></script>
     <script src="dashboard.js?v=21" defer></script>
 </head>
 <body>
