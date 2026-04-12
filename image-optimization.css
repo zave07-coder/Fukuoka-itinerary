@@ -1,0 +1,290 @@
+/**
+ * Image Optimization Styles
+ * Lazy loading, progressive loading, and transitions
+ */
+
+/* ========================================
+   LAZY LOADING TRANSITIONS
+   ======================================== */
+
+/* Images with lazy loading */
+img.lazy {
+  transition: filter 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Loading state - blurred placeholder */
+img.lazy.loading {
+  filter: blur(10px);
+  opacity: 0.6;
+}
+
+/* Loaded state - clear image */
+img.lazy.loaded {
+  filter: blur(0);
+  opacity: 1;
+}
+
+/* ========================================
+   RESPONSIVE IMAGES
+   ======================================== */
+
+/* Ensure all images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* POI images in activity cards */
+.activity-image,
+.poi-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f3f4f6; /* Placeholder background */
+}
+
+/* Trip cover images */
+.trip-cover-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+@media (min-width: 768px) {
+  .trip-cover-image {
+    height: 300px;
+  }
+}
+
+/* ========================================
+   ASPECT RATIO CONTAINERS
+   ======================================== */
+
+/* Maintain aspect ratio while loading */
+.image-container {
+  position: relative;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+/* 16:9 ratio */
+.image-container.ratio-16-9 {
+  padding-top: 56.25%;
+}
+
+/* 4:3 ratio */
+.image-container.ratio-4-3 {
+  padding-top: 75%;
+}
+
+/* 1:1 ratio */
+.image-container.ratio-1-1 {
+  padding-top: 100%;
+}
+
+.image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========================================
+   LOADING SKELETON
+   ======================================== */
+
+/* Image skeleton placeholder */
+.image-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ========================================
+   PROGRESSIVE LOADING
+   ======================================== */
+
+/* Blur-up technique */
+.blur-up {
+  filter: blur(20px);
+  transform: scale(1.1);
+  transition: filter 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.blur-up.loaded {
+  filter: blur(0);
+  transform: scale(1);
+}
+
+/* ========================================
+   IMAGE ERROR STATES
+   ======================================== */
+
+/* Broken image placeholder */
+img[alt]:not([src]),
+img[alt][src=""],
+img[alt]:not([src]):not([srcset]) {
+  position: relative;
+  display: inline-block;
+  min-height: 100px;
+  background: #f3f4f6;
+}
+
+img[alt]:not([src])::before,
+img[alt][src=""]::before {
+  content: '🖼️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+img[alt]:not([src])::after,
+img[alt][src=""]::after {
+  content: attr(alt);
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding: 0 1rem;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Disable image dragging (better UX) */
+img {
+  user-drag: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* GPU acceleration for smooth transitions */
+img.lazy,
+img.blur-up {
+  will-change: filter, opacity, transform;
+}
+
+/* Remove will-change after load */
+img.lazy.loaded,
+img.blur-up.loaded {
+  will-change: auto;
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Reduce image height on mobile */
+  .trip-cover-image {
+    height: 150px;
+  }
+
+  /* Smaller POI images */
+  .activity-image,
+  .poi-image {
+    max-height: 200px;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  /* Disable lazy loading for print */
+  img.lazy {
+    filter: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure images fit on page */
+  img {
+    max-height: 300px;
+    page-break-inside: avoid;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  img {
+    border: 1px solid currentColor;
+  }
+
+  .image-skeleton {
+    background: repeating-linear-gradient(
+      45deg,
+      #f0f0f0,
+      #f0f0f0 10px,
+      #e0e0e0 10px,
+      #e0e0e0 20px
+    );
+    animation: none;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  img.lazy,
+  img.blur-up,
+  .image-skeleton {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ========================================
+   LIGHTBOX IMAGES (for poi-image-service)
+   ======================================== */
+
+.lightbox-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  background: transparent;
+}
+
+/* ========================================
+   NETWORK-AWARE LOADING
+   ======================================== */
+
+/* Low bandwidth: reduce image quality */
+@media (prefers-reduced-data: reduce) {
+  /* Note: This is experimental but some browsers support it */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
