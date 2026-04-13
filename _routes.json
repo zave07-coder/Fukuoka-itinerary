@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/api/*", "/config.js"],
+  "include": ["/api/*", "/config.js", "/shared/*"],
   "exclude": []
 }
