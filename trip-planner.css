@@ -911,6 +911,10 @@ body {
   color: var(--color-text-secondary);
 }
 
+.modal-content-modern {
+  padding: var(--space-6);
+}
+
 .ai-form {
   padding: var(--space-6);
 }
