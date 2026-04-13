@@ -85,10 +85,14 @@ function loadTripFromURL() {
     const shareId = pathname.split('/shared/')[1].split('?')[0].split('#')[0]; // Clean URL fragments
     console.log('[Trip Loader] Detected shared link, shareId:', shareId);
     if (shareId && shareId.trim()) {
+      console.log('[Trip Loader] Loading shared trip, skipping normal trip ID check');
       loadSharedTrip(shareId);
-      return;
+      return; // Exit early - don't check for ?trip= parameter
     } else {
       console.error('[Trip Loader] Invalid share ID extracted from pathname');
+      showToast('Invalid shared link', 2000, 'error');
+      setTimeout(() => window.location.href = 'dashboard.html', 2000);
+      return;
     }
   }
 
@@ -99,6 +103,13 @@ function loadTripFromURL() {
   console.log('[Trip Loader] Trip ID from URL:', currentTripId);
 
   if (!currentTripId) {
+    // Double-check we're not on a shared link path (safety check)
+    if (window.location.pathname.startsWith('/shared/')) {
+      console.log('[Trip Loader] On shared path, waiting for shared trip to load...');
+      return; // Let loadSharedTrip handle it
+    }
+
+    console.log('[Trip Loader] No trip ID in URL parameter');
     showToast('No trip ID provided. Redirecting...', 2000, 'error');
     setTimeout(() => window.location.href = 'dashboard.html', 2000);
     return;
