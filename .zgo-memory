@@ -1,18 +1,4 @@
-✅ Pooler connection (both modes)
-- ✅ Different password formats
-
-**But failed because:**
-- ❌ IPv6 network unreachable (server doesn't support IPv6)
-- ❌ Pooler authentication keeps saying "Tenant or user not found"
-
-##  📋 **Please Run It Manually (takes 30 seconds)**
-
-1. Open: https://supabase.com/dashboard/project/gdhyukplodnvokrmxvba/sql/new
-2. Copy
-
-[2026-04-13] The share link should work now! The table exists. Try visiting the share link again:
-
-**https://wahgola.zavecoder.com/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c**
+b-c1c09f3e546c**
 
 It should work now since:
 ✅ `trip_shares` table exists
@@ -85,3 +71,23 @@ The issue was that when you visit `/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c`
 1. **Updated `trip-planner.js`**:
    - Added detection for `/shared/{token}` pathname format
    - Created `loadSharedTrip()` function to fetch the trip via `/api/shared-trip?token={token}`
+
+[2026-04-13] ✅ **Fixed and deployed!**
+
+## The Problem
+The endless redirect loop was caused by a **data structure mismatch** between the API and the frontend:
+
+**API Response** (`_worker.js`):
+```json
+{
+  "trip": { id, destination, days, metadata, ... },
+  "viewCount": 123,
+  "isShared": true
+}
+```
+
+**Frontend Code** (`trip-planner.js`) was incorrectly trying to access:
+- `sharedData.tripId` ❌ (doesn't exist)
+- `sharedData.tripData` ❌ (doesn't exist)
+
+This caused `currentTrip` to be malformed/undefined, trig

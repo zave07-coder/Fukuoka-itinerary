@@ -1968,12 +1968,17 @@ const getSharedTripHandler = async (request, env) => {
       { id: share.id }
     );
 
+    // Extract trip data from the 'data' JSON column
+    const tripData = typeof trip.data === 'string' ? JSON.parse(trip.data) : trip.data;
+
     return new Response(JSON.stringify({
       trip: {
         id: trip.id,
-        destination: trip.destination,
-        days: trip.days,
-        metadata: trip.metadata,
+        destination: tripData.destination || trip.destination,
+        days: tripData.days || [],
+        metadata: tripData.metadata || {},
+        name: trip.name,
+        coverImage: tripData.coverImage,
         created_at: trip.created_at
       },
       viewCount: (share.view_count || 0) + 1,
