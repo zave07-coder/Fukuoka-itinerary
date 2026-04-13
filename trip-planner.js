@@ -79,11 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadTripFromURL() {
   // Check if this is a shared link (/shared/{shareId})
   const pathname = window.location.pathname;
+  console.log('[Trip Loader] Current pathname:', pathname);
+
   if (pathname.startsWith('/shared/')) {
-    const shareId = pathname.split('/shared/')[1];
+    const shareId = pathname.split('/shared/')[1].split('?')[0].split('#')[0]; // Clean URL fragments
     console.log('[Trip Loader] Detected shared link, shareId:', shareId);
-    loadSharedTrip(shareId);
-    return;
+    if (shareId && shareId.trim()) {
+      loadSharedTrip(shareId);
+      return;
+    } else {
+      console.error('[Trip Loader] Invalid share ID extracted from pathname');
+    }
   }
 
   // Otherwise, expect ?trip= query parameter
@@ -128,13 +134,20 @@ async function loadSharedTrip(shareToken) {
     console.log('[Shared Trip Loader] Fetching shared trip with token:', shareToken);
 
     const response = await fetch(`/api/shared-trip?token=${shareToken}`);
+    console.log('[Shared Trip Loader] Response status:', response.status);
 
     if (!response.ok) {
-      throw new Error(`Failed to load shared trip: ${response.status}`);
+      const errorText = await response.text();
+      console.error('[Shared Trip Loader] API error:', errorText);
+      throw new Error(`Failed to load shared trip: ${response.status} - ${errorText}`);
     }
 
     const sharedData = await response.json();
     console.log('[Shared Trip Loader] Loaded shared trip:', sharedData);
+
+    if (!sharedData.trip || !sharedData.trip.id) {
+      throw new Error('Invalid trip data received from server');
+    }
 
     // Set current trip from shared data
     currentTripId = sharedData.trip.id;
@@ -144,14 +157,16 @@ async function loadSharedTrip(shareToken) {
       cloudSynced: true
     };
 
+    console.log('[Shared Trip Loader] Set currentTrip:', currentTrip);
+    console.log('[Shared Trip Loader] Set currentTripId:', currentTripId);
     console.log('[Shared Trip Loader] Viewing shared trip in read-only mode');
     showToast('Viewing shared trip (read-only)', 3000, 'info');
 
     renderTrip();
   } catch (error) {
     console.error('[Shared Trip Loader] Failed to load shared trip:', error);
-    showToast('Shared trip not found or expired', 3000, 'error');
-    setTimeout(() => window.location.href = 'login.html', 2000);
+    showToast(`Shared trip error: ${error.message}`, 5000, 'error');
+    setTimeout(() => window.location.href = 'dashboard.html', 3000);
   }
 }
 
