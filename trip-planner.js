@@ -97,7 +97,8 @@ function loadTripFromURL() {
     } else {
       console.error('[Trip Loader] ✗ Invalid share ID extracted from pathname');
       showToast('Invalid shared link', 2000, 'error');
-      setTimeout(() => window.location.href = 'dashboard.html', 2000);
+      // TEMPORARILY DISABLED: setTimeout(() => window.location.href = 'dashboard.html', 2000);
+      console.error('[Trip Loader] REDIRECT DISABLED FOR DEBUGGING');
       return;
     }
   }
@@ -118,7 +119,8 @@ function loadTripFromURL() {
 
     console.log('[Trip Loader] No trip ID in URL parameter');
     showToast('No trip ID provided. Redirecting...', 2000, 'error');
-    setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    // TEMPORARILY DISABLED: setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    console.error('[Trip Loader] REDIRECT DISABLED FOR DEBUGGING');
     return;
   }
 
@@ -202,7 +204,8 @@ async function loadSharedTrip(shareToken) {
     document.body.appendChild(errorDiv);
 
     showToast(`Shared trip error: ${error.message}`, 5000, 'error');
-    setTimeout(() => window.location.href = 'dashboard.html', 5000);
+    // TEMPORARILY DISABLED: setTimeout(() => window.location.href = 'dashboard.html', 5000);
+    console.error('[Shared Trip Loader] REDIRECT DISABLED FOR DEBUGGING');
   }
 }
 
@@ -262,7 +265,8 @@ async function loadTripFromCloud(tripId) {
   } catch (error) {
     console.error('[Cloud Loader] Failed to load trip from cloud:', error);
     showToast('Trip not found. Redirecting to dashboard...', 2000, 'error');
-    window.location.href = 'dashboard.html';
+    // TEMPORARILY DISABLED: window.location.href = 'dashboard.html';
+    console.error('[Cloud Loader] REDIRECT DISABLED FOR DEBUGGING');
   }
 }
 
