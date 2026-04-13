@@ -79,17 +79,23 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadTripFromURL() {
   // Check if this is a shared link (/shared/{shareId})
   const pathname = window.location.pathname;
-  console.log('[Trip Loader] Current pathname:', pathname);
+  console.log('[Trip Loader] ========== START ==========');
+  console.log('[Trip Loader] Full URL:', window.location.href);
+  console.log('[Trip Loader] Pathname:', pathname);
+  console.log('[Trip Loader] Pathname starts with /shared/?', pathname.startsWith('/shared/'));
 
   if (pathname.startsWith('/shared/')) {
     const shareId = pathname.split('/shared/')[1].split('?')[0].split('#')[0]; // Clean URL fragments
-    console.log('[Trip Loader] Detected shared link, shareId:', shareId);
+    console.log('[Trip Loader] ✓ Detected shared link');
+    console.log('[Trip Loader] Extracted shareId:', shareId);
+    console.log('[Trip Loader] ShareId valid?', !!(shareId && shareId.trim()));
+
     if (shareId && shareId.trim()) {
-      console.log('[Trip Loader] Loading shared trip, skipping normal trip ID check');
+      console.log('[Trip Loader] ✓ Loading shared trip, will NOT check for ?trip= parameter');
       loadSharedTrip(shareId);
       return; // Exit early - don't check for ?trip= parameter
     } else {
-      console.error('[Trip Loader] Invalid share ID extracted from pathname');
+      console.error('[Trip Loader] ✗ Invalid share ID extracted from pathname');
       showToast('Invalid shared link', 2000, 'error');
       setTimeout(() => window.location.href = 'dashboard.html', 2000);
       return;
@@ -97,10 +103,11 @@ function loadTripFromURL() {
   }
 
   // Otherwise, expect ?trip= query parameter
+  console.log('[Trip Loader] Not a shared link, checking for ?trip= parameter');
   const urlParams = new URLSearchParams(window.location.search);
   currentTripId = urlParams.get('trip');
 
-  console.log('[Trip Loader] Trip ID from URL:', currentTripId);
+  console.log('[Trip Loader] Trip ID from URL query param:', currentTripId);
 
   if (!currentTripId) {
     // Double-check we're not on a shared link path (safety check)
