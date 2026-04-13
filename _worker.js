@@ -1698,51 +1698,65 @@ const tripsHandler = async (request, env) => {
 
 /**
  * Get single trip by ID handler
+ * Supports both authenticated access (own trips) and unauthenticated access (public trips)
  */
 const getTripByIdHandler = async (request, env, tripId) => {
   try {
-    const auth = await verifySupabaseToken(request, env);
     const db = new SupabaseClient(env);
 
-    // Get user ID
-    let users = await db.query('users', {
-      select: 'id',
-      eq: { supabase_user_id: auth.userId }
-    });
+    // Try to authenticate (optional)
+    let auth = null;
+    let userId = null;
 
-    // Auto-create user if not found
-    if (!users || users.length === 0) {
-      console.log(`🔧 User not found for ${auth.email}, creating automatically...`);
+    try {
+      auth = await verifySupabaseToken(request, env);
 
-      try {
-        const newUser = await db.insert('users', {
-          supabase_user_id: auth.userId,
-          email: auth.email,
-          display_name: auth.email?.split('@')[0] || 'User',
-          avatar_url: null
-        });
+      // Get user ID if authenticated
+      let users = await db.query('users', {
+        select: 'id',
+        eq: { supabase_user_id: auth.userId }
+      });
 
-        console.log(`✅ Auto-created user: ${auth.email}`);
-        users = newUser;
-      } catch (createError) {
-        console.error('Failed to auto-create user:', createError);
-        return new Response(JSON.stringify({
-          error: 'User not found and auto-creation failed',
-          details: createError.message
-        }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      // Auto-create user if not found
+      if (!users || users.length === 0) {
+        console.log(`🔧 User not found for ${auth.email}, creating automatically...`);
+
+        try {
+          const newUser = await db.insert('users', {
+            supabase_user_id: auth.userId,
+            email: auth.email,
+            display_name: auth.email?.split('@')[0] || 'User',
+            avatar_url: null
+          });
+
+          console.log(`✅ Auto-created user: ${auth.email}`);
+          users = newUser;
+        } catch (createError) {
+          console.error('Failed to auto-create user:', createError);
+        }
       }
+
+      if (users && users.length > 0) {
+        userId = users[0].id;
+      }
+    } catch (authError) {
+      console.log('[getTripByIdHandler] No auth or auth failed, attempting public access:', authError.message);
+      // Continue without auth - may be viewing a public/shared trip
     }
 
-    const userId = users[0].id;
-
     // Get specific trip
-    const trips = await db.query('trips', {
+    // If authenticated, filter by user_id. If not, allow any trip (RLS will handle permissions)
+    const query = {
       select: '*',
-      eq: { id: tripId, user_id: userId }
-    });
+      eq: { id: tripId }
+    };
+
+    // If authenticated, only get trips belonging to the user
+    if (userId) {
+      query.eq.user_id = userId;
+    }
+
+    const trips = await db.query('trips', query);
 
     if (!trips || trips.length === 0) {
       return new Response(JSON.stringify({ error: 'Trip not found' }), {
@@ -1812,26 +1826,33 @@ const generateShareLinkHandler = async (request, env) => {
 
   try {
     const { tripId } = await request.json();
-    const authHeader = request.headers.get('Authorization');
-
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const userId = await verifyJWT(token, env.JWT_SECRET);
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+    // Verify authentication
+    let auth;
+    try {
+      auth = await verifySupabaseToken(request, env);
+    } catch (error) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: ' + error.message }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     const db = new SupabaseClient(env);
+
+    // Get user ID from database (same logic as tripsHandler)
+    let users = await db.query('users', {
+      select: 'id',
+      eq: { supabase_user_id: auth.userId }
+    });
+
+    if (!users || users.length === 0) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const userId = users[0].id;
 
     // Verify user owns this trip
     const trips = await db.query('trips', {
@@ -1845,22 +1866,36 @@ const generateShareLinkHandler = async (request, env) => {
       });
     }
 
-    // Generate unique share token
-    const shareToken = crypto.randomUUID();
+    // Check if share link already exists for this trip
+    const existingShares = await db.query('trip_shares', {
+      eq: { trip_id: tripId, created_by: userId, is_active: true }
+    });
 
-    // Create share record
-    const shareData = {
-      id: crypto.randomUUID(),
-      trip_id: tripId,
-      share_token: shareToken,
-      created_by: userId,
-      created_at: new Date().toISOString(),
-      expires_at: null, // No expiry for now
-      view_count: 0,
-      is_active: true
-    };
+    let shareToken;
 
-    await db.insert('trip_shares', shareData);
+    if (existingShares && existingShares.length > 0) {
+      // Return existing share link
+      shareToken = existingShares[0].share_token;
+      console.log(`♻️ Returning existing share link for trip ${tripId}`);
+    } else {
+      // Generate unique share token
+      shareToken = crypto.randomUUID();
+
+      // Create share record
+      const shareData = {
+        id: crypto.randomUUID(),
+        trip_id: tripId,
+        share_token: shareToken,
+        created_by: userId,
+        created_at: new Date().toISOString(),
+        expires_at: null, // No expiry for now
+        view_count: 0,
+        is_active: true
+      };
+
+      await db.insert('trip_shares', shareData);
+      console.log(`✨ Created new share link for trip ${tripId}`);
+    }
 
     return new Response(JSON.stringify({
       shareToken,
@@ -1969,19 +2004,11 @@ const cloneSharedTripHandler = async (request, env) => {
 
   try {
     // Verify authentication
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    const token = authHeader.split('Bearer ')[1];
-    const userData = await verifyJWT(token, env.JWT_SECRET);
-
-    if (!userData || !userData.id) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+    let auth;
+    try {
+      auth = await verifySupabaseToken(request, env);
+    } catch (error) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: ' + error.message }), {
         status: 401,
         headers: corsHeaders
       });
@@ -1997,6 +2024,21 @@ const cloneSharedTripHandler = async (request, env) => {
     }
 
     const db = new SupabaseClient(env);
+
+    // Get user ID from database
+    let users = await db.query('users', {
+      select: 'id',
+      eq: { supabase_user_id: auth.userId }
+    });
+
+    if (!users || users.length === 0) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: corsHeaders
+      });
+    }
+
+    const userId = users[0].id;
 
     // Find share record
     const shares = await db.query('trip_shares', {
@@ -2032,7 +2074,7 @@ const cloneSharedTripHandler = async (request, env) => {
     const newTripId = crypto.randomUUID();
     const clonedTrip = {
       id: newTripId,
-      user_id: userData.id,
+      user_id: userId,
       trip_data: originalTrip.trip_data,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -2064,132 +2106,6 @@ const cloneSharedTripHandler = async (request, env) => {
 /**
  * Share trip handler - Send trip via email (legacy)
  */
-const shareTripHandler = async (request, env) => {
-  if (request.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
-  }
-
-  try {
-    const { tripId, recipientEmail, senderName } = await request.json();
-
-    // Validate inputs
-    if (!recipientEmail || !tripId) {
-      return new Response(JSON.stringify({
-        error: 'Missing required fields: tripId and recipientEmail'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Get trip data (Note: In production, verify user has access to this trip)
-    const db = new SupabaseClient(env);
-
-    // For now, we'll need the trip data passed from frontend
-    // In future: fetch from database with proper auth
-    const { tripData } = await request.json();
-
-    if (!tripData) {
-      return new Response(JSON.stringify({
-        error: 'Trip data required'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Generate email HTML
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; }
-    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-    .header p { margin: 10px 0 0; opacity: 0.9; font-size: 16px; }
-    .content { padding: 30px; }
-    .trip-info { margin-bottom: 30px; }
-    .trip-info h2 { margin: 0 0 10px; font-size: 22px; color: #333; }
-    .trip-info p { margin: 5px 0; color: #666; font-size: 14px; }
-    .trip-meta { display: flex; gap: 20px; margin-top: 15px; }
-    .meta-item { flex: 1; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-    .meta-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-    .meta-value { font-size: 16px; color: #333; font-weight: 600; margin-top: 5px; }
-    .button { display: inline-block; padding: 14px 32px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }
-    .footer { text-align: center; padding: 20px; color: #888; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🌏 Trip Shared With You!</h1>
-      <p>${senderName || 'Someone'} wants to share their travel plans</p>
-    </div>
-    <div class="content">
-      <div class="trip-info">
-        <h2>${tripData.name || 'Untitled Trip'}</h2>
-        <p><strong>📍 Destination:</strong> ${tripData.destination || 'Not specified'}</p>
-        <p><strong>📅 Duration:</strong> ${tripData.days?.length || 0} days</p>
-      </div>
-
-      <div class="trip-meta">
-        <div class="meta-item">
-          <div class="meta-label">Start Date</div>
-          <div class="meta-value">${tripData.startDate || 'TBD'}</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">End Date</div>
-          <div class="meta-value">${tripData.endDate || 'TBD'}</div>
-        </div>
-      </div>
-
-      <p style="margin-top: 30px; color: #666; line-height: 1.6;">
-        ${senderName || 'Your friend'} has shared their trip itinerary with you.
-        Click the button below to view the full details and save it to your own collection.
-      </p>
-
-      <a href="https://fkk.zavecoder.com?import=${encodeURIComponent(btoa(JSON.stringify(tripData)))}" class="button">
-        View Trip Itinerary
-      </a>
-    </div>
-    <div class="footer">
-      Sent via Wahgola - Your Travel Planning Companion
-    </div>
-  </div>
-</body>
-</html>`;
-
-    // Send email
-    const result = await sendEmail(env, {
-      to: recipientEmail,
-      subject: `${senderName || 'Someone'} shared a trip with you: ${tripData.name}`,
-      html: emailHtml
-    });
-
-    if (result.success) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Trip shared successfully!'
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } else {
-      throw new Error(result.error || 'Failed to send email');
-    }
-
-  } catch (error) {
-    console.error('Share trip error:', error);
-    return new Response(JSON.stringify({
-      error: error.message || 'Failed to share trip'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-};
-
 /**
  * Generate trip summary with AI
  */
@@ -2702,8 +2618,6 @@ export default {
       return getSharedTripHandler(request, env);
     } else if (url.pathname === '/api/clone-shared-trip') {
       return cloneSharedTripHandler(request, env);
-    } else if (url.pathname === '/api/share-trip') {
-      return shareTripHandler(request, env);
     } else if (url.pathname === '/api/generate-summary') {
       return generateSummaryHandler(request, env);
     } else if (url.pathname === '/api/poi-image') {
