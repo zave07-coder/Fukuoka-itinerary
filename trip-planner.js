@@ -101,20 +101,9 @@ function loadTripFromURL() {
     console.error('[Trip Loader] Trip not found in localStorage! ID:', currentTripId);
     console.error('[Trip Loader] Available IDs:', allTrips.map(t => t.id));
 
-    // Try to load from cloud if user is authenticated
-    if (typeof authService !== 'undefined' && authService.getCurrentUser()) {
-      console.log('[Trip Loader] Attempting to load trip from cloud...');
-      loadTripFromCloud(currentTripId);
-      return;
-    }
-
-    // Show more helpful error
-    const errorMsg = allTrips.length === 0
-      ? 'No trips found in storage. Please create a trip first.'
-      : `Trip "${currentTripId}" not found. Available trips: ${allTrips.map(t => t.name).join(', ')}`;
-
-    showToast(errorMsg, 3000, 'error');
-    window.location.href = 'dashboard.html';
+    // Try to load from cloud (works for both authenticated and unauthenticated access)
+    console.log('[Trip Loader] Attempting to load trip from cloud...');
+    loadTripFromCloud(currentTripId);
     return;
   }
 
@@ -123,17 +112,28 @@ function loadTripFromURL() {
 
 /**
  * Load trip from cloud when not found in localStorage
+ * Supports both authenticated (own trips) and unauthenticated (public/shared trips) access
  */
 async function loadTripFromCloud(tripId) {
   try {
     console.log('[Cloud Loader] Fetching trip from cloud:', tripId);
 
-    const token = await authService.getAccessToken();
-    const response = await fetch(`/api/trips/${tripId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    // Try with auth token first (for own trips)
+    let token = null;
+    try {
+      if (typeof authService !== 'undefined') {
+        token = await authService.getAccessToken();
       }
-    });
+    } catch (authError) {
+      console.log('[Cloud Loader] No auth token available, proceeding without authentication');
+    }
+
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`/api/trips/${tripId}`, { headers });
 
     if (!response.ok) {
       throw new Error(`Failed to load trip: ${response.status}`);
@@ -142,7 +142,7 @@ async function loadTripFromCloud(tripId) {
     const cloudTrip = await response.json();
     console.log('[Cloud Loader] Loaded from cloud:', cloudTrip);
 
-    // Save to localStorage
+    // Prepare trip data
     const tripData = {
       ...cloudTrip.data,
       id: cloudTrip.id,
@@ -150,8 +150,17 @@ async function loadTripFromCloud(tripId) {
       lastSyncAt: new Date().toISOString()
     };
 
-    const savedTrip = tripManager.createTrip(tripData);
-    currentTrip = savedTrip;
+    // If authenticated and own trip, save to localStorage
+    // If unauthenticated or not owner, just display (read-only)
+    if (token) {
+      const savedTrip = tripManager.createTrip(tripData);
+      currentTrip = savedTrip;
+    } else {
+      // Read-only mode for public/shared trips
+      currentTrip = tripData;
+      console.log('[Cloud Loader] Viewing trip in read-only mode (unauthenticated)');
+      showToast('Viewing shared trip (read-only)', 3000, 'info');
+    }
 
     renderTrip();
   } catch (error) {
@@ -2508,7 +2517,7 @@ async function shareTrip() {
     }
 
     // Generate share link
-    const authToken = await authService.getAuthToken();
+    const authToken = await authService.getAccessToken();
 
     if (!authToken) {
       throw new Error('Please log in to share trips');
@@ -3200,144 +3209,5 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeLightbox();
-  }
-});
-
-// ============================================
-// TRIP SHARING FUNCTIONALITY
-// ============================================
-
-let currentShareLink = null;
-
-async function shareTrip() {
-  const modal = document.getElementById('shareModal');
-  const loading = document.getElementById('shareLoading');
-  const success = document.getElementById('shareSuccess');
-  const error = document.getElementById('shareError');
-
-  // Reset states
-  loading.style.display = 'block';
-  success.style.display = 'none';
-  error.style.display = 'none';
-  modal.style.display = 'flex';
-
-  try {
-    const tripId = new URLSearchParams(window.location.search).get('id');
-    const user = await window.AuthService.getCurrentUser();
-
-    if (!user) {
-      throw new Error('Please sign in to share trips');
-    }
-
-    const response = await fetch('/api/share-trip', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        tripId,
-        userId: user.id
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create share link');
-    }
-
-    const data = await response.json();
-    currentShareLink = data;
-
-    // Show success state
-    loading.style.display = 'none';
-    success.style.display = 'block';
-
-    document.getElementById('shareUrlInput').value = data.shareUrl;
-    document.getElementById('shareViews').textContent = data.share.view_count || 0;
-
-  } catch (err) {
-    console.error('Share error:', err);
-    loading.style.display = 'none';
-    error.style.display = 'block';
-    document.getElementById('shareErrorMessage').textContent = err.message;
-  }
-}
-
-function closeShareModal() {
-  document.getElementById('shareModal').style.display = 'none';
-}
-
-async function copyShareLink() {
-  const input = document.getElementById('shareUrlInput');
-  const btn = document.getElementById('copyBtn');
-
-  try {
-    await navigator.clipboard.writeText(input.value);
-
-    // Visual feedback
-    const originalText = btn.textContent;
-    btn.textContent = 'Copied!';
-    btn.style.background = '#10b981';
-
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.style.background = '#667eea';
-    }, 2000);
-
-  } catch (err) {
-    console.error('Copy failed:', err);
-    // Fallback: select text
-    input.select();
-    document.execCommand('copy');
-  }
-}
-
-function shareViaWhatsApp() {
-  if (!currentShareLink) return;
-
-  const text = `Check out my trip itinerary: ${currentShareLink.shareUrl}`;
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  window.open(whatsappUrl, '_blank');
-}
-
-function shareViaEmail() {
-  if (!currentShareLink) return;
-
-  const subject = 'Check out my trip itinerary';
-  const body = `I wanted to share my trip itinerary with you:\n\n${currentShareLink.shareUrl}\n\nCreated with Wahgola`;
-  const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailtoUrl;
-}
-
-function retryShare() {
-  shareTrip();
-}
-
-async function deleteShareLink() {
-  if (!confirm('Are you sure you want to delete this share link? This cannot be undone.')) {
-    return;
-  }
-
-  try {
-    // TODO: Implement delete endpoint
-    // For now, just close the modal
-    alert('Delete functionality coming soon!');
-  } catch (err) {
-    console.error('Delete error:', err);
-    alert('Failed to delete share link');
-  }
-}
-
-// Close modal on ESC key
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeShareModal();
-  }
-});
-
-// Close modal on background click
-document.getElementById('shareModal')?.addEventListener('click', (e) => {
-  if (e.target.id === 'shareModal') {
-    closeShareModal();
   }
 });
