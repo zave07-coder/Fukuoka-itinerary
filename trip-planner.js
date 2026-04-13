@@ -137,10 +137,9 @@ async function loadSharedTrip(shareToken) {
     console.log('[Shared Trip Loader] Loaded shared trip:', sharedData);
 
     // Set current trip from shared data
-    currentTripId = sharedData.tripId;
+    currentTripId = sharedData.trip.id;
     currentTrip = {
-      ...sharedData.tripData,
-      id: sharedData.tripId,
+      ...sharedData.trip,
       isShared: true, // Mark as shared (read-only)
       cloudSynced: true
     };
