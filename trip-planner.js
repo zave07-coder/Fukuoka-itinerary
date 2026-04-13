@@ -144,8 +144,12 @@ async function loadSharedTrip(shareToken) {
 
     const sharedData = await response.json();
     console.log('[Shared Trip Loader] Loaded shared trip:', sharedData);
+    console.log('[Shared Trip Loader] Trip object:', sharedData.trip);
+    console.log('[Shared Trip Loader] Trip ID:', sharedData.trip?.id);
+    console.log('[Shared Trip Loader] Trip days:', sharedData.trip?.days);
 
     if (!sharedData.trip || !sharedData.trip.id) {
+      console.error('[Shared Trip Loader] Invalid trip data structure. Full response:', JSON.stringify(sharedData, null, 2));
       throw new Error('Invalid trip data received from server');
     }
 
