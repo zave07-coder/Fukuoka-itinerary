@@ -2630,7 +2630,9 @@ export default {
     }
 
     // Handle /shared/:token route - serve trip-planner.html
-    if (url.pathname.startsWith('/shared/')) {
+    // Only match /shared/{uuid}, not /shared/*.css or other files
+    const sharedMatch = url.pathname.match(/^\/shared\/[a-f0-9-]+$/i);
+    if (sharedMatch) {
       // Fetch trip-planner.html content but keep the original /shared/ URL
       const plannerRequest = new Request(new URL('/trip-planner.html', request.url).toString(), {
         method: request.method,
