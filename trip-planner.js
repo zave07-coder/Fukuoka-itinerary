@@ -2599,7 +2599,8 @@ async function shareTrip() {
   modal.style.display = 'flex';
 
   try {
-    const tripId = new URLSearchParams(window.location.search).get('trip');
+    // Use currentTripId (works for both ?trip= URLs and /shared/ URLs)
+    const tripId = currentTripId;
 
     if (!tripId) {
       throw new Error('No trip ID found');
