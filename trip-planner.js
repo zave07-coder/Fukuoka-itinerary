@@ -169,8 +169,22 @@ async function loadSharedTrip(shareToken) {
     renderTrip();
   } catch (error) {
     console.error('[Shared Trip Loader] Failed to load shared trip:', error);
+
+    // Show detailed error on page AND in toast
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:500px;z-index:10000;';
+    errorDiv.innerHTML = `
+      <h2 style="color:#e53e3e;margin:0 0 15px 0;">Shared Trip Error</h2>
+      <p style="margin:0 0 10px 0;"><strong>Error:</strong> ${error.message}</p>
+      <p style="margin:0;color:#666;font-size:14px;">Redirecting to dashboard in 5 seconds...</p>
+      <p style="margin:15px 0 0 0;padding:10px;background:#f7fafc;border-radius:6px;font-family:monospace;font-size:12px;word-break:break-all;">
+        Check browser console (F12) for detailed logs
+      </p>
+    `;
+    document.body.appendChild(errorDiv);
+
     showToast(`Shared trip error: ${error.message}`, 5000, 'error');
-    setTimeout(() => window.location.href = 'dashboard.html', 3000);
+    setTimeout(() => window.location.href = 'dashboard.html', 5000);
   }
 }
 
