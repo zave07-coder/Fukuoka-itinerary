@@ -2631,11 +2631,11 @@ export default {
 
     // Handle /shared/:token route - serve trip-planner.html
     if (url.pathname.startsWith('/shared/')) {
-      // Serve trip-planner.html (the token will be parsed from pathname by trip-planner.js)
-      const plannerUrl = new URL(request.url);
-      plannerUrl.pathname = '/trip-planner.html';
-
-      const plannerRequest = new Request(plannerUrl.toString(), request);
+      // Fetch trip-planner.html content but keep the original /shared/ URL
+      const plannerRequest = new Request(new URL('/trip-planner.html', request.url).toString(), {
+        method: request.method,
+        headers: request.headers
+      });
       const response = await env.ASSETS.fetch(plannerRequest);
 
       const newResponse = new Response(response.body, response);
