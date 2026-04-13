@@ -2486,19 +2486,95 @@ document.addEventListener('click', (event) => {
 /**
  * Share trip (copy URL to clipboard)
  */
-function shareTrip() {
-  const url = window.location.href;
+async function shareTrip() {
+  // Show share modal
+  const modal = document.getElementById('shareTripModal');
+  const loadingState = document.getElementById('shareLoadingState');
+  const successState = document.getElementById('shareSuccessState');
+  const errorState = document.getElementById('shareErrorState');
 
-  // Try to use the modern Clipboard API
+  // Reset states
+  loadingState.style.display = 'block';
+  successState.style.display = 'none';
+  errorState.style.display = 'none';
+
+  modal.style.display = 'flex';
+
+  try {
+    const tripId = new URLSearchParams(window.location.search).get('trip');
+
+    if (!tripId) {
+      throw new Error('No trip ID found');
+    }
+
+    // Generate share link
+    const authToken = await authService.getAuthToken();
+
+    if (!authToken) {
+      throw new Error('Please log in to share trips');
+    }
+
+    const response = await fetch('/api/generate-share-link', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ tripId })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate share link');
+    }
+
+    const data = await response.json();
+
+    // Show success state
+    loadingState.style.display = 'none';
+    successState.style.display = 'block';
+
+    document.getElementById('shareLink').value = data.shareUrl;
+
+    showToast('Share link generated!', 2000, 'success');
+  } catch (error) {
+    console.error('Share error:', error);
+
+    loadingState.style.display = 'none';
+    errorState.style.display = 'block';
+    document.getElementById('shareErrorMessage').textContent = error.message;
+
+    showToast(error.message, 3000, 'error');
+  }
+}
+
+function closeShareModal() {
+  document.getElementById('shareTripModal').style.display = 'none';
+  document.getElementById('copiedMessage').style.display = 'none';
+}
+
+function copyShareLink() {
+  const shareLink = document.getElementById('shareLink').value;
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('Trip link copied to clipboard!', 2000, 'success');
+    navigator.clipboard.writeText(shareLink).then(() => {
+      document.getElementById('copiedMessage').style.display = 'block';
+      showToast('Link copied to clipboard!', 2000, 'success');
+
+      setTimeout(() => {
+        document.getElementById('copiedMessage').style.display = 'none';
+      }, 3000);
     }).catch(() => {
-      fallbackCopyToClipboard(url);
+      fallbackCopyToClipboard(shareLink);
     });
   } else {
-    fallbackCopyToClipboard(url);
+    fallbackCopyToClipboard(shareLink);
   }
+}
+
+async function regenerateShareLink() {
+  // Reset and regenerate
+  await shareTrip();
 }
 
 /**
@@ -2520,6 +2596,72 @@ function fallbackCopyToClipboard(text) {
   }
 
   document.body.removeChild(textArea);
+}
+
+/**
+ * Social sharing functions
+ */
+function getShareData() {
+  const shareLink = document.getElementById('shareLink')?.value;
+  const destination = currentTrip?.destination || 'Amazing Destination';
+  const days = currentTrip?.days?.length || 0;
+
+  const shareText = `Check out my ${days}-day trip to ${destination}! 🌏✈️`;
+
+  return { shareLink, shareText, destination };
+}
+
+function shareToWhatsApp() {
+  const { shareLink, shareText } = getShareData();
+  if (!shareLink) return;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(shareText + '\n\n' + shareLink)}`;
+  window.open(url, '_blank', 'width=600,height=700');
+
+  showToast('Opening WhatsApp...', 2000, 'info');
+}
+
+function shareToTwitter() {
+  const { shareLink, shareText } = getShareData();
+  if (!shareLink) return;
+
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareLink)}`;
+  window.open(url, '_blank', 'width=600,height=700');
+
+  showToast('Opening Twitter...', 2000, 'info');
+}
+
+function shareToFacebook() {
+  const { shareLink } = getShareData();
+  if (!shareLink) return;
+
+  const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`;
+  window.open(url, '_blank', 'width=600,height=700');
+
+  showToast('Opening Facebook...', 2000, 'info');
+}
+
+function shareToTelegram() {
+  const { shareLink, shareText } = getShareData();
+  if (!shareLink) return;
+
+  const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`;
+  window.open(url, '_blank', 'width=600,height=700');
+
+  showToast('Opening Telegram...', 2000, 'info');
+}
+
+function shareToEmail() {
+  const { shareLink, shareText, destination } = getShareData();
+  if (!shareLink) return;
+
+  const subject = `Check out my trip to ${destination}!`;
+  const body = `${shareText}\n\nView my full itinerary here:\n${shareLink}\n\nPowered by Wahgola - AI Trip Planner`;
+
+  const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url;
+
+  showToast('Opening email client...', 2000, 'info');
 }
 
 /**
@@ -3058,5 +3200,144 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeLightbox();
+  }
+});
+
+// ============================================
+// TRIP SHARING FUNCTIONALITY
+// ============================================
+
+let currentShareLink = null;
+
+async function shareTrip() {
+  const modal = document.getElementById('shareModal');
+  const loading = document.getElementById('shareLoading');
+  const success = document.getElementById('shareSuccess');
+  const error = document.getElementById('shareError');
+
+  // Reset states
+  loading.style.display = 'block';
+  success.style.display = 'none';
+  error.style.display = 'none';
+  modal.style.display = 'flex';
+
+  try {
+    const tripId = new URLSearchParams(window.location.search).get('id');
+    const user = await window.AuthService.getCurrentUser();
+
+    if (!user) {
+      throw new Error('Please sign in to share trips');
+    }
+
+    const response = await fetch('/api/share-trip', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        tripId,
+        userId: user.id
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create share link');
+    }
+
+    const data = await response.json();
+    currentShareLink = data;
+
+    // Show success state
+    loading.style.display = 'none';
+    success.style.display = 'block';
+
+    document.getElementById('shareUrlInput').value = data.shareUrl;
+    document.getElementById('shareViews').textContent = data.share.view_count || 0;
+
+  } catch (err) {
+    console.error('Share error:', err);
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    document.getElementById('shareErrorMessage').textContent = err.message;
+  }
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').style.display = 'none';
+}
+
+async function copyShareLink() {
+  const input = document.getElementById('shareUrlInput');
+  const btn = document.getElementById('copyBtn');
+
+  try {
+    await navigator.clipboard.writeText(input.value);
+
+    // Visual feedback
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.background = '#10b981';
+
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '#667eea';
+    }, 2000);
+
+  } catch (err) {
+    console.error('Copy failed:', err);
+    // Fallback: select text
+    input.select();
+    document.execCommand('copy');
+  }
+}
+
+function shareViaWhatsApp() {
+  if (!currentShareLink) return;
+
+  const text = `Check out my trip itinerary: ${currentShareLink.shareUrl}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+function shareViaEmail() {
+  if (!currentShareLink) return;
+
+  const subject = 'Check out my trip itinerary';
+  const body = `I wanted to share my trip itinerary with you:\n\n${currentShareLink.shareUrl}\n\nCreated with Wahgola`;
+  const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailtoUrl;
+}
+
+function retryShare() {
+  shareTrip();
+}
+
+async function deleteShareLink() {
+  if (!confirm('Are you sure you want to delete this share link? This cannot be undone.')) {
+    return;
+  }
+
+  try {
+    // TODO: Implement delete endpoint
+    // For now, just close the modal
+    alert('Delete functionality coming soon!');
+  } catch (err) {
+    console.error('Delete error:', err);
+    alert('Failed to delete share link');
+  }
+}
+
+// Close modal on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeShareModal();
+  }
+});
+
+// Close modal on background click
+document.getElementById('shareModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'shareModal') {
+    closeShareModal();
   }
 });

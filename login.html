@@ -356,7 +356,37 @@
             // Check if user is already authenticated
             const isAuth = await authService.isAuthenticated();
             if (isAuth) {
-                console.log('User already logged in, redirecting to dashboard...');
+                console.log('User already logged in, redirecting...');
+
+                // Check for clone intent
+                const cloneIntent = sessionStorage.getItem('cloneIntent');
+                if (cloneIntent) {
+                    console.log('Clone intent detected, cloning trip...');
+                    sessionStorage.removeItem('cloneIntent');
+
+                    try {
+                        const authToken = await authService.getAuthToken();
+                        const response = await fetch('/api/clone-shared-trip', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ shareToken: cloneIntent })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            window.location.href = `trip-planner.html?trip=${data.tripId}`;
+                            return;
+                        } else {
+                            console.error('Clone failed, redirecting to dashboard');
+                        }
+                    } catch (error) {
+                        console.error('Clone error:', error);
+                    }
+                }
+
                 window.location.href = 'dashboard.html';
             }
         }

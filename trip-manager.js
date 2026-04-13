@@ -7,7 +7,7 @@ class TripManager {
   constructor() {
     this.storageKey = 'wahgola_trips';
     this.legacyKey = 'fukuokaItinerary';
-    this.version = '1.0';
+    this.version = '1.1';
 
     // Auto-migrate on first instantiation
     this.migrateFromLegacy();

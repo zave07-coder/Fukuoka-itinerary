@@ -2364,3 +2364,193 @@ body {
   height: 24px;
   color: var(--color-text-primary);
 }
+
+/* ============================================
+   SHARE MODAL STYLES
+   ============================================ */
+
+.share-link-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-link-container {
+  margin-bottom: 20px;
+}
+
+.share-link-input-group input[readonly] {
+  background: #f8fafc;
+  cursor: text;
+  user-select: all;
+}
+
+.share-link-input-group input[readonly]:focus {
+  background: #f1f5f9;
+  border-color: #667eea;
+}
+
+.share-info {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spinner {
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Social Share Buttons */
+.social-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social-share-btn.whatsapp {
+  color: #25D366;
+  border-color: #25D366;
+}
+
+.social-share-btn.whatsapp:hover {
+  background: #25D366;
+  color: white;
+}
+
+.social-share-btn.twitter {
+  color: #000000;
+  border-color: #000000;
+}
+
+.social-share-btn.twitter:hover {
+  background: #000000;
+  color: white;
+}
+
+.social-share-btn.facebook {
+  color: #1877F2;
+  border-color: #1877F2;
+}
+
+.social-share-btn.facebook:hover {
+  background: #1877F2;
+  color: white;
+}
+
+.social-share-btn.telegram {
+  color: #0088cc;
+  border-color: #0088cc;
+}
+
+.social-share-btn.telegram:hover {
+  background: #0088cc;
+  color: white;
+}
+
+.social-share-btn.email {
+  color: #64748b;
+  border-color: #64748b;
+}
+
+.social-share-btn.email:hover {
+  background: #64748b;
+  color: white;
+}
+
+.share-link-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================
+   SHARE MODAL STYLES
+   ============================================ */
+
+.share-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.share-social-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.share-social-btn:active {
+  transform: translateY(0);
+}
+
+#shareUrlInput {
+  user-select: all;
+}
+
+#shareUrlInput:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+#copyBtn:hover {
+  background: #5568d3;
+}
+
+#copyBtn:active {
+  background: #4c5fd0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1803,7 +1803,266 @@ async function sendEmail(env, { from, to, subject, html, text }) {
 }
 
 /**
- * Share trip handler - Send trip via email
+ * Generate shareable link for trip
+ */
+const generateShareLinkHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const { tripId } = await request.json();
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const userId = await verifyJWT(token, env.JWT_SECRET);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const db = new SupabaseClient(env);
+
+    // Verify user owns this trip
+    const trips = await db.query('trips', {
+      eq: { id: tripId, user_id: userId }
+    });
+
+    if (!trips || trips.length === 0) {
+      return new Response(JSON.stringify({ error: 'Trip not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Generate unique share token
+    const shareToken = crypto.randomUUID();
+
+    // Create share record
+    const shareData = {
+      id: crypto.randomUUID(),
+      trip_id: tripId,
+      share_token: shareToken,
+      created_by: userId,
+      created_at: new Date().toISOString(),
+      expires_at: null, // No expiry for now
+      view_count: 0,
+      is_active: true
+    };
+
+    await db.insert('trip_shares', shareData);
+
+    return new Response(JSON.stringify({
+      shareToken,
+      shareUrl: `${new URL(request.url).origin}/shared/${shareToken}`
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Generate share link error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+/**
+ * Get shared trip data (public endpoint)
+ */
+const getSharedTripHandler = async (request, env) => {
+  if (request.method !== 'GET') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const url = new URL(request.url);
+    const shareToken = url.searchParams.get('token');
+
+    if (!shareToken) {
+      return new Response(JSON.stringify({ error: 'Share token required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const db = new SupabaseClient(env);
+
+    // Get share record
+    const shares = await db.query('trip_shares', {
+      eq: { share_token: shareToken, is_active: true }
+    });
+
+    if (!shares || shares.length === 0) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired share link' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const share = shares[0];
+
+    // Get trip data
+    const trips = await db.query('trips', {
+      eq: { id: share.trip_id }
+    });
+
+    if (!trips || trips.length === 0) {
+      return new Response(JSON.stringify({ error: 'Trip not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const trip = trips[0];
+
+    // Increment view count
+    await db.update('trip_shares',
+      { view_count: (share.view_count || 0) + 1 },
+      { id: share.id }
+    );
+
+    return new Response(JSON.stringify({
+      trip: {
+        id: trip.id,
+        destination: trip.destination,
+        days: trip.days,
+        metadata: trip.metadata,
+        created_at: trip.created_at
+      },
+      viewCount: (share.view_count || 0) + 1,
+      isShared: true
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=300' // Cache for 5 minutes
+      }
+    });
+  } catch (error) {
+    console.error('Get shared trip error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+/**
+ * Clone shared trip handler - Copies a shared trip to user's account
+ */
+const cloneSharedTripHandler = async (request, env) => {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    // Verify authentication
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    const userData = await verifyJWT(token, env.JWT_SECRET);
+
+    if (!userData || !userData.id) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
+    const { shareToken } = await request.json();
+
+    if (!shareToken) {
+      return new Response(JSON.stringify({ error: 'Share token required' }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const db = new SupabaseClient(env);
+
+    // Find share record
+    const shares = await db.query('trip_shares', {
+      eq: { share_token: shareToken, is_active: true },
+      limit: 1
+    });
+
+    if (!shares || shares.length === 0) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired share link' }), {
+        status: 404,
+        headers: corsHeaders
+      });
+    }
+
+    const share = shares[0];
+
+    // Get original trip data
+    const trips = await db.query('trips', {
+      eq: { id: share.trip_id },
+      limit: 1
+    });
+
+    if (!trips || trips.length === 0) {
+      return new Response(JSON.stringify({ error: 'Trip not found' }), {
+        status: 404,
+        headers: corsHeaders
+      });
+    }
+
+    const originalTrip = trips[0];
+
+    // Create cloned trip for the current user
+    const newTripId = crypto.randomUUID();
+    const clonedTrip = {
+      id: newTripId,
+      user_id: userData.id,
+      trip_data: originalTrip.trip_data,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    await db.insert('trips', clonedTrip);
+
+    return new Response(JSON.stringify({
+      success: true,
+      tripId: newTripId,
+      message: 'Trip cloned successfully!'
+    }), {
+      status: 200,
+      headers: corsHeaders
+    });
+
+  } catch (error) {
+    console.error('Clone shared trip error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to clone trip',
+      details: error.message
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+};
+
+/**
+ * Share trip handler - Send trip via email (legacy)
  */
 const shareTripHandler = async (request, env) => {
   if (request.method !== 'POST') {
@@ -1985,6 +2244,7 @@ Return JSON: {"summary": "...", "highlights": ["highlight1", "highlight2", ...]}
     highlights: result.highlights || []
   };
 }
+
 
 /**
  * Handle generate summary API endpoint
@@ -2346,16 +2606,16 @@ export default {
     // Version endpoint
     if (url.pathname === '/api/version') {
       // Build timestamp in SGT (UTC+8)
-      const buildDate = '2026-04-12';
-      const buildTime = '10:26';
-      const buildTimestamp = '2026-04-12T10:26:00+08:00';
+      const buildDate = '2026-04-13';
+      const buildTime = '22:05';
+      const buildTimestamp = '2026-04-13T22:05:00+08:00';
 
       const version = {
-        version: '1.3.0',
+        version: '1.4.0',
         buildDate: buildDate,
         buildTime: buildTime,
         buildTimestamp: buildTimestamp,
-        versionString: `v1.3.0 (${buildDate} ${buildTime} SGT)`,
+        versionString: `v1.4.0 (${buildDate} ${buildTime} SGT)`,
         timestamp: new Date().toISOString(),
         env: {
           hasSupabaseUrl: !!env.SUPABASE_URL,
@@ -2436,12 +2696,37 @@ export default {
       return getTripByIdHandler(request, env, tripId);
     } else if (url.pathname === '/api/trips') {
       return tripsHandler(request, env);
+    } else if (url.pathname === '/api/generate-share-link') {
+      return generateShareLinkHandler(request, env);
+    } else if (url.pathname === '/api/shared-trip') {
+      return getSharedTripHandler(request, env);
+    } else if (url.pathname === '/api/clone-shared-trip') {
+      return cloneSharedTripHandler(request, env);
     } else if (url.pathname === '/api/share-trip') {
       return shareTripHandler(request, env);
     } else if (url.pathname === '/api/generate-summary') {
       return generateSummaryHandler(request, env);
     } else if (url.pathname === '/api/poi-image') {
       return getPOIImageHandler(request, env);
+    }
+
+    // Handle /shared/:token route
+    if (url.pathname.startsWith('/shared/')) {
+      // Rewrite to shared.html with token as query param
+      const token = url.pathname.split('/shared/')[1];
+      const sharedUrl = new URL(request.url);
+      sharedUrl.pathname = '/shared.html';
+      sharedUrl.searchParams.set('token', token);
+
+      const sharedRequest = new Request(sharedUrl.toString(), request);
+      const response = await env.ASSETS.fetch(sharedRequest);
+
+      const newResponse = new Response(response.body, response);
+      newResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      newResponse.headers.set('Pragma', 'no-cache');
+      newResponse.headers.set('Expires', '0');
+
+      return newResponse;
     }
 
     // For non-API routes, return the static file (handled by Pages)
