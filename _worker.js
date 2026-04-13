@@ -2624,16 +2624,14 @@ export default {
       return getPOIImageHandler(request, env);
     }
 
-    // Handle /shared/:token route
+    // Handle /shared/:token route - serve trip-planner.html
     if (url.pathname.startsWith('/shared/')) {
-      // Rewrite to shared.html with token as query param
-      const token = url.pathname.split('/shared/')[1];
-      const sharedUrl = new URL(request.url);
-      sharedUrl.pathname = '/shared.html';
-      sharedUrl.searchParams.set('token', token);
+      // Serve trip-planner.html (the token will be parsed from pathname by trip-planner.js)
+      const plannerUrl = new URL(request.url);
+      plannerUrl.pathname = '/trip-planner.html';
 
-      const sharedRequest = new Request(sharedUrl.toString(), request);
-      const response = await env.ASSETS.fetch(sharedRequest);
+      const plannerRequest = new Request(plannerUrl.toString(), request);
+      const response = await env.ASSETS.fetch(plannerRequest);
 
       const newResponse = new Response(response.body, response);
       newResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
