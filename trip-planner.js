@@ -876,20 +876,47 @@ function initializeMap() {
  */
 function getInitialMapCenter() {
   if (!currentTrip || !currentTrip.days || currentTrip.days.length === 0) {
+    console.log('[Map] No trip data, using default Kyoto center');
     return [135.7681, 35.0116]; // Default to Kyoto
   }
+
+  console.log('[Map] Looking for initial center from trip data...');
+  console.log('[Map] Trip has', currentTrip.days.length, 'days');
 
   // Try to find first activity with location
   for (const day of currentTrip.days) {
     if (day.activities && day.activities.length > 0) {
       for (const activity of day.activities) {
+        // Handle multiple coordinate formats
+        let lat, lng;
+
+        // Format 1: activity.location.lat/lng
         if (activity.location && activity.location.lat && activity.location.lng) {
-          return [activity.location.lng, activity.location.lat];
+          lat = activity.location.lat;
+          lng = activity.location.lng;
+        }
+        // Format 2: activity.lat/lng
+        else if (activity.lat && activity.lng) {
+          lat = activity.lat;
+          lng = activity.lng;
+        }
+        // Format 3: activity.coordinates.lat/lng
+        else if (activity.coordinates && activity.coordinates.lat && activity.coordinates.lng) {
+          lat = activity.coordinates.lat;
+          lng = activity.coordinates.lng;
+        }
+
+        // Validate coordinates are actual numbers
+        if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
+          const center = [parseFloat(lng), parseFloat(lat)];
+          console.log('[Map] Found valid coordinates:', center, 'from activity:', activity.name || activity.title);
+          return center;
         }
       }
     }
   }
 
+  console.log('[Map] No valid coordinates found in trip data, using Kyoto fallback');
   return [135.7681, 35.0116]; // Fallback to Kyoto
 }
 
@@ -957,10 +984,31 @@ function updateMapMarkers() {
 
     // Collect locations for this day
     day.activities.forEach((activity, actIndex) => {
+      // Extract coordinates from various possible formats
+      let lat, lng;
+
+      // Format 1: activity.location.lat/lng
       if (activity.location && activity.location.lat && activity.location.lng) {
+        lat = activity.location.lat;
+        lng = activity.location.lng;
+      }
+      // Format 2: activity.lat/lng
+      else if (activity.lat && activity.lng) {
+        lat = activity.lat;
+        lng = activity.lng;
+      }
+      // Format 3: activity.coordinates.lat/lng
+      else if (activity.coordinates && activity.coordinates.lat && activity.coordinates.lng) {
+        lat = activity.coordinates.lat;
+        lng = activity.coordinates.lng;
+      }
+
+      // Only add if we have valid coordinates
+      if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
         const loc = {
-          ...activity.location,
-          activityName: activity.name,
+          lat: parseFloat(lat),
+          lng: parseFloat(lng),
+          activityName: activity.name || activity.title,
           dayNumber: dayNumber,
           activityIndex: actIndex
         };
