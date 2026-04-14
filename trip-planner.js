@@ -1041,6 +1041,17 @@ function showMapError(errorMessage) {
 function updateMapMarkers() {
   if (!map || !currentTrip || !currentTrip.days) return;
 
+  // Check if map style is loaded before trying to add sources/layers
+  if (!map.isStyleLoaded()) {
+    console.log('[Map] Style not loaded yet, deferring marker update...');
+    // Wait for style to load, then try again
+    map.once('style.load', () => {
+      console.log('[Map] Style loaded, updating markers now');
+      updateMapMarkers();
+    });
+    return;
+  }
+
   // Initialize all days as visible if not set
   if (visibleDays.size === 0) {
     currentTrip.days.forEach((_, index) => {
