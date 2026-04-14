@@ -348,6 +348,95 @@ function updateTripCurrency(newCurrency) {
 }
 
 /**
+ * Update back button behavior for guest users viewing shared trips
+ */
+function updateBackButtonForGuests() {
+  const backBtn = document.querySelector('.back-btn-header');
+  if (!backBtn) return;
+
+  // Check if this is a shared/guest trip
+  const isSharedTrip = currentTrip?.isShared === true || window.location.pathname.startsWith('/shared/');
+
+  if (isSharedTrip) {
+    console.log('[Guest Mode] Detected shared trip - updating UI for read-only mode');
+
+    // Replace back button with a "Clone Trip" button for guests
+    backBtn.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span style="margin-left: 8px;">Clone This Trip</span>
+    `;
+    // Remove href to prevent navigation loop - use onclick instead
+    backBtn.removeAttribute('href');
+    backBtn.style.cursor = 'pointer';
+    backBtn.onclick = (e) => {
+      e.preventDefault();
+      // Store the current shared trip URL so we can clone it after login
+      sessionStorage.setItem('pendingCloneUrl', window.location.href);
+      // Navigate to login
+      window.location.href = 'login.html?action=clone';
+    };
+    backBtn.title = 'Sign up to create your own copy';
+    backBtn.style.display = 'flex';
+    backBtn.style.alignItems = 'center';
+    backBtn.style.gap = '8px';
+
+    // Hide edit/delete buttons that don't make sense for guests
+    const aiEditBtn = document.querySelector('.btn-ai-edit');
+    const tripMenuBtn = document.getElementById('tripMenuBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const syncStatus = document.getElementById('syncStatus');
+
+    // Hide AI Edit button (guests can't edit)
+    if (aiEditBtn) {
+      aiEditBtn.style.display = 'none';
+    }
+
+    // Hide trip menu (duplicate/delete options)
+    if (tripMenuBtn) {
+      tripMenuBtn.style.display = 'none';
+    }
+
+    // Keep share button visible (guests can share too)
+    // Keep export to PDF button visible
+
+    // Hide sync status (not relevant for guests)
+    if (syncStatus) {
+      syncStatus.style.display = 'none';
+    }
+
+    // Hide day-level AI edit buttons
+    document.querySelectorAll('.btn-ai-day').forEach(btn => {
+      btn.style.display = 'none';
+    });
+
+    // Hide manual edit buttons on day cards
+    document.querySelectorAll('.day-action-btn').forEach(btn => {
+      btn.style.display = 'none';
+    });
+
+  } else {
+    // Ensure back button is visible for authenticated users
+    backBtn.style.display = 'flex';
+    backBtn.href = 'dashboard.html';
+
+    // Make sure edit buttons are visible for authenticated users
+    const aiEditBtn = document.querySelector('.btn-ai-edit');
+    const tripMenuBtn = document.getElementById('tripMenuBtn');
+
+    if (aiEditBtn) {
+      aiEditBtn.style.display = 'flex';
+    }
+
+    if (tripMenuBtn) {
+      tripMenuBtn.style.display = 'flex';
+    }
+  }
+}
+
+/**
  * Render trip data to the page
  */
 function renderTrip() {
@@ -360,6 +449,9 @@ function renderTrip() {
 
   // Add or update budget overview in header
   renderTripBudgetOverview();
+
+  // Update back button for guest users viewing shared trips
+  updateBackButtonForGuests();
 
   // Render days (includes summary and checklist placeholders)
   const itineraryPanel = document.querySelector('.itinerary-panel');
