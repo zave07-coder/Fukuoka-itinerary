@@ -358,11 +358,24 @@
             if (isAuth) {
                 console.log('User already logged in, redirecting...');
 
-                // Check for clone intent
-                const cloneIntent = sessionStorage.getItem('cloneIntent');
+                // Check for clone intent - support both old 'cloneIntent' and new 'pendingCloneUrl'
+                let cloneIntent = sessionStorage.getItem('cloneIntent');
+                const pendingCloneUrl = sessionStorage.getItem('pendingCloneUrl');
+
+                // Extract shareToken from pendingCloneUrl if present
+                if (pendingCloneUrl && !cloneIntent) {
+                    console.log('[Login] Found pendingCloneUrl:', pendingCloneUrl);
+                    // Extract shareToken from URL like: /shared/{shareToken} or ?token={shareToken}
+                    const urlMatch = pendingCloneUrl.match(/\/shared\/([^/?#]+)/);
+                    const paramMatch = pendingCloneUrl.match(/[?&]token=([^&#]+)/);
+                    cloneIntent = urlMatch?.[1] || paramMatch?.[1] || null;
+                    console.log('[Login] Extracted shareToken:', cloneIntent);
+                }
+
                 if (cloneIntent) {
-                    console.log('Clone intent detected, cloning trip...');
+                    console.log('[Login] Clone intent detected, cloning trip...');
                     sessionStorage.removeItem('cloneIntent');
+                    sessionStorage.removeItem('pendingCloneUrl');
 
                     try {
                         const authToken = await authService.getAuthToken();
@@ -377,19 +390,72 @@
 
                         if (response.ok) {
                             const data = await response.json();
-                            window.location.href = `trip-planner.html?trip=${data.tripId}`;
+                            // Clear any history state to prevent back button loops
+                            window.location.replace(`trip-planner.html?trip=${data.tripId}`);
                             return;
                         } else {
-                            console.error('Clone failed, redirecting to dashboard');
+                            console.error('[Login] Clone failed, redirecting to dashboard');
                         }
                     } catch (error) {
-                        console.error('Clone error:', error);
+                        console.error('[Login] Clone error:', error);
                     }
                 }
 
                 window.location.href = 'dashboard.html';
             }
         }
+
+        // Listen for auth state changes (handles OAuth callbacks)
+        authService.supabase?.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                console.log('[Login] User signed in via OAuth, checking for clone intent...');
+
+                // Check for clone intent after successful OAuth login
+                let cloneIntent = sessionStorage.getItem('cloneIntent');
+                const pendingCloneUrl = sessionStorage.getItem('pendingCloneUrl');
+
+                // Extract shareToken from pendingCloneUrl if present
+                if (pendingCloneUrl && !cloneIntent) {
+                    console.log('[Login] Found pendingCloneUrl:', pendingCloneUrl);
+                    const urlMatch = pendingCloneUrl.match(/\/shared\/([^/?#]+)/);
+                    const paramMatch = pendingCloneUrl.match(/[?&]token=([^&#]+)/);
+                    cloneIntent = urlMatch?.[1] || paramMatch?.[1] || null;
+                    console.log('[Login] Extracted shareToken:', cloneIntent);
+                }
+
+                if (cloneIntent) {
+                    console.log('[Login] Processing clone after OAuth login...');
+                    sessionStorage.removeItem('cloneIntent');
+                    sessionStorage.removeItem('pendingCloneUrl');
+
+                    try {
+                        const authToken = await authService.getAuthToken();
+                        const response = await fetch('/api/clone-shared-trip', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ shareToken: cloneIntent })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            // Use replace to prevent back button loop
+                            window.location.replace(`trip-planner.html?trip=${data.tripId}`);
+                            return;
+                        } else {
+                            console.error('[Login] Clone failed after OAuth login');
+                        }
+                    } catch (error) {
+                        console.error('[Login] Clone error after OAuth:', error);
+                    }
+                }
+
+                // If no clone intent or clone failed, go to dashboard
+                window.location.href = 'dashboard.html';
+            }
+        });
 
         initLoginPage().catch(console.error);
     </script>

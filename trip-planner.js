@@ -375,8 +375,9 @@ function updateBackButtonForGuests() {
       e.preventDefault();
       // Store the current shared trip URL so we can clone it after login
       sessionStorage.setItem('pendingCloneUrl', window.location.href);
-      // Navigate to login
-      window.location.href = 'login.html?action=clone';
+      // Use replace() to prevent shared trip from appearing in browser history
+      // This way, after login, pressing back won't return to the shared trip
+      window.location.replace('login.html?action=clone');
     };
     backBtn.title = 'Sign up to create your own copy';
     backBtn.style.display = 'flex';

@@ -1,86 +1,99 @@
--c1c09f3e546c`, the trip-planner.js was only looking for a `?trip=` query parameter, which didn't exist in the shared URL format. This caused it to redirect to dashboard, creating an infinite loop.
+ner.js` that still had the redirects enabled. I've bumped the cache version from `?v=30` to `?v=31` which will force all browsers to download the fresh version.
 
-**What I fixed:**
+Now:
+1. **Wait 1-2 minutes** for Cloudflare to deploy
+2. **Hard refresh** your browser (Ctrl+Shift+R or Cmd+Shift+R) to clear cache
+3. Visit: https://wahgola.zavecoder.com/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c
 
-1. **Updated `trip-planner.js`**:
-   - Added detection for `/shared/{token}` pathname format
-   - Created `loadSharedTrip()` function to fetch the trip via `/api/shared-trip?token={token}`
+You should now s
 
-[2026-04-13] ✅ **Fixed and deployed!**
-
-## The Problem
-The endless redirect loop was caused by a **data structure mismatch** between the API and the frontend:
-
-**API Response** (`_worker.js`):
-```json
-{
-  "trip": { id, destination, days, metadata, ... },
-  "viewCount": 123,
-  "isShared": true
-}
-```
-
-**Frontend Code** (`trip-planner.js`) was incorrectly trying to access:
-- `sharedData.tripId` ❌ (doesn't exist)
-- `sharedData.tripData` ❌ (doesn't exist)
-
-This caused `currentTrip` to be malformed/undefined, trig
-
-[2026-04-13] ✅ **Fixed and deployed!**
+[2026-04-13] ✅ **Fixed and pushed!**
 
 ## The Root Cause
 
-The infinite redirect loop was caused by **`_routes.json`** not including `/shared/*` routes. This meant:
+The worker was **changing the URL** from `/shared/01204ece-...` to `/trip-planner.html` when serving the page. This caused:
 
-1. When you visited `/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c`
-2. Cloudflare Pages served it directly as a static asset (bypassing the worker)
-3. Pages SPA routing defaulted to serving `index.html`
-4. `index.html` has a script that checks for `?trip=` parameter
-5. Since there's no `?trip=` parameter, it redirects to `dashboard.html`
-6. But t
+1. Browser URL became `/trip-planner` (without .html due to browser behavior)
+2. JavaScript checked `window.location.pathname` and saw `/trip-planner`
+3. It didn't match `/shared/` so it looked for `?trip=` parameter instead
+4. No parameter found → "No trip ID found" error
 
-[2026-04-13] Good! Now wait 1-2 minutes for deployment, then try the link again. When you do, please **open the browser console (F12)** and share the console logs with me. The new logging will show exactly what's happening:
+## The Fix
 
-- What pathname is detected
-- What share token is extracted
-- What the API response is
-- Any errors that occur
+Now the worker:
+- **Keeps** the original `/s
 
-This will help me pinpoint exactly where the flow is breaking.
+[2026-04-13] ✅ **Yes, everything is pushed!** 
 
-[2026-04-13] Perfect! Now please:
+Latest commits:
+1. `886cb8a` - Fixed the /shared/ URL preservation (just now at 20:25)
+2. `664d550` - Bumped cache version to v=31
+3. `59647b7` - Disabled redirects for debugging
 
-1. Wait **1-2 minutes** for Cloudflare to deploy
-2. Visit the shared link again: https://wahgola.zavecoder.com/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c
-3. Open browser console (F12 → Console tab)
-4. Share the console logs with me
+**Cloudflare Pages auto-deploys from your GitHub main branch**, so it should be deploying now. Typically takes **1-2 minutes**.
 
-The new logging will show us exactly what data structure is being returned from the API, which will help me fix the issue immediately.
-
-[2026-04-13] Now wait 1-2 minutes for deployment, then visit the link again. This time you'll see a detailed error popup on the page itself showing exactly what went wrong, which will help us fix it immediately.
-
-[2026-04-13] ✅ **Pushed the fix!**
-
-The issue was that even though we had a `return` statement after calling `loadSharedTrip()`, there might have been edge cases or race conditions. I've added:
-
-1. Better logging to show when we're skipping the trip ID check for shared links
-2. A safety check that prevents the redirect if we're on a `/shared/` path, even if we somehow get to that code
-
-Wait **1-2 minutes** for Cloudflare to deploy, then try the link again. It should now stay on the shared trip page without r
+You can:
+1. Wait ~2 minutes
+2. **Hard refresh** (Ctrl+Shift+R) when you visit the link
+3. Try: https://wahgola.zavecoder.com/shared/01204ece-07c3-41bf-8c5b-
 
 [2026-04-13] ✅ **Fixed and pushed!**
 
 ## The Problem
-When viewing a shared trip at `/shared/01204ece-07c3-41bf-8c5b-c1c09f3e546c`, the trip loads successfully into `currentTrip` and `currentTripId` variables. However, when ANY function tries to do something (like the share modal or possibly some background sync check), it was looking for `?trip=` in the URL query parameters, which doesn't exist for shared links.
+When loading `/shared/01204ece-...`, the HTML tried to load:
+- `/shared/trip-planner.css` ❌ Matched `/shared/*` → Served HTML
+- `/shared/trip-planner.js` ❌ Matched `/shared/*` → Served HTML  
+- `/shared/auth-service.js` ❌ Matched `/shared/*` → Served HTML
+
+All asset requests got HTML instead of CSS/JS files, causing MIME type errors.
 
 ## The Fix
-Changed line 2602 in `trip-planner.js`:
-- **Before**: `const tripId = new URLSearchPa
+Now the worker uses regex `/^\/shared\/[a-f0-9-]+$/i` to **only match valid UUID patterns**:
+- `/shared/01204ece
 
-[2026-04-13] So "No trip ID found" only appears at line 2606 in the `shareTrip()` function. But the user says this happens automatically after page load, not when clicking share.
+[2026-04-13] ✅ **Fixed and pushed!**
 
-Unless... maybe the share button has `onclick="shareTrip()"` and it's being triggered automatically somehow? Or maybe there's some other code calling `shareTrip()`?
+## The Problem
+When loading `/shared/01204ece-...`, the HTML used **relative paths** like `href="trip-planner.css"`. The browser resolved these relative to the current URL, trying to load:
+- `/shared/trip-planner.css` ❌ (doesn't exist)
+- `/shared/auth-service.js` ❌ (doesn't exist)
 
-Let me ask the user for console logs to understand what's really happening:
+This caused MIME type errors because those paths returned 404s or HTML error pages instead of actual CSS/JS files.
 
-Based on my analysis, I think I need to see the actual console logs to understand what's h
+## The Fix
+Changed all CSS/JS references from relative to **absolute paths**
+
+[2026-04-13] ✅ **Fixed and pushed!**
+
+## The Problem
+The map was initializing with `(NaN, NaN)` coordinates because:
+1. The code only checked for `activity.location.lat/lng` format
+2. Shared trips might store coordinates in different formats (e.g., `activity.lat/lng` or `activity.coordinates.lat/lng`)
+3. When coordinates weren't found, it returned `undefined` values which became `NaN` when parsed
+
+## The Fix
+Made both `getInitialMapCenter()` and `updateMapMarkers()` handle **3 coordinate formats**:
+- `activi
+
+[2026-04-14] Now let me create a summary document of all the issues found and fixes applied:
+
+## Summary of Issues Found and Fixes Applied
+
+### **Primary Issue: Infinite Redirect Loop for Guest Users**
+
+**Root Cause:**
+When guest users click the back button (top-left) on shared itineraries (`/shared/{uuid}`), they are redirected to `dashboard.html`. Since guests have no dashboard and no clear navigation path, this creates a confusing user experience and potential navigation loops.
+
+**Fixes Applied:**
+
+1. **A
+
+[2026-04-14] Perfect! Now let me create a summary of all the potential issues I found and fixed:
+
+## ✅ Fixed: Navigation Loop on Shared Trips
+
+**The Problem:**
+When guests viewed a shared itinerary and clicked the "Clone This Trip" button (previously the back button), they were sent to `login.html`. If they clicked the browser's back button, they returned to the shared trip, which again showed the "Clone This Trip" button pointing to login - creating an endless loop.
+
+**The Fix:**
+1. **Removed `href` attribu
