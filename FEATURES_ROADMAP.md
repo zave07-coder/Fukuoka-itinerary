@@ -32,9 +32,9 @@
 - [ ] Collapsible map on mobile
 
 ### Quick Wins
-- [ ] Duplicate day feature
-- [ ] Search activities
-- [ ] Filter by type
+- [x] Duplicate day feature
+- [x] Search activities
+- [x] Filter by type
 
 ## 📋 Planned (v1.2)
 - Weather integration (OpenWeather API)
